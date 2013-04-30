@@ -285,7 +285,7 @@ static void set_mode(uint8_t mode)
     case STABILIZE:
     	ap.manual_throttle = true;
     	ap.manual_attitude = true;
-        set_yaw_mode(YAW_HOLD);
+        //set_yaw_mode(YAW_HOLD);
         set_roll_pitch_mode(ROLL_PITCH_STABLE);
         set_nav_mode(NAV_NONE);
         break;
@@ -293,7 +293,7 @@ static void set_mode(uint8_t mode)
     case AUTO:
     	ap.manual_throttle = false;
     	ap.manual_attitude = false;
-        set_yaw_mode(YAW_HOLD);     // yaw mode will be set by mission command
+        //set_yaw_mode(YAW_HOLD);     // yaw mode will be set by mission command
         set_roll_pitch_mode(AUTO_RP);
         // we do not set nav mode for auto because it will be overwritten when first command runs
         // loads the commands from where we left off
@@ -305,13 +305,13 @@ static void set_mode(uint8_t mode)
     	ap.manual_attitude = false;
         set_roll_pitch_mode(CIRCLE_RP);
         set_nav_mode(CIRCLE_NAV);
-        set_yaw_mode(CIRCLE_YAW);
+        //set_yaw_mode(CIRCLE_YAW);
         break;
 
     case LOITER:
     	ap.manual_throttle = false;
     	ap.manual_attitude = false;
-        set_yaw_mode(LOITER_YAW);
+        //set_yaw_mode(LOITER_YAW);
         set_roll_pitch_mode(LOITER_RP);
         set_nav_mode(LOITER_NAV);
         break;
@@ -319,7 +319,7 @@ static void set_mode(uint8_t mode)
     case GUIDED:
     	ap.manual_throttle = false;
     	ap.manual_attitude = false;
-        set_yaw_mode(get_wp_yaw_mode(false));
+        //set_yaw_mode();
         set_roll_pitch_mode(GUIDED_RP);
         set_nav_mode(GUIDED_NAV);
         break;

@@ -49,8 +49,6 @@
 
 #define CH7_DO_NOTHING      0
 #define CH7_SET_HOVER       1       // deprecated
-#define CH7_FLIP            2
-#define CH7_SIMPLE_MODE     3
 #define CH7_RTL             4
 #define CH7_SAVE_TRIM       5
 #define CH7_ADC_FILTER      6       // deprecated
@@ -261,8 +259,6 @@ enum gcs_severity {
 #define DATA_FAST_LOOP                  5
 #define DATA_MED_LOOP                   6
 #define DATA_AP_STATE                   7
-#define DATA_SIMPLE_BEARING             8
-#define DATA_INIT_SIMPLE_BEARING        9
 #define DATA_ARMED                      10
 #define DATA_DISARMED                   11
 #define DATA_AUTO_ARMED                 15
@@ -276,8 +272,6 @@ enum gcs_severity {
 #define DATA_EXIT_FLIP                  23
 #define DATA_FLIP_ABORTED               24
 #define DATA_SET_HOME                   25
-#define DATA_SET_SIMPLE_ON              26
-#define DATA_SET_SIMPLE_OFF             27
 #define DATA_REACHED_ALT                28
 #define DATA_ASCENDING                  29
 #define DATA_DESCENDING                 30

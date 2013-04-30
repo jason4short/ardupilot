@@ -326,14 +326,6 @@ test_wp(uint8_t argc, const Menu::arg *argv)
 {
     delay(1000);
 
-    // save the alitude above home option
-    cliSerial->printf_P(PSTR("Hold alt "));
-    if(g.rtl_altitude < 0) {
-        cliSerial->printf_P(PSTR("\n"));
-    }else{
-        cliSerial->printf_P(PSTR("of %dm\n"), (int)g.rtl_altitude / 100);
-    }
-
     cliSerial->printf_P(PSTR("%d wp\n"), (int)g.command_total);
     cliSerial->printf_P(PSTR("Hit rad: %dm\n"), (int)wp_nav.get_waypoint_radius());
 

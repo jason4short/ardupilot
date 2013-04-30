@@ -122,7 +122,7 @@ static bool set_nav_mode(uint8_t new_nav_mode)
 
         case NAV_LOITER:
             // set target to current position
-            wp_nav.set_loiter_target(inertial_nav.get_position(), inertial_nav.get_velocity());
+            //wp_nav.set_loiter_target(inertial_nav.get_position(), inertial_nav.get_velocity());
             nav_initialised = true;
             break;
 
@@ -202,58 +202,12 @@ static int32_t get_yaw_slew(int32_t current_yaw, int32_t desired_yaw, int16_t de
 static void
 circle_set_center(const Vector3f current_position, float heading_in_radians)
 {
-    // set circle center to circle_radius ahead of current position
-    circle_center.x = current_position.x + (float)g.circle_radius * 100 * sin_yaw;
-    circle_center.y = current_position.y + (float)g.circle_radius * 100 * cos_yaw;
 
-    // if we are doing a panorama set the circle_angle to the current heading
-    if( g.circle_radius == 0 ) {
-        circle_angle = heading_in_radians;
-    }else{
-        // set starting angle to current heading - 180 degrees
-        circle_angle = heading_in_radians-ToRad(180);
-        if( circle_angle > 180 ) {
-            circle_angle -= 180;
-        }
-        if( circle_angle < -180 ) {
-            circle_angle -= 180;
-        }
-    }
-
-    // initialise other variables
-    circle_angle_total = 0;
 }
 
 // update_circle - circle position controller's main call which in turn calls loiter controller with updated target position
 static void
 update_circle(float dt)
 {
-    float angle_delta = ToRad(g.circle_rate) * dt;
-    float cir_radius = g.circle_radius * 100;
-    Vector3f circle_target;
 
-    // update the target angle
-    circle_angle += angle_delta;
-    if( circle_angle > 180 ) {
-        circle_angle -= 360;
-    }
-    if( circle_angle <= -180 ) {
-        circle_angle += 360;
-    }
-
-    // update the total angle travelled
-    circle_angle_total += angle_delta;
-
-    // if the circle_radius is zero we are doing panorama so no need to update loiter target
-    if( g.circle_radius != 0.0 ) {
-        // calculate target position
-        circle_target.x = circle_center.x + cir_radius * sinf(1.57f - circle_angle);
-        circle_target.y = circle_center.y + cir_radius * cosf(1.57f - circle_angle);
-
-        // re-use loiter position controller
-        wp_nav.set_loiter_target(circle_target);
-    }
-
-    // call loiter controller
-    wp_nav.update_loiter();
 }

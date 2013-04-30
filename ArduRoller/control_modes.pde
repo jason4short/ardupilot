@@ -16,12 +16,6 @@ static void read_control_switch()
             // ignore flight mode changes if in failsafe
             if( !ap.failsafe_radio ) {
                 set_mode(flight_modes[switchPosition]);
-
-                if(g.ch7_option != CH7_SIMPLE_MODE) {
-                    // set Simple mode using stored paramters from Mission planner
-                    // rather than by the control switch
-                    set_simple_mode(BIT_IS_SET(g.simple_modes, switchPosition));
-                }
             }
         }
     }else{

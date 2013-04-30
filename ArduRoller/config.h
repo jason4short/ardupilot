@@ -517,10 +517,6 @@
  # define CIRCLE_NAV           	    NAV_CIRCLE
 #endif
 
-#ifndef CIRCLE_RATE
- # define CIRCLE_RATE               5.0f        // degrees per second turn rate
-#endif
-
 // Guided Mode
 // Note: Guided mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
 #ifndef GUIDED_RP
@@ -589,152 +585,162 @@
  # define ACRO_P                 4.5f
 #endif
 
-#ifndef AXIS_LOCK_ENABLED
- # define AXIS_LOCK_ENABLED      ENABLED
+//////////////////////////////////////////////////////////////////////////////
+// Attitude Control
+//
+#ifndef MAX_INPUT_PITCH_ANGLE
+ # define MAX_INPUT_PITCH_ANGLE     1000
+#endif
+#ifndef MAX_INPUT_YAW_ANGLE
+ # define MAX_INPUT_YAW_ANGLE       500
 #endif
 
-// Good for smaller payload motors.
-#ifndef STABILIZE_ROLL_P
- # define STABILIZE_ROLL_P          4.5f
-#endif
-#ifndef STABILIZE_ROLL_I
- # define STABILIZE_ROLL_I          0.0f
-#endif
-#ifndef STABILIZE_ROLL_IMAX
- # define STABILIZE_ROLL_IMAX    	8.0f            // degrees
-#endif
 
-#ifndef STABILIZE_PITCH_P
- # define STABILIZE_PITCH_P         4.5f
-#endif
-#ifndef STABILIZE_PITCH_I
- # define STABILIZE_PITCH_I         0.0f
-#endif
-#ifndef STABILIZE_PITCH_IMAX
- # define STABILIZE_PITCH_IMAX   	8.0f            // degrees
-#endif
+//#ifndef STABILIZE_PITCH_P
+// # define STABILIZE_PITCH_P         5.5
+//#endif
 
 #ifndef  STABILIZE_YAW_P
- # define STABILIZE_YAW_P           4.5f            // increase for more aggressive Yaw Hold, decrease if it's bouncy
+ # define STABILIZE_YAW_P           0.1            // increase for more aggressive Yaw Hold, decrease if it's bouncy
 #endif
 #ifndef  STABILIZE_YAW_I
- # define STABILIZE_YAW_I           0.0f
+ # define STABILIZE_YAW_I           0.0
 #endif
 #ifndef  STABILIZE_YAW_IMAX
- # define STABILIZE_YAW_IMAX        8.0f            // degrees * 100
+ # define STABILIZE_YAW_IMAX        8.0        // degrees * 100
 #endif
 
-#ifndef YAW_LOOK_AHEAD_MIN_SPEED
- # define YAW_LOOK_AHEAD_MIN_SPEED  1000             // minimum ground speed in cm/s required before copter is aimed at ground course
+
+
+#ifndef SPEED_P
+ # define SPEED_P       	        0.75
+#endif
+#ifndef SPEED_I
+ # define SPEED_I       	        7
+#endif
+#ifndef SPEED_D
+ # define SPEED_D       	        0.075
+#endif
+#ifndef SPEED_IMAX
+ # define SPEED_IMAX               15.0        // degrees
+#endif
+
+
+#ifndef WHEEL_ENCODER_SPEED
+ # define WHEEL_ENCODER_SPEED       815
+#endif
+
+#ifndef WHEEL_DIAMETER
+ # define WHEEL_DIAMETER       	    2827       // 90mm * PI * 10
+#endif
+
+#ifndef WHEEL_DIAMETER_CM
+ # define WHEEL_DIAMETER_CM       	28.27       // 90mm * PI * 10
+#endif
+
+
+#ifndef BALANCE_P
+ # define BALANCE_P       	        2.8
+#endif
+#ifndef BALANCE_I
+ # define BALANCE_I       	        .01
+#endif
+#ifndef BALANCE_D
+ # define BALANCE_D       	        0.24
+#endif
+#ifndef BALANCE_IMAX
+ # define BALANCE_IMAX              3.0      // degrees
+#endif
+
+#ifndef VELOCITY_P
+ # define VELOCITY_P                .4      // degrees
+#endif
+
+
+
+#ifndef YAW_P
+ # define YAW_P                     .22
+#endif
+#ifndef YAW_I
+ # define YAW_I                     0.0
+#endif
+#ifndef YAW_D
+ # define YAW_D                     0.1
+#endif
+#ifndef YAW_IMAX
+ # define YAW_IMAX                  8          // degrees
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// WP Navigation control gains
+//
+#ifndef NAV_P
+ # define NAV_P                     .2         //
+#endif
+#ifndef NAV_I
+ # define NAV_I                     0.0        //
+#endif
+#ifndef NAV_D
+ # define NAV_D                     0.0        // .95
+#endif
+#ifndef NAV_IMAX
+ # define NAV_IMAX                  18          // degrees
+#endif
+
+#ifndef AUTO_YAW_SLEW_RATE
+ # define AUTO_YAW_SLEW_RATE        60          // degrees/sec
+#endif
+
+#ifndef WAYPOINT_SPEED_MAX
+ # define WAYPOINT_SPEED_MAX        100         // 6m/s error = 13mph
+#endif
+
+#ifndef WAYPOINT_SPEED_MIN
+ # define WAYPOINT_SPEED_MIN        10          // 1m/s
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// Wheel PWM putput
+//
+
+#ifndef BOT_HEIGHT
+ # define BOT_HEIGHT                    25.0         //
+#endif
+
+
+#ifndef WHEEL_ENCODER_DIR_RIGHT
+ # define WHEEL_ENCODER_DIR_RIGHT       -1
+#endif
+
+#ifndef WHEEL_ENCODER_DIR_LEFT
+ # define WHEEL_ENCODER_DIR_LEFT        1
+#endif
+
+
+#ifndef WHEEL_P
+ # define WHEEL_P                     .05
+#endif
+#ifndef WHEEL_I
+ # define WHEEL_I                     4
+#endif
+#ifndef WHEEL_D
+ # define WHEEL_D                     0.006
+#endif
+#ifndef WHEEL_IMAX
+ # define WHEEL_IMAX                  12    // degrees
 #endif
 
 
 //////////////////////////////////////////////////////////////////////////////
-// Stabilize Rate Control
+// Crosstrack compensation
 //
-
-#ifndef MAX_INPUT_ROLL_ANGLE
- # define MAX_INPUT_ROLL_ANGLE      4500
+#ifndef CROSSTRACK_GAIN
+ # define CROSSTRACK_GAIN       .2
 #endif
-#ifndef MAX_INPUT_PITCH_ANGLE
- # define MAX_INPUT_PITCH_ANGLE     4500
-#endif
-#ifndef RATE_ROLL_P
- # define RATE_ROLL_P        		0.150f
-#endif
-#ifndef RATE_ROLL_I
- # define RATE_ROLL_I        		0.100f
-#endif
-#ifndef RATE_ROLL_D
- # define RATE_ROLL_D        		0.004f
-#endif
-#ifndef RATE_ROLL_IMAX
- # define RATE_ROLL_IMAX         	5.0f                    // degrees
+#ifndef CROSSTRACK_MIN_DISTANCE
+ # define CROSSTRACK_MIN_DISTANCE       15
 #endif
 
-#ifndef RATE_PITCH_P
- # define RATE_PITCH_P       		0.150f
-#endif
-#ifndef RATE_PITCH_I
- # define RATE_PITCH_I       		0.100f
-#endif
-#ifndef RATE_PITCH_D
- # define RATE_PITCH_D       		0.004f
-#endif
-#ifndef RATE_PITCH_IMAX
- # define RATE_PITCH_IMAX        	5.0f                    // degrees
-#endif
-
-#ifndef RATE_YAW_P
- # define RATE_YAW_P              	0.200f
-#endif
-#ifndef RATE_YAW_I
- # define RATE_YAW_I              	0.015f
-#endif
-#ifndef RATE_YAW_D
- # define RATE_YAW_D              	0.000f
-#endif
-#ifndef RATE_YAW_IMAX
- # define RATE_YAW_IMAX            	8.0f          // degrees
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Rate controlled stabilized variables
-//
-
-#ifndef MAX_ROLL_OVERSHOOT
- #define MAX_ROLL_OVERSHOOT			3000
-#endif
-
-#ifndef MAX_PITCH_OVERSHOOT
- #define MAX_PITCH_OVERSHOOT		3000
-#endif
-
-#ifndef MAX_YAW_OVERSHOOT
- #define MAX_YAW_OVERSHOOT			1000
-#endif
-
-#ifndef ACRO_BALANCE_ROLL
- #define ACRO_BALANCE_ROLL			200
-#endif
-
-#ifndef ACRO_BALANCE_PITCH
- #define ACRO_BALANCE_PITCH			200
-#endif
-
-#ifndef ACRO_TRAINER_ENABLED
- #define ACRO_TRAINER_ENABLED       ENABLED
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Loiter position control gains
-//
-#ifndef LOITER_P
- # define LOITER_P             		1.0f
-#endif
-#ifndef LOITER_I
- # define LOITER_I             		0.0f
-#endif
-#ifndef LOITER_IMAX
- # define LOITER_IMAX          		30             // degrees
-#endif
-
-//////////////////////////////////////////////////////////////////////////////
-// Loiter rate control gains
-//
-#ifndef LOITER_RATE_P
- # define LOITER_RATE_P          	1.0f
-#endif
-#ifndef LOITER_RATE_I
- # define LOITER_RATE_I          	0.5f
-#endif
-#ifndef LOITER_RATE_D
- # define LOITER_RATE_D          	0.0f
-#endif
-#ifndef LOITER_RATE_IMAX
- # define LOITER_RATE_IMAX       	4               // maximum acceleration from I term build-up in m/s/s
-#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Autopilot rotate rate limits
@@ -746,73 +752,6 @@
 #ifndef AUTO_YAW_SLEW_RATE
  # define AUTO_YAW_SLEW_RATE        60                     // degrees/sec
 #endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Throttle control gains
-//
-#ifndef THROTTLE_CRUISE
- # define THROTTLE_CRUISE       450            //
-#endif
-
-#ifndef THR_MID
- # define THR_MID        500                            // Throttle output (0 ~ 1000) when throttle stick is in mid position
-#endif
-
-#ifndef ALT_HOLD_P
- # define ALT_HOLD_P            2.0f
-#endif
-#ifndef ALT_HOLD_I
- # define ALT_HOLD_I            0.0f
-#endif
-#ifndef ALT_HOLD_IMAX
- # define ALT_HOLD_IMAX         300
-#endif
-
-// RATE control
-#ifndef THROTTLE_P
- # define THROTTLE_P            6.0f
-#endif
-#ifndef THROTTLE_I
- # define THROTTLE_I            0.0f
-#endif
-#ifndef THROTTLE_D
- # define THROTTLE_D            0.0f
-#endif
-
-#ifndef THROTTLE_IMAX
- # define THROTTLE_IMAX         300
-#endif
-
-// default maximum vertical velocity the pilot may request
-#ifndef PILOT_VELZ_MAX
- # define PILOT_VELZ_MAX    250     // maximum vertical velocity in cm/s
-#endif
-#define ACCELERATION_MAX_Z  750     // maximum veritcal acceleration in cm/s/s
-
-// max distance in cm above or below current location that will be used for the alt target when transitioning to alt-hold mode
-#ifndef ALT_HOLD_INIT_MAX_OVERSHOOT
- # define ALT_HOLD_INIT_MAX_OVERSHOOT 200
-#endif
-// the acceleration used to define the distance-velocity curve
-#ifndef ALT_HOLD_ACCEL_MAX
- # define ALT_HOLD_ACCEL_MAX 250
-#endif
-
-// Throttle Accel control
-#ifndef THROTTLE_ACCEL_P
- # define THROTTLE_ACCEL_P  0.75f
-#endif
-#ifndef THROTTLE_ACCEL_I
- # define THROTTLE_ACCEL_I  1.50f
-#endif
-#ifndef THROTTLE_ACCEL_D
- # define THROTTLE_ACCEL_D 0.0f
-#endif
-#ifndef THROTTLE_ACCEL_IMAX
- # define THROTTLE_ACCEL_IMAX 500
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////////
 // Dataflash logging control

@@ -261,7 +261,7 @@ setup_flightmodes(uint8_t argc, const Menu::arg *argv)
     uint8_t _oldSwitchPosition = 0;
     int8_t mode = 0;
 
-    cliSerial->printf_P(PSTR("\nMode switch to edit, aileron: select modes, rudder: Simple on/off\n"));
+    cliSerial->printf_P(PSTR("\nMode switch to edit, aileron: select modes\n"));
     print_hit_enter();
 
     while(1) {
@@ -277,7 +277,7 @@ setup_flightmodes(uint8_t argc, const Menu::arg *argv)
             mode = constrain_int16(mode, 0, NUM_MODES-1);
 
             // update the user
-            print_switch(_switchPosition, mode, BIT_IS_SET(g.simple_modes, _switchPosition));
+            print_switch(_switchPosition, mode);
 
             // Remember switch position
             _oldSwitchPosition = _switchPosition;
@@ -293,23 +293,7 @@ setup_flightmodes(uint8_t argc, const Menu::arg *argv)
             flight_modes[_switchPosition] = mode;
 
             // print new mode
-            print_switch(_switchPosition, mode, BIT_IS_SET(g.simple_modes, _switchPosition));
-            delay(500);
-        }
-
-        // look for stick input
-        if (g.rc_4.control_in > 3000) {
-            g.simple_modes |= (1<<_switchPosition);
-            // print new mode
-            print_switch(_switchPosition, mode, BIT_IS_SET(g.simple_modes, _switchPosition));
-            delay(500);
-        }
-
-        // look for stick input
-        if (g.rc_4.control_in < -3000) {
-            g.simple_modes &= ~(1<<_switchPosition);
-            // print new mode
-            print_switch(_switchPosition, mode, BIT_IS_SET(g.simple_modes, _switchPosition));
+            print_switch(_switchPosition, mode);
             delay(500);
         }
 
@@ -318,7 +302,6 @@ setup_flightmodes(uint8_t argc, const Menu::arg *argv)
             for (mode = 0; mode < 6; mode++)
                 flight_modes[mode].save();
 
-            g.simple_modes.save();
             print_done();
             report_flight_modes();
             return (0);
@@ -805,7 +788,7 @@ static void report_flight_modes()
     print_divider();
 
     for(int16_t i = 0; i < 6; i++ ) {
-        print_switch(i, flight_modes[i], BIT_IS_SET(g.simple_modes, i));
+        print_switch(i, flight_modes[i]);
     }
     print_blanks(2);
 }
@@ -840,15 +823,11 @@ print_radio_values()
 }
 
 static void
-print_switch(uint8_t p, uint8_t m, bool b)
+print_switch(uint8_t p, uint8_t m)
 {
     cliSerial->printf_P(PSTR("Pos %d:\t"),p);
     print_flight_mode(cliSerial, m);
-    cliSerial->printf_P(PSTR(",\t\tSimple: "));
-    if(b)
-        cliSerial->printf_P(PSTR("ON\n"));
-    else
-        cliSerial->printf_P(PSTR("OFF\n"));
+    cliSerial->println();
 }
 
 static void

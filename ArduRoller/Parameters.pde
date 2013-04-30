@@ -54,6 +54,8 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Increment: 1
     GSCALAR(telem_delay,            "TELEM_DELAY",     0),
 
+    GSCALAR(wheel_encoder_speed, 	"WHEEL_ENC",  WHEEL_ENCODER_SPEED),
+
 
     // @Param: SONAR_ENABLE
     // @DisplayName: Enable Sonar
@@ -217,12 +219,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Standard
     GSCALAR(flight_mode6, "FLTMODE6",               FLIGHT_MODE_6),
 
-    // @Param: SIMPLE
-    // @DisplayName: Simple mode bitmask
-    // @Description: Bitmask which holds which flight modes use simple heading mode (eg bit 0 = 1 means Flight Mode 0 uses simple mode)
-    // @User: Advanced
-    GSCALAR(simple_modes, "SIMPLE",                 0),
-
     // @Param: LOG_BITMASK
     // @DisplayName: Log bitmask
     // @Description: 2 byte bitmap of log types to enable
@@ -253,7 +249,7 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Param: CH7_OPT
     // @DisplayName: Channel 7 option
     // @Description: Select which function if performed when CH7 is above 1800 pwm
-    // @Values: 0:Do Nothing, 2:Flip, 3:Simple Mode, 4:RTL, 5:Save Trim, 7:Save WP, 9:Camera Trigger, 10:Sonar
+    // @Values: 0:Do Nothing, 4:RTL, 5:Save Trim, 7:Save WP, 9:Camera Trigger, 10:Sonar
     // @User: Standard
     GSCALAR(ch7_option, "CH7_OPT",                  CH7_OPTION),
 
@@ -329,195 +325,13 @@ const AP_Param::Info var_info[] PROGMEM = {
     GSCALAR(copter_leds_mode,       "LED_MODE",         9),
 
 
-    // @Param: RATE_RLL_D
-    // @DisplayName: Roll axis rate controller D gain
-    // @Description: Roll axis rate controller D gain.  Compensates for short-term change in desired roll rate vs actual roll rate
-    // @Range: 0.001 0.008
-    // @User: Standard
-    GGROUP(pid_rate_roll,     "RATE_RLL_", AC_PID),
-
-    // @Param: RATE_PIT_D
-    // @DisplayName: Pitch axis rate controller D gain
-    // @Description: Pitch axis rate controller D gain.  Compensates for short-term change in desired pitch rate vs actual pitch rate
-    // @Range: 0.001 0.008
-    // @User: Standard
-    GGROUP(pid_rate_pitch,    "RATE_PIT_", AC_PID),
-
-    // @Param: RATE_YAW_D
-    // @DisplayName: Yaw axis rate controller D gain
-    // @Description: Yaw axis rate controller D gain.  Compensates for short-term change in desired yaw rate vs actual yaw rate
-    // @Range: 0.000 0.001
-    // @User: Standard
-    GGROUP(pid_rate_yaw,      "RATE_YAW_", AC_PID),
-
-    // @Param: LOITER_LAT_D
-    // @DisplayName: Loiter latitude rate controller D gain
-    // @Description: Loiter latitude rate controller D gain.  Compensates for short-term change in desired speed vs actual speed
-    // @Range: 0.200 0.600
-    // @User: Standard
-    GGROUP(pid_loiter_rate_lat,      "LOITER_LAT_",  AC_PID),
-
-    // @Param: LOITER_LON_D
-    // @DisplayName: Loiter longituderate controller D gain
-    // @Description: Loiter longitude rate controller D gain.  Compensates for short-term change in desired speed vs actual speed
-    // @Range: 0.200 0.600
-    // @User: Standard
-    GGROUP(pid_loiter_rate_lon,      "LOITER_LON_",  AC_PID),
-
-    // @Param: THR_RATE_D
-    // @DisplayName: Throttle rate controller D gain
-    // @Description: Throttle rate controller D gain.  Compensates for short-term change in desired vertical speed vs actual speed
-    // @Range: 0.000 0.400
-    // @User: Standard
-    GGROUP(pid_throttle,      "THR_RATE_", AC_PID),
-
-    // @Param: THR_ACCEL_P
-    // @DisplayName: Throttle acceleration controller P gain
-    // @Description: Throttle acceleration controller P gain.  Converts the difference between desired vertical acceleration and actual acceleration into a motor output
-    // @Range: 0.500 1.500
-    // @User: Standard
-
-    // @Param: THR_ACCEL_I
-    // @DisplayName: Throttle acceleration controller I gain
-    // @Description: Throttle acceleration controller I gain.  Corrects long-term difference in desired vertical acceleration and actual acceleration
-    // @Range: 0.000 3.000
-    // @User: Standard
-
-    // @Param: THR_ACCEL_IMAX
-    // @DisplayName: Throttle acceleration controller I gain maximum
-    // @Description: Throttle acceleration controller I gain maximum.  Constrains the maximum pwm that the I term will generate
-    // @Range: 0 500
-    // @Unit: PWM
-    // @User: Standard
-
-    // @Param: THR_ACCEL_D
-    // @DisplayName: Throttle acceleration controller D gain
-    // @Description: Throttle acceleration controller D gain.  Compensates for short-term change in desired vertical acceleration vs actual acceleration
-    // @Range: 0.000 0.400
-    // @User: Standard
-    GGROUP(pid_throttle_accel,"THR_ACCEL_", AC_PID),
-
-    // PI controller
-    //--------------
-    // @Param: STB_RLL_P
-    // @DisplayName: Roll axis stabilize controller P gain
-    // @Description: Roll axis stabilize (i.e. angle) controller P gain.  Converts the error between the desired roll angle and actual angle to a desired roll rate
-    // @Range: 3.000 6.000
-    // @User: Standard
-
-    // @Param: STB_RLL_I
-    // @DisplayName: Roll axis stabilize controller I gain
-    // @Description: Roll axis stabilize (i.e. angle) controller I gain.  Corrects for longer-term difference in desired roll angle and actual angle
-    // @Range: 0.000 0.100
-    // @User: Standard
-
-    // @Param: STB_RLL_IMAX
-    // @DisplayName: Roll axis stabilize controller I gain maximum
-    // @Description: Roll axis stabilize (i.e. angle) controller I gain maximum.  Constrains the maximum roll rate that the I term will generate
-    // @Range: 0 4500
-    // @Unit: Centi-Degrees/Sec
-    // @User: Standard
-    GGROUP(pi_stabilize_roll,       "STB_RLL_", APM_PI),
-
-    // @Param: STB_PIT_P
-    // @DisplayName: Pitch axis stabilize controller P gain
-    // @Description: Pitch axis stabilize (i.e. angle) controller P gain.  Converts the error between the desired pitch angle and actual angle to a desired pitch rate
-    // @Range: 3.000 6.000
-    // @User: Standard
-
-    // @Param: STB_PIT_I
-    // @DisplayName: Pitch axis stabilize controller I gain
-    // @Description: Pitch axis stabilize (i.e. angle) controller I gain.  Corrects for longer-term difference in desired pitch angle and actual angle
-    // @Range: 0.000 0.100
-    // @User: Standard
-
-    // @Param: STB_PIT_IMAX
-    // @DisplayName: Pitch axis stabilize controller I gain maximum
-    // @Description: Pitch axis stabilize (i.e. angle) controller I gain maximum.  Constrains the maximum pitch rate that the I term will generate
-    // @Range: 0 4500
-    // @Unit: Centi-Degrees/Sec
-    // @User: Standard
-    GGROUP(pi_stabilize_pitch,      "STB_PIT_", APM_PI),
-
-    // @Param: STB_YAW_P
-    // @DisplayName: Yaw axis stabilize controller P gain
-    // @Description: Yaw axis stabilize (i.e. angle) controller P gain.  Converts the error between the desired yaw angle and actual angle to a desired yaw rate
-    // @Range: 3.000 6.000
-    // @User: Standard
-
-    // @Param: STB_YAW_I
-    // @DisplayName: Yaw axis stabilize controller I gain
-    // @Description: Yaw axis stabilize (i.e. angle) controller I gain.  Corrects for longer-term difference in desired yaw angle and actual angle
-    // @Range: 0.000 0.100
-    // @User: Standard
-
-    // @Param: STB_YAW_IMAX
-    // @DisplayName: Yaw axis stabilize controller I gain maximum
-    // @Description: Yaw axis stabilize (i.e. angle) controller I gain maximum.  Constrains the maximum yaw rate that the I term will generate
-    // @Range: 0 4500
-    // @Unit: Centi-Degrees/Sec
-    // @User: Standard
-    GGROUP(pi_stabilize_yaw,        "STB_YAW_", APM_PI),
-
-    // @Param: THR_ALT_P
-    // @DisplayName: Altitude controller P gain
-    // @Description: Altitude controller P gain.  Converts the difference between the desired altitude and actual altitude into a climb or descent rate which is passed to the throttle rate controller
-    // @Range: 1.000 3.000
-    // @User: Standard
-
-    // @Param: THR_ALT_I
-    // @DisplayName: Altitude controller I gain
-    // @Description: Altitude controller I gain.  Corrects for longer-term difference in desired altitude and actual altitude
-    // @Range: 0.000 0.100
-    // @User: Standard
-
-    // @Param: THR_ALT_IMAX
-    // @DisplayName: Altitude controller I gain maximum
-    // @Description: Altitude controller I gain maximum.  Constrains the maximum climb rate rate that the I term will generate
-    // @Range: 0 500
-    // @Unit: cm/s
-    // @User: Standard
-    GGROUP(pi_alt_hold,     "THR_ALT_", APM_PI),
-
-    // @Param: HLD_LAT_P
-    // @DisplayName: Loiter latitude position controller P gain
-    // @Description: Loiter latitude position controller P gain.  Converts the distance (in the latitude direction) to the target location into a desired speed which is then passed to the loiter latitude rate controller
-    // @Range: 0.100 0.300
-    // @User: Standard
-
-    // @Param: HLD_LAT_I
-    // @DisplayName: Loiter latitude position controller I gain
-    // @Description: Loiter latitude position controller I gain.  Corrects for longer-term distance (in latitude) to the target location
-    // @Range: 0.000 0.100
-    // @User: Standard
-
-    // @Param: HLD_LAT_IMAX
-    // @DisplayName: Loiter latitude position controller I gain maximum
-    // @Description: Loiter latitude position controller I gain maximum.  Constrains the maximum desired speed that the I term will generate
-    // @Range: 0 3000
-    // @Unit: cm/s
-    // @User: Standard
-    GGROUP(pi_loiter_lat,   "HLD_LAT_", APM_PI),
-
-    // @Param: HLD_LON_P
-    // @DisplayName: Loiter longitude position controller P gain
-    // @Description: Loiter longitude position controller P gain.  Converts the distance (in the longitude direction) to the target location into a desired speed which is then passed to the loiter longitude rate controller
-    // @Range: 0.100 0.300
-    // @User: Standard
-
-    // @Param: HLD_LON_I
-    // @DisplayName: Loiter longitude position controller I gain
-    // @Description: Loiter longitude position controller I gain.  Corrects for longer-term distance (in longitude direction) to the target location
-    // @Range: 0.000 0.100
-    // @User: Standard
-
-    // @Param: HLD_LON_IMAX
-    // @DisplayName: Loiter longitudeposition controller I gain maximum
-    // @Description: Loiter  longitudeposition controller I gain maximum.  Constrains the maximum desired speed that the I term will generate
-    // @Range: 0 3000
-    // @Unit: cm/s
-    // @User: Standard
-    GGROUP(pi_loiter_lon,   "HLD_LON_", APM_PI),
+    // PID controller
+    //---------------
+    GGROUP(pid_balance,    			"PID_BAL", 	AC_PID),
+    GGROUP(pid_yaw,   				"PID_YAW_", AC_PID),
+    GGROUP(pid_wheel_left_mixer,	"PID_LW_",  AC_PID),
+    GGROUP(pid_wheel_right_mixer,   "PID_RW_",  AC_PID),
+    GGROUP(pid_nav,     			"PID_NAV_", AC_PID),
 
     // variables not in the g class which contain EEPROM saved variables
 
@@ -572,7 +386,7 @@ const AP_Param::Info var_info[] PROGMEM = {
     GOBJECT(sitl, "SIM_", SITL),
 #endif
 
-    GOBJECT(barometer, "GND_", AP_Baro),
+    //GOBJECT(barometer, "GND_", AP_Baro),
     GOBJECT(scheduler, "SCHED_", AP_Scheduler),
 
     // @Group: MOT_

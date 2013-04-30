@@ -267,7 +267,6 @@ static AP_RangeFinder_MaxsonarXL *sonar;
 static union {
     struct {
         uint8_t home_is_set        : 1; // 0
-        uint8_t simple_mode        : 1; // 1    // This is the state of simple mode
         uint8_t manual_attitude    : 1; // 2
         uint8_t manual_throttle    : 1; // 3
 
@@ -434,7 +433,7 @@ static float sin_pitch          = 1;
 // Circle Mode / Loiter control
 ////////////////////////////////////////////////////////////////////////////////
 Vector3f circle_center;     // circle position expressed in cm from home location.  x = lat, y = lon
-// angle from the circle center to the copter's desired location.  Incremented at circle_rate / second
+// angle from the circle center to the copter's desired location.
 static float circle_angle;
 // the total angle (in radians) travelled
 static float circle_angle_total;
@@ -572,7 +571,7 @@ static AR_InertialNav inertial_nav(&ahrs, &ins, &barometer, &g_gps);
 // Waypoint navigation object
 // To-Do: move inertial nav up or other navigation variables down here
 ////////////////////////////////////////////////////////////////////////////////
-static AR_WPNav wp_nav(&inertial_nav, &g.pi_loiter_lat, &g.pi_loiter_lon, &g.pid_loiter_rate_lat, &g.pid_loiter_rate_lon);
+static AR_WPNav wp_nav(&inertial_nav, &g.pid_nav);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Performance monitoring
@@ -620,6 +619,23 @@ static float current_encoder_x;
 static uint32_t balance_timer;
 
 static bool gps_available;
+
+////////////////////////////////////////////////////////////////////////////////
+// Wheels
+////////////////////////////////////////////////////////////////////////////////
+
+// I2C address of wheel encoders
+#define ENCODER_ADDRESS       0x29
+
+static struct {
+	int16_t left_distance;
+	int16_t right_distance;
+	int16_t left_speed;
+	int16_t right_speed;
+    int16_t left_speed_output;
+    int16_t right_speed_output;
+	int16_t speed;
+} wheel;
 
 
 // System Timers
@@ -1203,52 +1219,36 @@ bool set_yaw_mode(uint8_t new_yaw_mode)
 // 100hz update rate
 void update_yaw_mode(void)
 {
-    switch(yaw_mode) {
+    static bool yaw_flag = false;
 
-    case YAW_HOLD:
-        break;
-
-    case YAW_ACRO:
-        break;
-
-    case YAW_LOOK_AT_NEXT_WP:
-        // point towards next waypoint (no pilot input accepted)
-        // we don't use wp_bearing because we don't want the copter to turn too much during flight
-        nav_yaw = get_yaw_slew(nav_yaw, original_wp_bearing, AUTO_YAW_SLEW_RATE);
-        get_stabilize_yaw(nav_yaw);
-
-        // if there is any pilot input, switch to YAW_HOLD mode for the next iteration
-        if( g.rc_4.control_in != 0 ) {
-            set_yaw_mode(YAW_HOLD);
-        }
-        break;
-
+	if(labs(ahrs.pitch_sensor) > 4000 || labs(ahrs.roll_sensor) > 4000){
+        yaw_speed = 0;
+        nav_yaw = ahrs.yaw_sensor;
+        return;
     }
-}
 
-// get yaw mode based on WP_YAW_BEHAVIOR parameter
-// set rtl parameter to true if this is during an RTL
-uint8_t get_wp_yaw_mode(bool rtl)
-{
-    switch (g.wp_yaw_behavior) {
-        case WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP:
-            return YAW_LOOK_AT_NEXT_WP;
+    switch(yaw_mode){
+        case YAW_ACRO:
+            yaw_speed = g.rc_1.control_in;
             break;
 
-        case WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP_EXCEPT_RTL:
-            if( rtl ) {
-                return YAW_HOLD;
+        case YAW_HOLD:
+            if(g.rc_1.control_in != 0){
+                yaw_speed   = g.rc_1.control_in;
+                yaw_flag    = true;
             }else{
-                return YAW_LOOK_AT_NEXT_WP;
+                if(yaw_flag){
+                    yaw_flag    = false;
+                    nav_yaw     = ahrs.yaw_sensor;
+                }else{
+                    yaw_speed   = get_stabilize_yaw(nav_yaw);
+                }
             }
             break;
 
-        case WP_YAW_BEHAVIOR_LOOK_AHEAD:
-            return YAW_LOOK_AHEAD;
-            break;
-
-        default:
-            return YAW_HOLD;
+        case YAW_LOOK_AT_NEXT_WP:
+            nav_yaw = wp_bearing;
+            yaw_speed = get_stabilize_yaw(nav_yaw);
             break;
     }
 }

@@ -17,7 +17,7 @@ static void default_dead_zones()
 static void init_rc_in()
 {
     // set rc channel ranges
-    g.rc_1.set_angle(MAX_INPUT_ROLL_ANGLE);
+    g.rc_1.set_angle(MAX_INPUT_YAW_ANGLE);
     g.rc_2.set_angle(MAX_INPUT_PITCH_ANGLE);
     g.rc_3.set_range(0, 1000);
     g.rc_4.set_angle(4500);

@@ -43,16 +43,7 @@ void set_auto_armed(bool b)
 
 // ---------------------------------------------
 void set_simple_mode(bool b)
-{
-    if(ap.simple_mode != b){
-        if(b){
-            Log_Write_Event(DATA_SET_SIMPLE_ON);
-        }else{
-            Log_Write_Event(DATA_SET_SIMPLE_OFF);
-        }
-        ap.simple_mode = b;
-    }
-}
+{}
 
 // ---------------------------------------------
 static void set_failsafe_radio(bool mode)

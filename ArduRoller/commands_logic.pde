@@ -230,7 +230,7 @@ static void do_nav_wp()
     loiter_time_max = command_nav_queue.p1;
 
     // set yaw_mode depending upon contents of WP_YAW_BEHAVIOR parameter
-    set_yaw_mode(get_wp_yaw_mode(false));
+    //set_yaw_mode();
 }
 
 // do_loiter_unlimited - start loitering with no end conditions
@@ -272,11 +272,6 @@ static void do_circle()
     // set nav mode to CIRCLE
     set_nav_mode(NAV_CIRCLE);
 
-    // set target altitude if provided
-    if( command_nav_queue.alt != 0 ) {
-        wp_nav.set_desired_alt(command_nav_queue.alt);
-    }
-
     // override default horizontal location target
     if( command_nav_queue.lat != 0 || command_nav_queue.lng != 0) {
         circle_set_center(pv_location_to_vector(command_nav_queue), ahrs.yaw);
@@ -306,11 +301,6 @@ static void do_loiter_time()
 
     // default to use position provided
     Vector3f pos = pv_location_to_vector(command_nav_queue);
-
-    // use current altitude if not provided
-    if( command_nav_queue.alt == 0 ) {
-        pos.z = curr.z;
-    }
 
     // use current location if not provided
     if(command_nav_queue.lat == 0 && command_nav_queue.lng == 0) {
@@ -631,7 +621,7 @@ static void do_repeat_servo()
 
         event_timer             = 0;
         event_value             = command_cond_queue.alt;
-        event_repeat    = command_cond_queue.lat * 2;
+        event_repeat    		= command_cond_queue.lat * 2;
         event_delay             = command_cond_queue.lng * 500.0f;         // /2 (half cycle time) * 1000 (convert to milliseconds)
 
         switch(command_cond_queue.p1) {
