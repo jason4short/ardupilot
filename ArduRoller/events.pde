@@ -4,32 +4,6 @@
  *       This event will be called when the failsafe changes
  *       boolean failsafe reflects the current state
  */
-static void failsafe_radio_on_event()
-{
-    // if motors are not armed there is nothing to do
-    if( !motors.armed() ) {
-        return;
-    }
-
-    // log the error to the dataflash
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_OCCURRED);
-
-}
-
-// failsafe_off_event - respond to radio contact being regained
-// we must be in AUTO or RTL modes
-// or Stabilize or ACRO mode but with motors disarmed
-static void failsafe_radio_off_event()
-{
-    // if motors are not armed there is nothing to do
-    if( !motors.armed() ) {
-        return;
-    }
-
-    // no need to do anything except log the error as resolved
-    // user can now override roll, pitch, yaw and throttle and even use flight mode switch to restore previous flight mode
-    Log_Write_Error(ERROR_SUBSYSTEM_FAILSAFE_RADIO, ERROR_CODE_FAILSAFE_RESOLVED);
-}
 
 static void low_battery_event(void)
 {

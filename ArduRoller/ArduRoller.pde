@@ -267,22 +267,13 @@ static AP_RangeFinder_MaxsonarXL *sonar;
 static union {
     struct {
         uint8_t home_is_set        : 1; // 0
-        uint8_t manual_attitude    : 1; // 2
-        uint8_t manual_throttle    : 1; // 3
-
         uint8_t low_battery        : 1; // 4    // Used to track if the battery is low - LED output flashes when the batt is low
         uint8_t pre_arm_check      : 1; // 5    // true if the radio and accel calibration have been performed
         uint8_t armed              : 1; // 6
-        uint8_t auto_armed         : 1; // 7    // stops auto missions from beginning until throttle is raised
-
-        uint8_t failsafe_radio     : 1; // 8    // A status flag for the radio failsafe
         uint8_t failsafe_batt      : 1; // 9    // A status flag for the battery failsafe
         uint8_t failsafe_gps       : 1; // 10   // A status flag for the gps failsafe
         uint8_t failsafe_gcs       : 1; // 11   // A status flag for the ground station failsafe
         uint8_t rc_override_active : 1; // 12   // true if rc control are overwritten by ground station
-        uint8_t do_flip            : 1; // 13   // Used to enable flip code
-        uint8_t takeoff_complete   : 1; // 14
-        uint8_t land_complete      : 1; // 15
         uint8_t compass_status     : 1; // 16
         uint8_t gps_status         : 1; // 17
     };
@@ -299,6 +290,8 @@ static struct AP_System{
     uint8_t yaw_stopped             : 1; // 6   // Used to manage the Yaw hold capabilities
 
 } ap_system;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Radio
@@ -637,6 +630,14 @@ static struct {
 	int16_t speed;
 } wheel;
 
+// I2C Receive buffer
+static union {
+    int32_t long_value;
+    int16_t int_value;
+    uint8_t bytes[];
+} bytes_union;
+
+
 
 // System Timers
 // --------------
@@ -840,7 +841,7 @@ static void fast_loop()
 
     // write out the servo PWM values
     // ------------------------------
-    set_servos_4();
+    set_servos();
 
     // Inertial Nav
     // --------------------
@@ -961,13 +962,6 @@ static void medium_loop()
 // ---------------------------
 static void fifty_hz_loop()
 {
-    // check auto_armed status
-    update_auto_armed();
-
-#ifdef USERHOOK_50HZLOOP
-    USERHOOK_50HZLOOP
-#endif
-
 
 #if MOUNT == ENABLED
     // update camera mount's position
@@ -1077,9 +1071,6 @@ static void super_slow_loop()
     // log battery info to the dataflash
     if ((g.log_bitmask & MASK_LOG_CURRENT) && motors.armed())
         Log_Write_Current();
-
-    // perform pre-arm checks
-    pre_arm_checks();
 
     // this function disarms the copter if it has been sitting on the ground for any moment of time greater than 25 seconds
     // but only of the control mode is manual

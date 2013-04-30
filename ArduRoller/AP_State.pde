@@ -28,27 +28,6 @@ void set_armed(bool b)
     }
 }
 
-// ---------------------------------------------
-void set_auto_armed(bool b)
-{
-    // if no change, exit immediately
-    if( ap.auto_armed == b )
-        return;
-
-    ap.auto_armed = b;
-    if(b){
-        Log_Write_Event(DATA_AUTO_ARMED);
-    }
-}
-
-// ---------------------------------------------
-void set_simple_mode(bool b)
-{}
-
-// ---------------------------------------------
-static void set_failsafe_radio(bool mode)
-{}
-
 
 // ---------------------------------------------
 void set_low_battery(bool b)
@@ -69,23 +48,6 @@ static void set_failsafe_gcs(bool mode)
     ap.failsafe_gcs = mode;
 }
 
-// ---------------------------------------------
-void set_takeoff_complete(bool b)
-{
-    // if no change, exit immediately
-    if( ap.takeoff_complete == b )
-        return;
-
-    if(b){
-        Log_Write_Event(DATA_TAKEOFF);
-    }
-    ap.takeoff_complete = b;
-}
-
-// ---------------------------------------------
-void set_land_complete(bool b)
-{
-}
 
 // ---------------------------------------------
 

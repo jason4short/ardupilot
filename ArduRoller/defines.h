@@ -261,10 +261,6 @@ enum gcs_severity {
 #define DATA_AP_STATE                   7
 #define DATA_ARMED                      10
 #define DATA_DISARMED                   11
-#define DATA_AUTO_ARMED                 15
-#define DATA_TAKEOFF                    16
-#define DATA_DID_REACH_ALT              17
-#define DATA_LAND_COMPLETE              18
 #define DATA_LOST_GPS                   19
 #define DATA_LOST_COMPASS               20
 #define DATA_BEGIN_FLIP                 21
@@ -367,7 +363,6 @@ enum gcs_severity {
 #define ERROR_SUBSYSTEM_MAIN                1
 #define ERROR_SUBSYSTEM_RADIO               2
 #define ERROR_SUBSYSTEM_COMPASS             3
-#define ERROR_SUBSYSTEM_FAILSAFE_RADIO      5
 #define ERROR_SUBSYSTEM_FAILSAFE_BATT       6
 #define ERROR_SUBSYSTEM_FAILSAFE_GPS        7
 #define ERROR_SUBSYSTEM_FAILSAFE_GCS        8
@@ -381,5 +376,8 @@ enum gcs_severity {
 #define ERROR_CODE_FAILSAFE_OCCURRED        1
 
 
+// balance
+#define LEFT_MOT_CH 0
+#define RIGHT_MOT_CH 1
 
 #endif // _DEFINES_H

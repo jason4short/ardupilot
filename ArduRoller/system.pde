@@ -283,16 +283,12 @@ static void set_mode(uint8_t mode)
     switch(control_mode)
     {
     case STABILIZE:
-    	ap.manual_throttle = true;
-    	ap.manual_attitude = true;
         //set_yaw_mode(YAW_HOLD);
         set_roll_pitch_mode(ROLL_PITCH_STABLE);
         set_nav_mode(NAV_NONE);
         break;
 
     case AUTO:
-    	ap.manual_throttle = false;
-    	ap.manual_attitude = false;
         //set_yaw_mode(YAW_HOLD);     // yaw mode will be set by mission command
         set_roll_pitch_mode(AUTO_RP);
         // we do not set nav mode for auto because it will be overwritten when first command runs
@@ -301,32 +297,24 @@ static void set_mode(uint8_t mode)
         break;
 
     case CIRCLE:
-    	ap.manual_throttle = false;
-    	ap.manual_attitude = false;
         set_roll_pitch_mode(CIRCLE_RP);
         set_nav_mode(CIRCLE_NAV);
         //set_yaw_mode(CIRCLE_YAW);
         break;
 
     case LOITER:
-    	ap.manual_throttle = false;
-    	ap.manual_attitude = false;
         //set_yaw_mode(LOITER_YAW);
         set_roll_pitch_mode(LOITER_RP);
         set_nav_mode(LOITER_NAV);
         break;
 
     case GUIDED:
-    	ap.manual_throttle = false;
-    	ap.manual_attitude = false;
         //set_yaw_mode();
         set_roll_pitch_mode(GUIDED_RP);
         set_nav_mode(GUIDED_NAV);
         break;
 
     case RTL:
-    	ap.manual_throttle = false;
-    	ap.manual_attitude = false;
         do_RTL();
         break;
 
@@ -337,28 +325,6 @@ static void set_mode(uint8_t mode)
     Log_Write_Mode(control_mode);
 }
 
-// update_auto_armed - update status of auto_armed flag
-static void update_auto_armed()
-{
-    // disarm checks
-    if(ap.auto_armed){
-        // if motors are disarmed, auto_armed should also be false
-        if(!motors.armed()) {
-            set_auto_armed(false);
-            return;
-        }
-        // if in stabilize or acro flight mode and throttle is zero, auto-armed should become false
-        if(control_mode <= ACRO && g.rc_3.control_in == 0 && !ap.failsafe_radio) {
-            set_auto_armed(false);
-        }
-    }else{
-        // arm checks
-        // if motors are armed and throttle is above zero auto_armed should be true
-        if(motors.armed() && g.rc_3.control_in != 0) {
-            set_auto_armed(true);
-        }
-    }
-}
 
 /*
  *  map from a 8 bit EEPROM baud rate to a real baud rate

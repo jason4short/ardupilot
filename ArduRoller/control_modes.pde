@@ -12,11 +12,6 @@ static void read_control_switch()
         if(switch_counter >= CONTROL_SWITCH_COUNTER) {
             oldSwitchPosition       = switchPosition;
             switch_counter          = 0;
-
-            // ignore flight mode changes if in failsafe
-            if( !ap.failsafe_radio ) {
-                set_mode(flight_modes[switchPosition]);
-            }
         }
     }else{
         // reset switch_counter if there's been no change

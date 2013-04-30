@@ -97,13 +97,6 @@ static void read_radio()
         g.rc_7.set_pwm(periods[6]);
         g.rc_8.set_pwm(periods[7]);
 
-    }else{
-        uint32_t elapsed = millis() - last_update;
-        // turn on throttle failsafe if no update from ppm encoder for 2 seconds
-        if ((elapsed >= FAILSAFE_RADIO_TIMEOUT_MS) && motors.armed() && !ap.failsafe_radio) {
-            Log_Write_Error(ERROR_SUBSYSTEM_RADIO, ERROR_CODE_RADIO_LATE_FRAME);
-            set_failsafe_radio(true);
-        }
     }
 }
 

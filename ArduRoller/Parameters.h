@@ -216,12 +216,19 @@ public:
     AP_Int8         battery_curr_pin;
     AP_Int8         rssi_pin;
 
+
+
     // Waypoints
     //
     AP_Int8         command_total;
     AP_Int8         command_index;
     AP_Int16        circle_radius;
     AP_Int16 		wheel_encoder_speed;
+    AP_Float        crosstrack_gain;
+
+    AP_Int16        fbw_speed;
+    AP_Float        throttle;
+    AP_Int16        dead_zone;
 
 
     // Flight modes
