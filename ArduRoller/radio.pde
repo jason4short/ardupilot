@@ -53,8 +53,8 @@ static void init_rc_in()
 
 static void init_rc_out()
 {
-    motors.set_update_rate(g.rc_speed);
-    motors.Init();                                              // motor initialisation
+    //motors.set_update_rate(g.rc_speed);
+    //motors.Init();                                              // motor initialisation
 
     for(uint8_t i = 0; i < 5; i++) {
         delay(20);
@@ -75,8 +75,8 @@ static void init_rc_out()
 void output_min()
 {
     // enable motors
-    motors.enable();
-    motors.output_min();
+    //motors.enable();
+    //motors.output_min();
 }
 
 #define FAILSAFE_RADIO_TIMEOUT_MS 2000       // 2 seconds

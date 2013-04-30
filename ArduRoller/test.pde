@@ -269,8 +269,8 @@ test_battery(uint8_t argc, const Menu::arg *argv)
     print_hit_enter();
 
     // allow motors to spin
-    motors.enable();
-    motors.armed(true);
+    //motors.enable();
+    //motors.armed(true);
 
     while(1) {
         delay(100);
@@ -287,14 +287,16 @@ test_battery(uint8_t argc, const Menu::arg *argv)
                             current_amps1,
                             current_total1);
         }
-        motors.throttle_pass_through();
+        //motors.throttle_pass_through();
 
         if(cliSerial->available() > 0) {
-            motors.armed(false);
+            //motors.armed(false);
+			set_armed(false);
             return (0);
         }
     }
-    motors.armed(false);
+    //motors.armed(false);
+    set_armed(false);
     return (0);
 }
 

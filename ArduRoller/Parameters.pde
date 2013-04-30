@@ -391,7 +391,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: MOT_
     // @Path: ../libraries/AP_Motors/AP_Motors_Class.cpp
-    GOBJECT(motors, "MOT_",         AP_Motors),
+    //GOBJECT(motors, "MOT_",         AP_Motors),
 
     AP_VAREND
 };

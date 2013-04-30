@@ -54,7 +54,7 @@
 #include <APM_PI.h>             // PI library
 #include <AC_PID.h>             // PID library
 #include <RC_Channel.h>         // RC Channel Library
-#include <AP_Motors.h>          // AP Motors library
+//#include <AP_Motors.h>          // AP Motors library
 #include <AP_RangeFinder.h>     // Range finder library
 #include <AP_OpticalFlow.h>     // Optical Flow library
 #include <Filter.h>             // Filter library
@@ -307,31 +307,6 @@ static uint8_t oldSwitchPosition;
 static uint8_t receiver_rssi;
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Motor Output
-////////////////////////////////////////////////////////////////////////////////
-#if FRAME_CONFIG == QUAD_FRAME
- #define MOTOR_CLASS AP_MotorsQuad
-#endif
-#if FRAME_CONFIG == TRI_FRAME
- #define MOTOR_CLASS AP_MotorsTri
-#endif
-#if FRAME_CONFIG == HEXA_FRAME
- #define MOTOR_CLASS AP_MotorsHexa
-#endif
-#if FRAME_CONFIG == Y6_FRAME
- #define MOTOR_CLASS AP_MotorsY6
-#endif
-#if FRAME_CONFIG == OCTA_FRAME
- #define MOTOR_CLASS AP_MotorsOcta
-#endif
-#if FRAME_CONFIG == OCTA_QUAD_FRAME
- #define MOTOR_CLASS AP_MotorsOctaQuad
-#endif
-
-//#define MOTOR_CLASS AP_MotorsRoller
-
-static MOTOR_CLASS motors(&g.rc_1, &g.rc_2, &g.rc_3, &g.rc_4);
 
 ////////////////////////////////////////////////////////////////////////////////
 // PIDs
@@ -903,7 +878,7 @@ static void medium_loop()
         medium_loopCounter++;
 
         // log compass information
-        if (motors.armed() && (g.log_bitmask & MASK_LOG_COMPASS)) {
+        if (ap.armed && (g.log_bitmask & MASK_LOG_COMPASS)) {
             Log_Write_Compass();
         }
         break;
@@ -913,7 +888,7 @@ static void medium_loop()
     case 3:
         medium_loopCounter++;
 
-        if(motors.armed()) {
+        if(ap.armed) {
             if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) {
                 Log_Write_Attitude();
 #if SECONDARY_DMP_ENABLED == ENABLED
@@ -921,8 +896,8 @@ static void medium_loop()
 #endif
             }
 
-            if (g.log_bitmask & MASK_LOG_MOTORS)
-                Log_Write_Motors();
+            //if (g.log_bitmask & MASK_LOG_MOTORS)
+                //Log_Write_Motors();
         }
         break;
 
@@ -977,14 +952,14 @@ static void fifty_hz_loop()
     camera.trigger_pic_cleanup();
 #endif
 
-    if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST && motors.armed()) {
+    if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST && ap.armed) {
         Log_Write_Attitude();
 #if SECONDARY_DMP_ENABLED == ENABLED
         Log_Write_DMP();
 #endif
     }
 
-    if (g.log_bitmask & MASK_LOG_IMU && motors.armed())
+    if (g.log_bitmask & MASK_LOG_IMU && ap.armed)
         DataFlash.Log_Write_IMU(&ins);
 
 }
@@ -1069,12 +1044,12 @@ static void super_slow_loop()
     }
 
     // log battery info to the dataflash
-    if ((g.log_bitmask & MASK_LOG_CURRENT) && motors.armed())
+    if ((g.log_bitmask & MASK_LOG_CURRENT) && ap.armed)
         Log_Write_Current();
 
     // this function disarms the copter if it has been sitting on the ground for any moment of time greater than 25 seconds
     // but only of the control mode is manual
-    if((control_mode <= ACRO) && (g.rc_3.control_in == 0) && motors.armed()) {
+    if((control_mode <= ACRO) && (g.rc_3.control_in == 0) && ap.armed) {
         auto_disarming_counter++;
 
         if(auto_disarming_counter == AUTO_DISARMING_DELAY) {
@@ -1111,7 +1086,7 @@ static void update_GPS(void)
         last_gps_time = g_gps->time;
 
         // log location if we have at least a 2D fix
-        if (g.log_bitmask & MASK_LOG_GPS && motors.armed()) {
+        if (g.log_bitmask & MASK_LOG_GPS && ap.armed) {
             DataFlash.Log_Write_GPS(g_gps, current_loc.alt);
         }
 

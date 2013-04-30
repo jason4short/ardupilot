@@ -49,7 +49,7 @@ static void update_GPS_light(void)
 
 static void update_motor_light(void)
 {
-    if(motors.armed() == false) {
+    if(ap.armed == false) {
         ap_system.motor_light = !ap_system.motor_light;
 
         // blink
@@ -152,7 +152,7 @@ static void update_copter_leds(void)
 
     // motor leds control
     if (g.copter_leds_mode & COPTER_LEDS_BITMASK_ENABLED) {
-        if (motors.armed()) {
+        if (ap.armed) {
             if (ap.low_battery) {
                 if (g.copter_leds_mode & COPTER_LEDS_BITMASK_BATT_OSCILLATE) {
                     copter_leds_oscillate();                        //if motors are armed, but battery level is low, motor leds fast blink
@@ -289,7 +289,7 @@ static void copter_leds_slow_blink(void) {
     }
 }
 
-static void copter_leds_fast_blink(void) {    
+static void copter_leds_fast_blink(void) {
     copter_leds_motor_blink++;                                                  // this increments once every 1/10 second because it is in the 10hz loop
     if ( 0 < copter_leds_motor_blink && copter_leds_motor_blink < 3 ) {         // when the counter reaches 3 (1/5 sec), then toggle the leds
         copter_leds_on();

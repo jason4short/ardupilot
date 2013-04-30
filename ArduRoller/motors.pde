@@ -4,7 +4,6 @@
 // called at 10hz
 static void arm_motors()
 {
-    motors.armed(true);
     set_armed(true);
 }
 
@@ -23,7 +22,6 @@ static void init_disarm_motors()
     // -----------------------
     reset_I_all();
 
-    motors.armed(false);
     set_armed(false);
 
     compass.save_offsets();
@@ -88,8 +86,8 @@ update_servos()
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH]) + g.dead_zone); // right motor
 #endif
 
-    digitalWriteFast(COPTER_LED_2, dir_left); // left
-    digitalWriteFast(COPTER_LED_1, dir_right); // right
+    digitalWrite(COPTER_LED_2, dir_left); // left
+    digitalWrite(COPTER_LED_1, dir_right); // right
 }
 
 static void
@@ -112,7 +110,7 @@ set_servos_direct(int16_t pwm)
 	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])); // left motor
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
 
-    digitalWriteFast(COPTER_LED_2, dir_left); // left
-    digitalWriteFast(COPTER_LED_1, dir_right); // right
+    digitalWrite(COPTER_LED_2, dir_left); // left
+    digitalWrite(COPTER_LED_1, dir_right); // right
 }
 

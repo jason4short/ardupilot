@@ -75,7 +75,7 @@ public:
         //
         // 90: Motors
         //
-        k_param_motors = 90,
+        //k_param_motors = 90,
 
         //
         // 100: Inertial Nav

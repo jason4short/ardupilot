@@ -40,7 +40,7 @@ print_log_menu(void)
         if (g.log_bitmask & MASK_LOG_IMU) cliSerial->printf_P(PSTR(" IMU"));
         if (g.log_bitmask & MASK_LOG_CMD) cliSerial->printf_P(PSTR(" CMD"));
         if (g.log_bitmask & MASK_LOG_CURRENT) cliSerial->printf_P(PSTR(" CURRENT"));
-        if (g.log_bitmask & MASK_LOG_MOTORS) cliSerial->printf_P(PSTR(" MOTORS"));
+        //if (g.log_bitmask & MASK_LOG_MOTORS) cliSerial->printf_P(PSTR(" MOTORS"));
         if (g.log_bitmask & MASK_LOG_PID) cliSerial->printf_P(PSTR(" PID"));
         if (g.log_bitmask & MASK_LOG_COMPASS) cliSerial->printf_P(PSTR(" COMPASS"));
         if (g.log_bitmask & MASK_LOG_INAV) cliSerial->printf_P(PSTR(" INAV"));
@@ -128,7 +128,7 @@ select_logs(uint8_t argc, const Menu::arg *argv)
         TARG(IMU);
         TARG(CMD);
         TARG(CURRENT);
-        TARG(MOTORS);
+        //TARG(MOTORS);
         TARG(PID);
         TARG(COMPASS);
         TARG(INAV);
@@ -177,7 +177,7 @@ static void Log_Write_Current()
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
-struct PACKED log_Motors {
+/*struct PACKED log_Motors {
     LOG_PACKET_HEADER;
     int16_t motor_out[4];
 };
@@ -223,6 +223,7 @@ static void Log_Write_Motors()
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
+*/
 
 struct PACKED log_Nav_Tuning {
     LOG_PACKET_HEADER;
@@ -687,8 +688,8 @@ static const struct LogStructure log_structure[] PROGMEM = {
     LOG_COMMON_STRUCTURES,
     { LOG_CURRENT_MSG, sizeof(log_Current),
       "CURR", "hIhhhf",      "Thr,ThrInt,Volt,Curr,Vcc,CurrTot" },
-    { LOG_MOTORS_MSG, sizeof(log_Motors),
-      "MOT",  "hhhh",        "Mot1,Mot2,Mot3,Mot4" },
+    //{ LOG_MOTORS_MSG, sizeof(log_Motors),
+      //"MOT",  "hhhh",        "Mot1,Mot2,Mot3,Mot4" },
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
       "NTUN", "Ecffcccc",    "WPDist,TargBrg,LatErr,LngErr,NavPtch,NavRll,LatSpd,LngSpd" },
     { LOG_COMPASS_MSG, sizeof(log_Compass),

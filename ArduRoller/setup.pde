@@ -473,9 +473,9 @@ setup_compassmot(uint8_t argc, const Menu::arg *argv)
     }
 
     // enable motors and pass through throttle
-    motors.enable();
-    motors.armed(true);
-    motors.output_min();
+    //motors.enable();
+    //motors.armed(true);
+    //motors.output_min();
 
     // initialise run time
     last_run_time = millis();
@@ -491,7 +491,7 @@ setup_compassmot(uint8_t argc, const Menu::arg *argv)
             read_radio();
 
             // pass through throttle to motors
-            motors.throttle_pass_through();
+            //motors.throttle_pass_through();
 
             // read some compass values
             compass.read();
@@ -551,8 +551,8 @@ setup_compassmot(uint8_t argc, const Menu::arg *argv)
     }
 
     // stop motors
-    motors.output_min();
-    motors.armed(false);
+    //motors.output_min();
+    //motors.armed(false);
 
     // clear out any user input
     while( cliSerial->available() ) {
@@ -901,21 +901,6 @@ static void print_enabled(bool b)
     cliSerial->print_P(PSTR("abled\n"));
 }
 
-
-static void
-init_esc()
-{
-    // reduce update rate to motors to 50Hz
-    motors.set_update_rate(50);
-    motors.enable();
-    motors.armed(true);
-    while(1) {
-        read_radio();
-        delay(100);
-        dancing_light();
-        motors.throttle_pass_through();
-    }
-}
 
 static void print_wp(const struct Location *cmd, uint8_t index)
 {

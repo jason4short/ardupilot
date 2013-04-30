@@ -8,7 +8,7 @@
 static void low_battery_event(void)
 {
     // failsafe check
-    if (g.failsafe_battery_enabled && !ap.low_battery && motors.armed()) {
+    if (g.failsafe_battery_enabled && !ap.low_battery && ap.armed) {
         switch(control_mode) {
             case STABILIZE:
             case ACRO:
@@ -62,7 +62,7 @@ static void failsafe_gps_check()
     }
 
     // do nothing if gps failsafe already triggered or motors disarmed
-    if( ap.failsafe_gps || !motors.armed()) {
+    if( ap.failsafe_gps || !ap.armed) {
         return;
     }
 
@@ -124,7 +124,7 @@ static void failsafe_gcs_check()
     }
 
     // do nothing if gps failsafe already triggered or motors disarmed
-    if( ap.failsafe_gcs || !motors.armed()) {
+    if( ap.failsafe_gcs || !ap.armed) {
         return;
     }
 

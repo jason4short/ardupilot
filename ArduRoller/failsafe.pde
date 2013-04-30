@@ -51,9 +51,6 @@ void failsafe_check(uint32_t tnow)
     if (failsafe_enabled && in_failsafe && tnow - failsafe_last_timestamp > 1000000) {
         // disarm motors every second
         failsafe_last_timestamp = tnow;
-        if(motors.armed()) {
-            motors.armed(false);
-            motors.output();
-        }
+        set_armed(false);
     }
 }

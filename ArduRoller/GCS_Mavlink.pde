@@ -78,7 +78,7 @@ static NOINLINE void send_heartbeat(mavlink_channel_t chan)
 #endif
 
     // we are armed if we are not initialising
-    if (motors.armed()) {
+    if (ap.armed) {
         base_mode |= MAV_MODE_FLAG_SAFETY_ARMED;
     }
 
@@ -334,14 +334,14 @@ static void NOINLINE send_radio_out(mavlink_channel_t chan)
         chan,
         micros(),
         0, // port
-        motors.motor_out[AP_MOTORS_MOT_1],
-        motors.motor_out[AP_MOTORS_MOT_2],
-        motors.motor_out[AP_MOTORS_MOT_3],
-        motors.motor_out[AP_MOTORS_MOT_4],
-        motors.motor_out[AP_MOTORS_MOT_5],
-        motors.motor_out[AP_MOTORS_MOT_6],
-        motors.motor_out[AP_MOTORS_MOT_7],
-        motors.motor_out[AP_MOTORS_MOT_8]);
+        motor_out[LEFT_MOT_CH],
+        motor_out[RIGHT_MOT_CH],
+        0,
+        0,
+        0,
+        0,
+        0,
+        0);
 }
 
 static void NOINLINE send_vfr_hud(mavlink_channel_t chan)
@@ -458,7 +458,7 @@ static bool mavlink_try_send_message(mavlink_channel_t chan, enum ap_message id,
     // if we don't have at least 1ms remaining before the main loop
     // wants to fire then don't send a mavlink message. We want to
     // prioritise the main flight control loop over communications
-    if (scheduler.time_available_usec() < 800 && motors.armed()) {
+    if (scheduler.time_available_usec() < 800 && ap.armed) {
         gcs_out_of_time = true;
         return false;
     }
@@ -791,7 +791,7 @@ GCS_MAVLINK::update(void)
         /* allow CLI to be started by hitting enter 3 times, if no
          *  heartbeat packets have been received */
         if (mavlink_active == 0 && (millis() - _cli_timeout) < 20000 &&
-            !motors.armed() && comm_is_idle(chan)) {
+            !ap.armed && comm_is_idle(chan)) {
             if (c == '\n' || c == '\r') {
                 crlf_count++;
             } else {
