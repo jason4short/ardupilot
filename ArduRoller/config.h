@@ -452,44 +452,10 @@
 // Attitude Control
 //
 
-// definitions for earth frame and body frame
-// used to specify frame to rate controllers
-#define EARTH_FRAME     0
-#define BODY_FRAME      1
-
-
-// Flight mode roll, pitch, yaw, throttle and navigation definitions
-
-// Acro Mode
-#ifndef ACRO_YAW
- # define ACRO_YAW           	    YAW_ACRO
-#endif
-
-#ifndef ACRO_RP
- # define ACRO_RP            	    ROLL_PITCH_ACRO
-#endif
-
-#ifndef ACRO_THR
- # define ACRO_THR           	    THROTTLE_MANUAL
-#endif
-
-// Alt Hold Mode
-#ifndef ALT_HOLD_YAW
- # define ALT_HOLD_YAW           	YAW_HOLD
-#endif
-
-#ifndef ALT_HOLD_RP
- # define ALT_HOLD_RP            	ROLL_PITCH_STABLE
-#endif
-
-#ifndef ALT_HOLD_THR
- # define ALT_HOLD_THR           	THROTTLE_HOLD
-#endif
-
 // AUTO Mode
-// Note: Auto mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
-#ifndef WP_YAW_BEHAVIOR_DEFAULT
- # define WP_YAW_BEHAVIOR_DEFAULT   WP_YAW_BEHAVIOR_LOOK_AT_NEXT_WP
+// AUTO Mode
+#ifndef AUTO_YAW
+ # define AUTO_YAW                  YAW_LOOK_AT_NEXT_WP
 #endif
 
 #ifndef AUTO_RP
@@ -502,7 +468,7 @@
 
 // CIRCLE Mode
 #ifndef CIRCLE_YAW
- # define CIRCLE_YAW             	YAW_CIRCLE
+ # define CIRCLE_YAW             	YAW_LOOK_AT_NEXT_WP
 #endif
 
 #ifndef CIRCLE_RP
@@ -513,46 +479,31 @@
  # define CIRCLE_THR                THROTTLE_HOLD
 #endif
 
-#ifndef CIRCLE_NAV
- # define CIRCLE_NAV           	    NAV_CIRCLE
-#endif
-
-// Guided Mode
-// Note: Guided mode yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
-#ifndef GUIDED_RP
- # define GUIDED_RP                 ROLL_PITCH_AUTO
-#endif
-
-#ifndef GUIDED_THR
- # define GUIDED_THR                THROTTLE_AUTO
-#endif
-
-#ifndef GUIDED_NAV
- # define GUIDED_NAV           	    NAV_WP
-#endif
-
 // LOITER Mode
 #ifndef LOITER_YAW
  # define LOITER_YAW             	YAW_HOLD
 #endif
 
 #ifndef LOITER_RP
- # define LOITER_RP                 ROLL_PITCH_LOITER
+ # define LOITER_RP                 ROLL_PITCH_AUTO
 #endif
 
 #ifndef LOITER_THR
  # define LOITER_THR                THROTTLE_HOLD
 #endif
 
-#ifndef LOITER_NAV
- # define LOITER_NAV                NAV_LOITER
-#endif
-
 
 // RTL Mode
-// Note: RTL Yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
+#ifndef RTL_YAW
+# define RTL_YAW                    YAW_HOLD
+#endif
+
 #ifndef RTL_RP
  # define RTL_RP                    ROLL_PITCH_AUTO
+#endif
+
+#ifndef RTL_THR
+ # define RTL_THR                   THROTTLE_HOLD
 #endif
 
 

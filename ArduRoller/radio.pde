@@ -53,8 +53,17 @@ static void init_rc_in()
 
 static void init_rc_out()
 {
-    //motors.set_update_rate(g.rc_speed);
-    //motors.Init();                                              // motor initialisation
+    uint32_t mask = (1 << CH_1) | (1 << CH_2);
+    hal.rcout->set_freq(mask, g.rc_speed);
+
+    hal.rcout->enable_ch(CH_1);
+    hal.rcout->enable_ch(CH_2);
+    hal.rcout->enable_ch(CH_3);
+    hal.rcout->enable_ch(CH_4);
+    enable_aux_servos();
+
+    hal.rcout->write(CH_1, 	0);
+    hal.rcout->write(CH_2,   0);
 
     for(uint8_t i = 0; i < 5; i++) {
         delay(20);

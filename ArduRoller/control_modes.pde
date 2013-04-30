@@ -78,9 +78,6 @@ static void read_trim_switch()
             break;
 
         case CH7_SAVE_TRIM:
-            if(ap_system.CH7_flag && control_mode <= ACRO && g.rc_3.control_in == 0) {
-                save_trim();
-            }
             break;
 
         case CH7_SAVE_WP:

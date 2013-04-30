@@ -10,21 +10,21 @@ static void arm_motors()
 
 static void init_arm_motors()
 {
+    if(ap.home_is_set)
+        init_home();
+
 }
 
 
 static void init_disarm_motors()
 {
-    if(ap.home_is_set)
-        init_home();
-
     // all I terms are invalid
     // -----------------------
     reset_I_all();
 
     set_armed(false);
 
-    compass.save_offsets();
+    //compass.save_offsets();
 
 #if SECONDARY_DMP_ENABLED == ENABLED
     ahrs2.set_fast_gains(true);
@@ -48,7 +48,7 @@ set_servos()
 static void
 update_servos()
 {
-	if(tilt_start == false){
+	if(!ap.armed){
 		hal.rcout->write(CH_1, 0);
 		hal.rcout->write(CH_2, 0);
 		reset_I_all();

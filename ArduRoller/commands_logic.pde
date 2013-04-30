@@ -193,9 +193,6 @@ static bool verify_may()
 // do_RTL - start Return-to-Launch
 static void do_RTL(void)
 {
-	// set roll, pitch and yaw modes
-	set_roll_pitch_mode(RTL_RP);
-
 	// set navigation mode
 	set_nav_mode(NAV_WP);
 
@@ -211,9 +208,6 @@ static void do_RTL(void)
 // note: caller should set yaw mode
 static void do_nav_wp()
 {
-    // set roll-pitch mode
-    set_roll_pitch_mode(AUTO_RP);
-
     // set nav mode
     set_nav_mode(NAV_WP);
 
@@ -228,18 +222,12 @@ static void do_nav_wp()
     loiter_time     = 0;
     // this is the delay, stored in seconds and expanded to millis
     loiter_time_max = command_nav_queue.p1;
-
-    // set yaw_mode depending upon contents of WP_YAW_BEHAVIOR parameter
-    //set_yaw_mode();
 }
 
 // do_loiter_unlimited - start loitering with no end conditions
 // note: caller should set yaw_mode
 static void do_loiter_unlimited()
 {
-    // set roll-pitch mode (no pilot input)
-    set_roll_pitch_mode(AUTO_RP);
-
     // get current position
     // To-Do: change this to projection based on current location and velocity
     Vector3f curr = inertial_nav.get_position();
@@ -266,9 +254,6 @@ static void do_loiter_unlimited()
 // do_circle - initiate moving in a circle
 static void do_circle()
 {
-    // set roll-pitch mode (no pilot input)
-    set_roll_pitch_mode(AUTO_RP);
-
     // set nav mode to CIRCLE
     set_nav_mode(NAV_CIRCLE);
 
@@ -276,9 +261,6 @@ static void do_circle()
     if( command_nav_queue.lat != 0 || command_nav_queue.lng != 0) {
         circle_set_center(pv_location_to_vector(command_nav_queue), ahrs.yaw);
     }
-
-    // set yaw to point to center of circle
-    set_yaw_mode(CIRCLE_YAW);
 
     // set angle travelled so far to zero
     circle_angle_total = 0;
@@ -291,10 +273,6 @@ static void do_circle()
 // note: caller should set yaw_mode
 static void do_loiter_time()
 {
-    // set roll-pitch mode (no pilot input)
-    set_roll_pitch_mode(AUTO_RP);
-
-
     // get current position
     // To-Do: change this to projection based on current location and velocity
     Vector3f curr = inertial_nav.get_position();
@@ -422,9 +400,6 @@ static void do_yaw()
         int32_t turn_rate = (wrap_180_cd(yaw_look_at_heading - nav_yaw) / 100) / command_cond_queue.lat;
         yaw_look_at_heading_slew = constrain(turn_rate, 1, 360);    // deg / sec
     }
-
-    // set yaw mode
-    set_yaw_mode(YAW_LOOK_AT_HEADING);
 
     // TO-DO: restore support for clockwise / counter clockwise rotation held in command_cond_queue.p1
     // command_cond_queue.p1; // 0 = undefined, 1 = clockwise, -1 = counterclockwise
@@ -663,7 +638,6 @@ static void do_nav_roi()
     // check if mount type requires us to rotate the quad
     if( camera_mount.get_mount_type() != AP_Mount::k_pan_tilt && camera_mount.get_mount_type() != AP_Mount::k_pan_tilt_roll ) {
         yaw_look_at_WP = pv_location_to_vector(command_nav_queue);
-        set_yaw_mode(YAW_LOOK_AT_LOCATION);
     }
     // send the command to the camera mount
     camera_mount.set_roi_cmd(&command_nav_queue);

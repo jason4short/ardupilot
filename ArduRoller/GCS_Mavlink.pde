@@ -1186,8 +1186,6 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         }
         switch (packet.custom_mode) {
         case STABILIZE:
-        case ACRO:
-        case ALT_HOLD:
         case AUTO:
         case GUIDED:
         case LOITER:

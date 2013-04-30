@@ -266,6 +266,8 @@ static void startup_ground(void)
     // when we re-calibrate the gyros,
     // all previous I values are invalid
     reset_I_all();
+
+	init_balance();
 }
 
 // set_mode - change flight mode and perform any necessary initialisation
@@ -279,44 +281,49 @@ static void set_mode(uint8_t mode)
 
     switch(control_mode)
     {
-    case STABILIZE:
-        //set_yaw_mode(YAW_HOLD);
-        set_roll_pitch_mode(ROLL_PITCH_STABLE);
-        set_nav_mode(NAV_NONE);
-        break;
+		case STABILIZE:
+            yaw_mode        = YAW_HOLD;
+            roll_pitch_mode = ROLL_PITCH_STABLE;
+			//set_nav_mode(NAV_NONE);
+			break;
 
-    case AUTO:
-        //set_yaw_mode(YAW_HOLD);     // yaw mode will be set by mission command
-        set_roll_pitch_mode(AUTO_RP);
-        // we do not set nav mode for auto because it will be overwritten when first command runs
-        // loads the commands from where we left off
-        init_commands();
-        break;
+		case LOITER:
+            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            roll_pitch_mode = ROLL_PITCH_AUTO;
+			//set_nav_mode(LOITER_NAV);
+			break;
 
-    case CIRCLE:
-        set_roll_pitch_mode(CIRCLE_RP);
-        set_nav_mode(CIRCLE_NAV);
-        //set_yaw_mode(CIRCLE_YAW);
-        break;
+        case FBW:
+            yaw_mode        = YAW_HOLD;
+            roll_pitch_mode = ROLL_PITCH_FBW;
+            break;
 
-    case LOITER:
-        //set_yaw_mode(LOITER_YAW);
-        set_roll_pitch_mode(LOITER_RP);
-        set_nav_mode(LOITER_NAV);
-        break;
+		case AUTO:
+			yaw_mode        = AUTO_YAW;
+			roll_pitch_mode = AUTO_RP;
+			init_commands();
+			break;
 
-    case GUIDED:
-        //set_yaw_mode();
-        set_roll_pitch_mode(GUIDED_RP);
-        set_nav_mode(GUIDED_NAV);
-        break;
+		case GUIDED:
+            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            roll_pitch_mode = ROLL_PITCH_AUTO;
+			//set_nav_mode(GUIDED_NAV);
+			break;
 
-    case RTL:
-        do_RTL();
-        break;
+		case CIRCLE:
+            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            roll_pitch_mode = ROLL_PITCH_AUTO;
+			//set_nav_mode(CIRCLE_NAV);
+			break;
 
-    default:
-        break;
+		case RTL:
+            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            roll_pitch_mode = ROLL_PITCH_AUTO;
+			do_RTL();
+			break;
+
+		default:
+			break;
     }
 
     Log_Write_Mode(control_mode);
@@ -396,14 +403,11 @@ print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
     case STABILIZE:
         port->print_P(PSTR("STABILIZE"));
         break;
-    case ACRO:
-        port->print_P(PSTR("ACRO"));
-        break;
-    case ALT_HOLD:
-        port->print_P(PSTR("ALT_HOLD"));
-        break;
     case AUTO:
         port->print_P(PSTR("AUTO"));
+        break;
+    case FBW:
+        port->print_P(PSTR("FBW"));
         break;
     case GUIDED:
         port->print_P(PSTR("GUIDED"));
@@ -422,3 +426,6 @@ print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     }
 }
+
+
+

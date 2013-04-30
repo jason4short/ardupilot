@@ -557,12 +557,6 @@ static int16_t desired_balance_speed;
 #define PWM_LUT_SIZE 40
 
 int16_t fail;
-static bool tilt_start;
-//static int16_t pwm_LUT[PWM_LUT_SIZE];
-// This implementation cannot have a value that's lower than the previous index value in the lut:
-//                            0  1    2    3    4    5    6    7    8    9   10    11   12   13   14    15    16    17    18    19    20
-//static int16_t pwm_LUT_R[PWM_LUT_SIZE]; //= {0, 249, 297, 334, 370, 405, 420, 448, 489, 535, 583, 641, 710, 799, 897,  1029, 1204, 1474, 1905, 2000, 2000};
-//static int16_t pwm_LUT_L[PWM_LUT_SIZE];// = {0, 292, 362, 422, 476, 521, 550, 585, 626, 671, 713, 784, 864, 974, 1109, 1293, 1525, 1895, 2000, 2000, 2000};
 
 //                          0  1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38   39
 static int16_t pwm_LUT_R[] = {0, 214, 235, 252, 267, 281, 295, 308, 320, 333, 346, 357, 370, 381, 393, 407, 423, 437, 452, 468, 483, 501, 520, 540, 561, 584, 609, 634, 663, 693, 719, 757, 797, 850, 892, 947, 1014, 1097, 1172, 1271};
@@ -628,10 +622,7 @@ static uint16_t mainLoop_count;
 static float dTnav;
 // Counters for branching from 4 minute control loop used to save Compass offsets
 static int16_t superslow_loopCounter;
-// Loiter timer - Records how long we have been in loiter
-static uint32_t rtl_loiter_start_time;
-// disarms the copter while in Acro or Stabilize mode after 30 seconds of no flight
-static uint8_t auto_disarming_counter;
+
 // prevents duplicate GPS messages from entering system
 static uint32_t last_gps_time;
 // the time when the last HEARTBEAT message arrived from a GCS - used for triggering gcs failsafe
@@ -1047,24 +1038,6 @@ static void super_slow_loop()
     if ((g.log_bitmask & MASK_LOG_CURRENT) && ap.armed)
         Log_Write_Current();
 
-    // this function disarms the copter if it has been sitting on the ground for any moment of time greater than 25 seconds
-    // but only of the control mode is manual
-    if((control_mode <= ACRO) && (g.rc_3.control_in == 0) && ap.armed) {
-        auto_disarming_counter++;
-
-        if(auto_disarming_counter == AUTO_DISARMING_DELAY) {
-            init_disarm_motors();
-        }else if (auto_disarming_counter > AUTO_DISARMING_DELAY) {
-            auto_disarming_counter = AUTO_DISARMING_DELAY + 1;
-        }
-    }else{
-        auto_disarming_counter = 0;
-    }
-
-    // agmatthews - USERHOOKS
-#ifdef USERHOOK_SUPERSLOWLOOP
-    USERHOOK_SUPERSLOWLOOP
-#endif
 }
 
 // called at 50hz
@@ -1120,67 +1093,6 @@ static void update_GPS(void)
     failsafe_gps_check();
 }
 
-// set_yaw_mode - update yaw mode and initialise any variables required
-bool set_yaw_mode(uint8_t new_yaw_mode)
-{
-    // boolean to ensure proper initialisation of throttle modes
-    bool yaw_initialised = false;
-
-    // return immediately if no change
-    if( new_yaw_mode == yaw_mode ) {
-        return true;
-    }
-
-    switch( new_yaw_mode ) {
-        case YAW_HOLD:
-        case YAW_ACRO:
-            yaw_initialised = true;
-            break;
-        case YAW_LOOK_AT_NEXT_WP:
-            if( ap.home_is_set ) {
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_LOOK_AT_LOCATION:
-            if( ap.home_is_set ) {
-                // update bearing - assumes yaw_look_at_WP has been intialised before set_yaw_mode was called
-                yaw_look_at_WP_bearing = pv_get_bearing_cd(inertial_nav.get_position(), yaw_look_at_WP);
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_CIRCLE:
-            if( ap.home_is_set ) {
-                // set yaw to point to center of circle
-                yaw_look_at_WP = circle_center;
-                // initialise bearing to current heading
-                yaw_look_at_WP_bearing = ahrs.yaw_sensor;
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_LOOK_AT_HEADING:
-            yaw_initialised = true;
-            break;
-        case YAW_LOOK_AT_HOME:
-            if( ap.home_is_set ) {
-                yaw_initialised = true;
-            }
-            break;
-        case YAW_LOOK_AHEAD:
-            if( ap.home_is_set ) {
-                yaw_initialised = true;
-            }
-            break;
-    }
-
-    // if initialisation has been successful update the yaw mode
-    if( yaw_initialised ) {
-        yaw_mode = new_yaw_mode;
-    }
-
-    // return success or failure
-    return yaw_initialised;
-}
-
 // update_yaw_mode - run high level yaw controllers
 // 100hz update rate
 void update_yaw_mode(void)
@@ -1219,71 +1131,130 @@ void update_yaw_mode(void)
     }
 }
 
-// set_roll_pitch_mode - update roll/pitch mode and initialise any variables as required
-bool set_roll_pitch_mode(uint8_t new_roll_pitch_mode)
-{
-    // boolean to ensure proper initialisation of throttle modes
-    bool roll_pitch_initialised = false;
-
-    // return immediately if no change
-    if( new_roll_pitch_mode == roll_pitch_mode ) {
-        return true;
-    }
-
-    switch( new_roll_pitch_mode ) {
-        case ROLL_PITCH_STABLE:
-        case ROLL_PITCH_ACRO:
-        case ROLL_PITCH_AUTO:
-        case ROLL_PITCH_STABLE_OF:
-            break;
-
-        case ROLL_PITCH_LOITER:
-            // require gps lock
-            if( ap.home_is_set ) {
-                roll_pitch_initialised = true;
-            }
-            break;
-    }
-
-    // if initialisation has been successful update the yaw mode
-    if( roll_pitch_initialised ) {
-        roll_pitch_mode = new_roll_pitch_mode;
-    }
-
-    // return success or failure
-    return roll_pitch_initialised;
-}
-
 // update_roll_pitch_mode - run high level roll and pitch controllers
 // 100hz update rate
 void update_roll_pitch_mode(void)
 {
-    switch(roll_pitch_mode) {
-    case ROLL_PITCH_ACRO:
-        // copy user input for reporting purposes
-        control_roll            = g.rc_1.control_in;
-        control_pitch           = g.rc_2.control_in;
+    if(labs(ahrs.pitch_sensor) > 4000){
+        balance_timer = millis();
 
-    case ROLL_PITCH_STABLE:
-        control_roll            = g.rc_1.control_in;
-        control_pitch           = g.rc_2.control_in;
+        init_disarm_motors();
+        current_speed       = 0;
+        nav_yaw             = ahrs.yaw_sensor;
+        current_encoder_x   = 0;
+        current_encoder_y   = 0;
+        return;
+    }
 
-        get_stabilize_roll(control_roll);
-        get_stabilize_pitch(control_pitch);
+    if((millis() - balance_timer) < 3000){
+        pitch_speed = 0;
+        yaw_speed   = 0;
+        return;
+    }else{
+        init_arm_motors();
+    }
 
+
+    // init
+    int16_t bal_out = 0;
+    int16_t vel_out = 0;
+    int16_t nav_out = 0;
+    int16_t speed_error, ff_out, distance_error;
+
+
+
+    switch(roll_pitch_mode){
+        case ROLL_PITCH_STABLE:
+            // we always hold position
+            if(abs(g.rc_2.control_in) > 0){
+                // reset position
+                //next_WP.lat = current_loc.lat;
+                //next_WP.lng = current_loc.lng;
+                g.pid_nav.reset_I();
+            }
+
+            // in this mode we command the target angle
+            bal_out = get_stabilize_pitch(g.rc_2.control_in); // neg = pitch forward
+
+            // speed control:
+            vel_out = get_velocity_pitch();
+
+            // maintain location:
+            //nav_out = get_nav_pitch(0, get_dist_err());
+
+            pitch_speed = (bal_out + vel_out + nav_out);
+
+           	/*cliSerial->printf_P(PSTR("a:%d\td:%d\tbal%d, vel%d, nav%d\n"),
+           	        (int16_t)ahrs.pitch_sensor,
+                   	(int16_t)wp_distance,
+                   	bal_out,
+                   	vel_out,
+                   	nav_out);*/
+
+
+
+            break;
+        /*
+        case ROLL_PITCH_FBW:
+            // hold position if we let go of sticks
+            if(abs(g.rc_2.control_in) > 0){
+                // reset position
+                //next_WP.lat = current_loc.lat;
+                //next_WP.lng = current_loc.lng;
+                g.pid_nav.reset_I();
+            }
+
+            //distance_error		= (float)long_error * cos_yaw_x + (float)lat_error * sin_yaw_y;
+
+            // defaulting to 500 / 12 = 41cm/s = 1.5r/s = 1200e/s
+            if(g.rc_2.control_in == 0){
+                desired_speed  = distance_error;
+            }else{
+                desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
+                desired_speed 	= constrain(desired_speed, -80, 80);            // units = cm/s
+            }
+
+            // switching units to ticks
+            desired_speed   = convert_distance_to_encoder_speed(desired_speed); // units = ticks/second : 1RPM = 1000ticks/second
+            speed_error     = wheel.speed - desired_speed;                      // units = ticks/second : 1RPM = 1000ticks/second
+
+            // 4 components of stability and navigation
+            bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
+            vel_out         = get_velocity_pitch();                             // magic
+            ff_out          = (float)desired_speed * g.throttle;                // allows us to roll while vertical
+            nav_out      	= g.pid_nav.get_pid(speed_error, G_Dt);             // allows us to accelerate
+
+           /*
+            cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d, %d, %d\n"),
+                (int16_t)ahrs.pitch_sensor,
+                (int16_t)balance_offset,
+                bal_out,
+                vel_out,
+                ff_out,
+                nav_out,
+                desired_speed,
+                speed_error);
+            //*/
+        /*
+            // sum the output
+            pitch_speed = (bal_out + vel_out + nav_out - ff_out);
         break;
 
-    case ROLL_PITCH_AUTO:
-        // copy latest output from nav controller to stabilize controller
-        nav_roll = wp_nav.get_desired_roll();
-        nav_pitch = wp_nav.get_desired_pitch();
-        get_stabilize_roll(nav_roll);
-        get_stabilize_pitch(nav_pitch);
+        case ROLL_PITCH_AUTO:
+            // in this mode we command the target angle
+            pitch_speed = get_stabilize_pitch(0); // neg = pitch forward
 
-        // copy control_roll and pitch for reporting purposes
-        control_roll = nav_roll;
-        control_pitch = nav_pitch;
-        break;
+            // speed control:
+            pitch_speed += get_velocity_pitch();
+
+            // maintain location:
+            if(wp_control == LOITER_MODE){
+                pitch_speed += get_nav_pitch(0, get_dist_err());
+            }else{
+                pitch_speed += get_nav_pitch(500, get_dist_err()); // minimum speed for WP nav
+            }
+            break;
+        */
     }
 
     if(ap_system.new_radio_frame) {

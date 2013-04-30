@@ -1,11 +1,12 @@
 void init_balance()
 {
 	wheel_ratio 		= 1000.0 / g.wheel_encoder_speed;
-	tilt_start 			= false;
     g_gps->longitude 	= 0;
     g_gps->latitude 	= 0;
     fail 				= 0;
     init_home();
+
+	set_armed(false);
 
     // init Yaw hold
     nav_yaw     		= ahrs.yaw_sensor;
@@ -112,9 +113,6 @@ void update_wheel_encoders(){
 		current_loc.lng	 = ((float)g_gps->longitude * .01) + (current_encoder_x / 10) * .99;
 		current_loc.lat  = ((float)g_gps->latitude  * .01) + (current_encoder_y / 10) * .99;
 	}
-
-	//if(tilt_start)
-		//cliSerial->printf_P(PSTR("y%ld, X:%d, Y:%d \n"), ahrs.yaw_sensor, (int16_t)current_encoder_x, (int16_t)current_encoder_y);
 
 	//Serial.printf("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left, wheel.right, wheel.left_speed, wheel.right_speed);
 }

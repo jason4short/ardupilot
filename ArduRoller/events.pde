@@ -11,7 +11,6 @@ static void low_battery_event(void)
     if (g.failsafe_battery_enabled && !ap.low_battery && ap.armed) {
         switch(control_mode) {
             case STABILIZE:
-            case ACRO:
                 // if throttle is zero disarm motors
                 if (g.rc_3.control_in == 0) {
                     init_disarm_motors();
@@ -76,8 +75,6 @@ static void failsafe_gps_check()
     switch(control_mode) {
         // for modes that do not require gps, do nothing
         case STABILIZE:
-        case ACRO:
-        case ALT_HOLD:
             // do nothing
             break;
 
@@ -137,7 +134,6 @@ static void failsafe_gcs_check()
     // use the throttle failsafe setting to decide what to do
     switch(control_mode) {
         case STABILIZE:
-        case ACRO:
             // if throttle is zero disarm motors
             if (g.rc_3.control_in == 0) {
                 init_disarm_motors();

@@ -54,7 +54,7 @@ static void init_rc_out()
     enable_aux_servos();
 
     // Initialization of servo outputs
-    servo_write(CH_1, g.channel_roll.radio_trim);
+    servo_write(CH_1, 	g.channel_roll.radio_trim);
     servo_write(CH_2,   g.channel_pitch.radio_trim);
     servo_write(CH_3,   g.channel_throttle.radio_min);
     servo_write(CH_4,   g.channel_rudder.radio_trim);
@@ -87,7 +87,7 @@ static void read_radio()
         pwm_roll = BOOL_TO_SIGN(g.reverse_elevons) * (BOOL_TO_SIGN(g.reverse_ch2_elevon) * int16_t(elevon.ch2_temp - elevon.trim2) - BOOL_TO_SIGN(g.reverse_ch1_elevon) * int16_t(elevon.ch1_temp - elevon.trim1)) / 2 + 1500;
         pwm_pitch = (BOOL_TO_SIGN(g.reverse_ch2_elevon) * int16_t(elevon.ch2_temp - elevon.trim2) + BOOL_TO_SIGN(g.reverse_ch1_elevon) * int16_t(elevon.ch1_temp - elevon.trim1)) / 2 + 1500;
     }
-    
+
     if (control_mode == TRAINING) {
         // in training mode we don't want to use a deadzone, as we
         // want manual pass through when not exceeding attitude limits
