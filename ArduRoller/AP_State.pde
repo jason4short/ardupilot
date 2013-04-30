@@ -56,26 +56,7 @@ void set_simple_mode(bool b)
 
 // ---------------------------------------------
 static void set_failsafe_radio(bool mode)
-{
-    // only act on changes
-    // -------------------
-    if(ap.failsafe_radio != mode) {
-
-        // store the value so we don't trip the gate twice
-        // -----------------------------------------------
-        ap.failsafe_radio = mode;
-
-        if (ap.failsafe_radio == false) {
-            // We've regained radio contact
-            // ----------------------------
-            failsafe_radio_off_event();
-        }else{
-            // We've lost radio contact
-            // ------------------------
-            failsafe_radio_on_event();
-        }
-    }
-}
+{}
 
 
 // ---------------------------------------------

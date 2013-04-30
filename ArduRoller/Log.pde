@@ -418,7 +418,7 @@ static void Log_Write_Mode(uint8_t mode)
     struct log_Mode pkt = {
         LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
         mode            : mode,
-        throttle_cruise : g.throttle_cruise,
+        throttle_cruise : mode,
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }

@@ -431,13 +431,6 @@ static float sin_pitch          = 1;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// ACRO Mode
-////////////////////////////////////////////////////////////////////////////////
-// Used to control Axis lock
-static int32_t roll_axis;
-static int32_t pitch_axis;
-
-////////////////////////////////////////////////////////////////////////////////
 // Circle Mode / Loiter control
 ////////////////////////////////////////////////////////////////////////////////
 Vector3f circle_center;     // circle position expressed in cm from home location.  x = lat, y = lon
@@ -587,6 +580,47 @@ static AR_WPNav wp_nav(&inertial_nav, &g.pi_loiter_lat, &g.pi_loiter_lon, &g.pid
 // The number of GPS fixes we have had
 static uint8_t gps_fix_count;
 static int16_t pmTest1;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Balance specific
+////////////////////////////////////////////////////////////////////////////////
+static int16_t desired_nav_speed;
+static int16_t desired_balance_speed;
+#define PWM_LUT_SIZE 40
+
+int16_t fail;
+static bool tilt_start;
+//static int16_t pwm_LUT[PWM_LUT_SIZE];
+// This implementation cannot have a value that's lower than the previous index value in the lut:
+//                            0  1    2    3    4    5    6    7    8    9   10    11   12   13   14    15    16    17    18    19    20
+//static int16_t pwm_LUT_R[PWM_LUT_SIZE]; //= {0, 249, 297, 334, 370, 405, 420, 448, 489, 535, 583, 641, 710, 799, 897,  1029, 1204, 1474, 1905, 2000, 2000};
+//static int16_t pwm_LUT_L[PWM_LUT_SIZE];// = {0, 292, 362, 422, 476, 521, 550, 585, 626, 671, 713, 784, 864, 974, 1109, 1293, 1525, 1895, 2000, 2000, 2000};
+
+//                          0  1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38   39
+static int16_t pwm_LUT_R[] = {0, 214, 235, 252, 267, 281, 295, 308, 320, 333, 346, 357, 370, 381, 393, 407, 423, 437, 452, 468, 483, 501, 520, 540, 561, 584, 609, 634, 663, 693, 719, 757, 797, 850, 892, 947, 1014, 1097, 1172, 1271};
+static int16_t pwm_LUT_L[] = {0, 249, 277, 311, 342, 369, 394, 420, 444, 468, 490, 513, 532, 548, 568, 585, 606, 625, 643, 663, 642, 661, 687, 714, 739, 774, 808, 840, 876, 918, 984, 1021, 1111, 1171, 1192, 1251, 1351, 1578, 1671, 1824};
+
+static int16_t motor_out[2];    // This is the array of PWM values being sent to the motors
+static float balance_offset;
+
+static int32_t nav_bearing;
+static int16_t ground_speed;
+//static int32_t ground_position;
+
+static int16_t pitch_speed;
+static int16_t yaw_speed;
+
+static int16_t desired_speed;
+
+static float wheel_ratio;
+static float current_speed;
+static float current_encoder_y;
+static float current_encoder_x;
+static uint32_t balance_timer;
+
+static bool gps_available;
+
 
 // System Timers
 // --------------
@@ -966,11 +1000,6 @@ static void slow_loop()
                 compass.save_offsets();
                 superslow_loopCounter = 0;
             }
-        }
-
-        if(!motors.armed()) {
-            // check the user hasn't updated the frame orientation
-            motors.set_frame_orientation(g.frame_orientation);
         }
 
         break;

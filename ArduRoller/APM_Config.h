@@ -11,24 +11,6 @@
 //#define DMP_ENABLED ENABLED
 //#define SECONDARY_DMP_ENABLED ENABLED       // allows running DMP in parallel with DCM for testing purposes
 
-//#define FRAME_CONFIG QUAD_FRAME
-/*
- *  options:
- *  QUAD_FRAME
- *  TRI_FRAME
- *  HEXA_FRAME
- *  Y6_FRAME
- *  OCTA_FRAME
- *  OCTA_QUAD_FRAME
- *  HELI_FRAME
- */
-
-//#define FRAME_ORIENTATION X_FRAME
-/*
- *  PLUS_FRAME
- *  X_FRAME
- *  V_FRAME
- */
 
 //#define CH7_OPTION		CH7_SAVE_WP
 /*

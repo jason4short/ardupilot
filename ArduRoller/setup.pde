@@ -219,22 +219,7 @@ setup_radio(uint8_t argc, const Menu::arg *argv)
 static int8_t
 setup_motors(uint8_t argc, const Menu::arg *argv)
 {
-    cliSerial->printf_P(PSTR(
-                        "Connect battery for this test.\n"
-                        "Motors will not spin in channel order (1,2,3,4) but by frame position order.\n"
-                        "Front (& right of centerline) motor first, then in clockwise order around frame.\n"
-                        "http://code.google.com/p/arducopter/wiki/AC2_Props_2 for demo video.\n"
-                        "Remember to disconnect battery after this test.\n"
-                        "Any key to exit.\n"));
-    while(1) {
-        delay(20);
-        read_radio();
-        motors.output_test();
-        if(cliSerial->available() > 0) {
-            g.esc_calibrate.set_and_save(0);
-            return(0);
-        }
-    }
+	return 0;
 }
 
 static int8_t
@@ -467,7 +452,6 @@ setup_compassmot(uint8_t argc, const Menu::arg *argv)
     }
 
     // disable throttle and battery failsafe
-    g.failsafe_throttle = FS_THR_DISABLED;
     g.failsafe_battery_enabled = false;
 
     // read radio
@@ -755,23 +739,7 @@ static void report_sonar()
 }
 
 static void report_frame()
-{
-    cliSerial->printf_P(PSTR("Frame\n"));
-    print_divider();
-
- #if FRAME_CONFIG == QUAD_FRAME
-    cliSerial->printf_P(PSTR("Quad frame\n"));
- #endif
-
-    if(g.frame_orientation == X_FRAME)
-        cliSerial->printf_P(PSTR("X mode\n"));
-    else if(g.frame_orientation == PLUS_FRAME)
-        cliSerial->printf_P(PSTR("+ mode\n"));
-    else if(g.frame_orientation == V_FRAME)
-        cliSerial->printf_P(PSTR("V mode\n"));
-
-    print_blanks(2);
-}
+{}
 
 static void report_radio()
 {

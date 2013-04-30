@@ -71,31 +71,8 @@ public:
                                                 // with next eeprom number
                                                 // change
 
-        k_param_crosstrack_min_distance,	// deprecated - remove with next eeprom number change
         k_param_rssi_pin,
-        k_param_throttle_accel_enabled,
-        k_param_wp_yaw_behavior,
-        k_param_acro_trainer_enabled,
-        k_param_pilot_velocity_z_max,
-        k_param_circle_rate,
         k_param_sonar_gain,             // 30
-
-        // 65: AP_Limits Library
-        k_param_limits = 65,            // deprecated - remove
-        k_param_gpslock_limit,          // deprecated - remove
-        k_param_geofence_limit,         // deprecated - remove
-        k_param_altitude_limit,         // deprecated - remove
-
-        //
-        // 80: Heli
-        //
-        k_param_heli_servo_1 = 80,
-        k_param_heli_servo_2,
-        k_param_heli_servo_3,
-        k_param_heli_servo_4,
-		k_param_heli_pitch_ff,
-		k_param_heli_roll_ff,
-		k_param_heli_yaw_ff,
 
         //
         // 90: Motors
@@ -129,24 +106,17 @@ public:
         k_param_compass_enabled,
         k_param_compass,
         k_param_sonar_enabled,
-        k_param_frame_orientation,
         k_param_low_voltage,
         k_param_ch7_option,
         k_param_auto_slew_rate,
         k_param_sonar_type,
-        k_param_super_simple = 155,
-        k_param_axis_enabled = 157,
         k_param_copter_leds_mode,
         k_param_ahrs, // AHRS group
 
         //
         // 160: Navigation parameters
         //
-        k_param_rtl_altitude = 160,
-        k_param_crosstrack_gain,	// deprecated - remove with next eeprom number change
-        k_param_rtl_loiter_time,
-        k_param_rtl_alt_final,
-        k_param_tilt_comp, 	//164	deprecated - remove with next eeprom number change
+        k_param_crosstrack_gain = 160,	// deprecated - remove with next eeprom number change
 
 
         //
@@ -175,19 +145,11 @@ public:
         k_param_rc_8,
         k_param_rc_10,
         k_param_rc_11,
-        k_param_throttle_min,
-        k_param_throttle_max,
-        k_param_failsafe_throttle,
-        k_param_throttle_fs_action,     // remove
-        k_param_failsafe_throttle_value,
-        k_param_throttle_cruise,
-        k_param_esc_calibrate,
         k_param_radio_tuning,
         k_param_radio_tuning_high,
         k_param_radio_tuning_low,
         k_param_rc_speed = 192,
         k_param_failsafe_battery_enabled,
-        k_param_throttle_mid,
         k_param_failsafe_gps_enabled,
         k_param_rc_9,
         k_param_rc_12,
@@ -294,15 +256,6 @@ public:
     AP_Int16        pilot_velocity_z_max;        // maximum vertical velocity the pilot may request
 
 
-    // Throttle
-    //
-    AP_Int16        throttle_min;
-    AP_Int16        throttle_max;
-    AP_Int8         failsafe_throttle;
-    AP_Int16        failsafe_throttle_value;
-    AP_Int16        throttle_cruise;
-    AP_Int16        throttle_mid;
-
     // Flight modes
     //
     AP_Int8         flight_mode1;
@@ -318,11 +271,9 @@ public:
     AP_Int16        log_bitmask;
 
 
-    AP_Int8         esc_calibrate;
     AP_Int8         radio_tuning;
     AP_Int16        radio_tuning_high;
     AP_Int16        radio_tuning_low;
-    AP_Int8         frame_orientation;
     AP_Int8         ch7_option;
     AP_Int16        auto_slew_rate;
 
@@ -348,12 +299,6 @@ public:
 #endif
 
     AP_Int16                rc_speed; // speed of fast RC Channels in Hz
-
-    // Acro parameters
-    AP_Float                acro_p;
-    AP_Int16                acro_balance_roll;
-    AP_Int16                acro_balance_pitch;
-    AP_Int8                 acro_trainer_enabled;
 
     // PI/D controllers
     AC_PID                  pid_rate_roll;

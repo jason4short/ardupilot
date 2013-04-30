@@ -158,8 +158,6 @@ static void init_disarm_motors()
 
     compass.save_offsets();
 
-    g.throttle_cruise.save();
-
     // we are not in the air
     set_takeoff_complete(false);
 

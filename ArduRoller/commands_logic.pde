@@ -391,7 +391,8 @@ static bool verify_RTL()
 	// check if we've reached home
 	if (wp_nav.reached_destination()) {
 		return true;
-	}
+	}else
+		return false;
 }
 
 /********************************************************************************/

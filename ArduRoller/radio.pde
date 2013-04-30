@@ -19,7 +19,7 @@ static void init_rc_in()
     // set rc channel ranges
     g.rc_1.set_angle(MAX_INPUT_ROLL_ANGLE);
     g.rc_2.set_angle(MAX_INPUT_PITCH_ANGLE);
-    g.rc_3.set_range(g.throttle_min, g.throttle_max);
+    g.rc_3.set_range(0, 1000);
     g.rc_4.set_angle(4500);
 
     // reverse: CW = left
@@ -54,10 +54,7 @@ static void init_rc_in()
 static void init_rc_out()
 {
     motors.set_update_rate(g.rc_speed);
-    motors.set_frame_orientation(g.frame_orientation);
     motors.Init();                                              // motor initialisation
-    motors.set_min_throttle(g.throttle_min);
-    motors.set_max_throttle(g.throttle_max);
 
     for(uint8_t i = 0; i < 5; i++) {
         delay(20);
@@ -103,8 +100,7 @@ static void read_radio()
     }else{
         uint32_t elapsed = millis() - last_update;
         // turn on throttle failsafe if no update from ppm encoder for 2 seconds
-        if ((elapsed >= FAILSAFE_RADIO_TIMEOUT_MS)
-                && g.failsafe_throttle && motors.armed() && !ap.failsafe_radio) {
+        if ((elapsed >= FAILSAFE_RADIO_TIMEOUT_MS) && motors.armed() && !ap.failsafe_radio) {
             Log_Write_Error(ERROR_SUBSYSTEM_RADIO, ERROR_CODE_RADIO_LATE_FRAME);
             set_failsafe_radio(true);
         }

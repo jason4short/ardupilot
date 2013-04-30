@@ -95,16 +95,6 @@
  # define MAGNETOMETER ENABLED
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
-// FRAME_CONFIG
-//
-#ifndef FRAME_CONFIG
- # define FRAME_CONFIG   QUAD_FRAME
-#endif
-#ifndef FRAME_ORIENTATION
- # define FRAME_ORIENTATION      X_FRAME
-#endif
-
 
 //////////////////////////////////////////////////////////////////////////////
 // IMU Selection
@@ -567,35 +557,6 @@
 // Note: RTL Yaw behaviour is controlled by WP_YAW_BEHAVIOR parameter
 #ifndef RTL_RP
  # define RTL_RP                    ROLL_PITCH_AUTO
-#endif
-
-#ifndef RTL_THR
- # define RTL_THR                   THROTTLE_AUTO
-#endif
-
-#ifndef SUPER_SIMPLE
- # define SUPER_SIMPLE           	DISABLED
-#endif
-
-#ifndef SUPER_SIMPLE_RADIUS
- # define SUPER_SIMPLE_RADIUS    	1000
-#endif
-
-// RTL Mode
-#ifndef RTL_ALT_FINAL
- # define RTL_ALT_FINAL             200     // the altitude the vehicle will move to as the final stage of Returning to Launch.  Set to zero to land.
-#endif
-
-#ifndef RTL_ALT
- # define RTL_ALT 				    1500    // default alt to return to home in cm, 0 = Maintain current altitude
-#endif
-
-#ifndef RTL_ALT_MAX
- # define RTL_ALT_MAX               8000    // Max height to return to home in cm (i.e 80m)
-#endif
-
-#ifndef RTL_LOITER_TIME
- # define RTL_LOITER_TIME           5000    // Time (in milliseconds) to loiter above home before begining final descent
 #endif
 
 
