@@ -1615,7 +1615,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
             set_mode(GUIDED);
 
             // set wp_nav's destination
-            wp_nav.set_destination(pv_location_to_vector(tell_command));
+            set_destination(pv_location_to_vector(tell_command));
 
             // verify we recevied the command
             mavlink_msg_mission_ack_send(

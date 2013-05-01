@@ -197,7 +197,7 @@ static void do_RTL(void)
 	set_nav_mode(NAV_WP);
 
 	// Set wp navigation target to above home
-	wp_nav.set_destination(Vector3f(0,0,0));
+	set_destination(Vector3f(0,0,0));
 }
 
 /********************************************************************************/
@@ -212,10 +212,10 @@ static void do_nav_wp()
     set_nav_mode(NAV_WP);
 
     // Set wp navigation target
-    wp_nav.set_destination(pv_location_to_vector(command_nav_queue));
+    set_destination(pv_location_to_vector(command_nav_queue));
 
     // initialise original_wp_bearing which is used to check if we have missed the waypoint
-    wp_bearing = wp_nav.get_bearing_to_destination();
+    wp_bearing = get_bearing_to_destination();
     original_wp_bearing = wp_bearing;
 
     // this will be used to remember the time in millis after we reach or pass the WP.
@@ -248,7 +248,7 @@ static void do_loiter_unlimited()
 
     // start way point navigator and provide it the desired location
     set_nav_mode(NAV_WP);
-    wp_nav.set_destination(pos);
+    set_destination(pos);
 }
 
 // do_circle - initiate moving in a circle
@@ -288,7 +288,7 @@ static void do_loiter_time()
 
     // start way point navigator and provide it the desired location
     set_nav_mode(NAV_WP);
-    wp_nav.set_destination(pos);
+    set_destination(pos);
 
     // setup loiter timer
     loiter_time     = 0;
@@ -303,7 +303,7 @@ static void do_loiter_time()
 static bool verify_nav_wp()
 {
     // check if we have reached the waypoint
-    if( !wp_nav.reached_destination() ) {
+    if( !_reached_destination ) {
         return false;
     }
 
@@ -331,7 +331,7 @@ static bool verify_loiter_unlimited()
 static bool verify_loiter_time()
 {
     // return immediately if we haven't reached our destination
-    if (!wp_nav.reached_destination()) {
+    if (!_reached_destination) {
         return false;
     }
 
@@ -357,7 +357,7 @@ static bool verify_circle()
 static bool verify_RTL()
 {
 	// check if we've reached home
-	if (wp_nav.reached_destination()) {
+	if (_reached_destination) {
 		return true;
 	}else
 		return false;
@@ -480,7 +480,7 @@ static bool verify_nav_roi()
 
 static void do_change_speed()
 {
-    wp_nav.set_horizontal_velocity(command_cond_queue.p1 * 100);
+    set_horizontal_velocity(command_cond_queue.p1 * 100);
 }
 
 static void do_jump()

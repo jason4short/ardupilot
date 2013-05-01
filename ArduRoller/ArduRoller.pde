@@ -488,7 +488,7 @@ static uint32_t throttle_integrator;
 ////////////////////////////////////////////////////////////////////////////////
 // The Commanded Yaw from the autopilot.
 static int32_t nav_yaw;
-static uint8_t yaw_timer;
+//static uint8_t yaw_timer;
 // Yaw will point at this location if yaw_mode is set to YAW_LOOK_AT_LOCATION
 static Vector3f yaw_look_at_WP;
 // bearing from current location to the yaw_look_at_WP
@@ -552,11 +552,11 @@ static int16_t pmTest1;
 ////////////////////////////////////////////////////////////////////////////////
 // Balance specific
 ////////////////////////////////////////////////////////////////////////////////
-static int16_t desired_nav_speed;
-static int16_t desired_balance_speed;
+//static int16_t desired_nav_speed;
+//static int16_t desired_balance_speed;
 #define PWM_LUT_SIZE 40
 
-int16_t fail;
+int16_t I2Cfail;
 
 //                          0  1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38   39
 static int16_t pwm_LUT_R[] = {0, 214, 235, 252, 267, 281, 295, 308, 320, 333, 346, 357, 370, 381, 393, 407, 423, 437, 452, 468, 483, 501, 520, 540, 561, 584, 609, 634, 663, 693, 719, 757, 797, 850, 892, 947, 1014, 1097, 1172, 1271};
@@ -581,6 +581,27 @@ static float current_encoder_x;
 static uint32_t balance_timer;
 
 static bool gps_available;
+
+
+////////////////////////////////////////////////////////////////////////////////
+// WP Nav
+////////////////////////////////////////////////////////////////////////////////
+uint32_t	_loiter_last_update;    // time of last update_loiter call
+uint32_t	_wpnav_last_update;     // time of last update_wpnav call
+
+Vector2f 	dist_error;                // distance error calculated by loiter controller
+Vector2f 	desired_vel;               // loiter controller desired velocity
+Vector2f 	desired_accel;             // the resulting desired acceleration
+
+int32_t     _desired_roll;          // fed to stabilize controllers at 50hz
+int32_t     _desired_pitch;         // fed to stabilize controllers at 50hz
+
+
+Vector3f    _origin;                // starting point of trip to next waypoint in cm from home (equivalent to next_WP)
+Vector3f    _destination;           // target destination in cm from home (equivalent to next_WP)
+float       _distance_to_target;    // distance to loiter target
+bool        _reached_destination;   // true if we have reached the destination
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wheels
@@ -1294,9 +1315,6 @@ static void update_trig(void){
     // added to convert earth frame to body frame for rate controllers
     sin_pitch       = -temp.c.x;
     sin_roll        = temp.c.y / cos_pitch_x;
-
-    // update wp_nav controller with trig values
-    wp_nav.set_cos_sin_yaw(cos_yaw, sin_yaw, cos_pitch_x);
 
     //flat:
     // 0 ° = cos_yaw:  1.00, sin_yaw:  0.00,

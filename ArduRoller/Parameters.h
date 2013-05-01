@@ -114,6 +114,7 @@ public:
         // 160: Navigation parameters
         //
         k_param_crosstrack_gain = 160,
+        k_param_waypoint_speed,
         k_param_fbw_speed,
         k_param_throttle,
         k_param_dead_zone,
@@ -170,6 +171,7 @@ public:
         k_param_command_total = 210,
         k_param_command_index,
         k_param_circle_radius,
+        k_param_waypoint_radius,
 
         //
         // 220: PI/D Controllers
@@ -229,7 +231,8 @@ public:
     AP_Int16        fbw_speed;
     AP_Float        throttle;
     AP_Int16        dead_zone;
-
+    AP_Float        waypoint_speed;		//cm/s
+    AP_Float        waypoint_radius;    //cm
 
     // Flight modes
     //

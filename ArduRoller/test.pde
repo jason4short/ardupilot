@@ -329,7 +329,7 @@ test_wp(uint8_t argc, const Menu::arg *argv)
     delay(1000);
 
     cliSerial->printf_P(PSTR("%d wp\n"), (int)g.command_total);
-    cliSerial->printf_P(PSTR("Hit rad: %dm\n"), (int)wp_nav.get_waypoint_radius());
+    cliSerial->printf_P(PSTR("Hit rad: %dm\n"), (int)g.waypoint_radius.get());
 
     report_wp();
 

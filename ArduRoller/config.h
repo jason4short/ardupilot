@@ -625,6 +625,13 @@
 //////////////////////////////////////////////////////////////////////////////
 // WP Navigation control gains
 //
+#ifndef WAYPOINT_RADIUS
+ # define WAYPOINT_RADIUS           50         //cm
+#endif
+#ifndef WAYPOINT_SPEED
+ # define WAYPOINT_SPEED           200         //cm
+#endif
+
 #ifndef NAV_P
  # define NAV_P                     .2         //
 #endif

@@ -670,16 +670,16 @@ static void Log_Write_WPNAV()
 
     struct log_WPNAV pkt = {
         LOG_PACKET_HEADER_INIT(LOG_WPNAV_MSG),
-        pos_error_x         : wp_nav.dist_error.x,
-        pos_error_y         : wp_nav.dist_error.y,
-        desired_velocity_x  : wp_nav.desired_vel.x,
-        desired_velocity_y  : wp_nav.desired_vel.y,
+        pos_error_x         : dist_error.x,
+        pos_error_y         : dist_error.y,
+        desired_velocity_x  : desired_vel.x,
+        desired_velocity_y  : desired_vel.y,
         velocity_x          : velocity.x,
         velocity_y          : velocity.y,
-        desired_accel_x     : wp_nav.desired_accel.x,
-        desired_accel_y     : wp_nav.desired_accel.y,
-        desired_roll        : wp_nav.get_desired_roll(),
-        desired_pitch       : wp_nav.get_desired_pitch()
+        desired_accel_x     : desired_accel.x,
+        desired_accel_y     : desired_accel.y,
+        desired_roll        : _desired_roll,
+        desired_pitch       : _desired_pitch
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }

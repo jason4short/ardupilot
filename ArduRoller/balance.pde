@@ -3,7 +3,7 @@ void init_balance()
 	wheel_ratio 		= 1000.0 / g.wheel_encoder_speed;
     g_gps->longitude 	= 0;
     g_gps->latitude 	= 0;
-    fail 				= 0;
+    I2Cfail 			= 0;
     init_home();
 
 	set_armed(false);
@@ -73,7 +73,7 @@ void update_wheel_encoders(){
 
 	//read(uint8_t address, uint8_t numberBytes, uint8_t *dataBuffer)
 	if (hal.i2c->read((uint8_t)ENCODER_ADDRESS, 15, buff) != 0) {
-		fail++;
+		I2Cfail++;
 		return;
 	}
 

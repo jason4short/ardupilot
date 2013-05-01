@@ -57,11 +57,11 @@ static void calc_distance_and_bearing()
 
     // get target from loiter or wpinav controller
     if( nav_mode == NAV_LOITER || nav_mode == NAV_CIRCLE ) {
-        wp_distance = wp_nav.get_distance_to_target();
-        wp_bearing = wp_nav.get_bearing_to_target();
+        wp_distance = get_distance_to_target();
+        wp_bearing = get_bearing_to_target();
     }else if( nav_mode == NAV_WP ) {
-        wp_distance = wp_nav.get_distance_to_destination();
-        wp_bearing = wp_nav.get_bearing_to_destination();
+        wp_distance = get_distance_to_destination();
+        wp_bearing = get_bearing_to_destination();
     }else{
         wp_distance = 0;
         wp_bearing = 0;
@@ -156,14 +156,14 @@ static void update_nav_mode()
 
         case NAV_LOITER:
             // call loiter controller
-            wp_nav.update_loiter();
+            update_loiter();
             // log to dataflash
             Log_Write_WPNAV();
             break;
 
         case NAV_WP:
             // call waypoint controller
-            wp_nav.update_wpnav();
+            update_wpnav();
             // log to dataflash
             Log_Write_WPNAV();
             break;

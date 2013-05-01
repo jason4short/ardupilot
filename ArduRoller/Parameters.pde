@@ -314,7 +314,11 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Units: Hertz (Hz)
     // @Values: 125,400,490
     // @User: Advanced
-    GSCALAR(rc_speed, "RC_SPEED",              RC_FAST_SPEED),
+    GSCALAR(rc_speed, "RC_SPEED",              	RC_FAST_SPEED),
+
+
+    GSCALAR(waypoint_speed,  "WP_SPEED",       	WAYPOINT_SPEED),
+    GSCALAR(waypoint_radius, "WP_RADIUS",      	WAYPOINT_RADIUS),
 
 
     // @Param: LED_MODE
