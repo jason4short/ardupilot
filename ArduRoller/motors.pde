@@ -73,8 +73,8 @@ update_servos()
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
 	*/
 #else
-    motor_out[LEFT_MOT_CH]  = (float)(pitch_speed + yaw_speed) * g.pid_wheel_left_mixer.kP(); // left motor
-    motor_out[RIGHT_MOT_CH] = (float)(pitch_speed - yaw_speed) * g.pid_wheel_right_mixer.kP(); // righ motor
+    motor_out[LEFT_MOT_CH]  = (float)(pitch_out + yaw_out) * g.pid_wheel_left_mixer.kP(); // left motor
+    motor_out[RIGHT_MOT_CH] = (float)(pitch_out - yaw_out) * g.pid_wheel_right_mixer.kP(); // righ motor
 
     motor_out[LEFT_MOT_CH]  = constrain(motor_out[LEFT_MOT_CH],  -2000, 2000);
     motor_out[RIGHT_MOT_CH] = constrain(motor_out[RIGHT_MOT_CH], -2000, 2000);

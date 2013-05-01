@@ -17,7 +17,7 @@ void init_balance()
 int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
 {
 	// mix output speeds
-	wheel.left_speed_output = (pitch_speed + yaw_speed);
+	wheel.left_speed_output = (pitch_out + yaw_out);
 
 	// Lookup our PWM output:
 	int16_t wheel_ff		= convert_speed_to_PWM(pwm_LUT_L, wheel.left_speed_output);
@@ -41,7 +41,7 @@ int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
 int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 {
 	// mix output speeds
-	wheel.right_speed_output 	= (pitch_speed - yaw_speed);
+	wheel.right_speed_output 	= (pitch_out - yaw_out);
 
 	// Lookup our PWM output:
 	int16_t wheel_ff			= convert_speed_to_PWM(pwm_LUT_R, wheel.right_speed_output);	// Lookup our PWM output:
@@ -58,7 +58,7 @@ int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 							//1   2   3   4   5   6
 	cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d\n"),
 					(int16_t)ahrs.pitch_sensor,			// 1
-					pitch_speed,						// 2
+					pitch_out,						// 2
 					wheel.right_speed,					// 3
 					speed_err,							// 4
 					wheel_ff,							// 5

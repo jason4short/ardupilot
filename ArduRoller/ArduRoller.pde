@@ -569,8 +569,8 @@ static int32_t nav_bearing;
 static int16_t ground_speed;
 //static int32_t ground_position;
 
-static int16_t pitch_speed;
-static int16_t yaw_speed;
+static int16_t pitch_out;
+static int16_t yaw_out;
 
 static int16_t desired_speed;
 
@@ -1100,33 +1100,33 @@ void update_yaw_mode(void)
     static bool yaw_flag = false;
 
 	if(labs(ahrs.pitch_sensor) > 4000 || labs(ahrs.roll_sensor) > 4000){
-        yaw_speed = 0;
+        yaw_out = 0;
         nav_yaw = ahrs.yaw_sensor;
         return;
     }
 
     switch(yaw_mode){
         case YAW_ACRO:
-            yaw_speed = g.rc_1.control_in;
+            yaw_out = g.rc_1.control_in;
             break;
 
         case YAW_HOLD:
             if(g.rc_1.control_in != 0){
-                yaw_speed   = g.rc_1.control_in;
+                yaw_out   = g.rc_1.control_in;
                 yaw_flag    = true;
             }else{
                 if(yaw_flag){
                     yaw_flag    = false;
                     nav_yaw     = ahrs.yaw_sensor;
                 }else{
-                    yaw_speed   = get_stabilize_yaw(nav_yaw);
+                    yaw_out   = get_stabilize_yaw(nav_yaw);
                 }
             }
             break;
 
         case YAW_LOOK_AT_NEXT_WP:
             nav_yaw = wp_bearing;
-            yaw_speed = get_stabilize_yaw(nav_yaw);
+            yaw_out = get_stabilize_yaw(nav_yaw);
             break;
     }
 }
@@ -1147,8 +1147,8 @@ void update_roll_pitch_mode(void)
     }
 
     if((millis() - balance_timer) < 3000){
-        pitch_speed = 0;
-        yaw_speed   = 0;
+        pitch_out = 0;
+        yaw_out   = 0;
         return;
     }else{
         init_arm_motors();
@@ -1174,15 +1174,13 @@ void update_roll_pitch_mode(void)
             }
 
             // in this mode we command the target angle
-            bal_out = get_stabilize_pitch(g.rc_2.control_in); // neg = pitch forward
+            bal_out     = get_stabilize_pitch(g.rc_2.control_in); // neg = pitch forward
 
             // speed control:
-            vel_out = get_velocity_pitch();
+            vel_out     = get_velocity_pitch();
 
-            // maintain location:
-            //nav_out = get_nav_pitch(0, get_dist_err());
-
-            pitch_speed = (bal_out + vel_out + nav_out);
+            // sum control
+            pitch_out   = (bal_out + vel_out + nav_out);
 
            	/*cliSerial->printf_P(PSTR("a:%d\td:%d\tbal%d, vel%d, nav%d\n"),
            	        (int16_t)ahrs.pitch_sensor,
@@ -1190,9 +1188,6 @@ void update_roll_pitch_mode(void)
                    	bal_out,
                    	vel_out,
                    	nav_out);*/
-
-
-
             break;
         /*
         case ROLL_PITCH_FBW:
