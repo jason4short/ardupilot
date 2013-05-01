@@ -629,7 +629,7 @@
  # define WAYPOINT_RADIUS           50         //cm
 #endif
 #ifndef WAYPOINT_SPEED
- # define WAYPOINT_SPEED           200         //cm
+ # define WAYPOINT_SPEED           500         //cm
 #endif
 
 #ifndef NAV_P

@@ -378,7 +378,7 @@ static uint8_t command_cond_index;
 // NAV_ALTITUDE - have we reached the desired altitude?
 // NAV_LOCATION - have we reached the desired location?
 // NAV_DELAY    - have we waited at the waypoint the desired time?
-static float lon_error, lat_error;      // Used to report how many cm we are from the next waypoint or loiter target position
+//static float lon_error, lat_error;      // Used to report how many cm we are from the next waypoint or loiter target position
 static int16_t control_roll;
 static int16_t control_pitch;
 
@@ -572,7 +572,8 @@ static int16_t ground_speed;
 static int16_t pitch_out;
 static int16_t yaw_out;
 
-static int16_t desired_speed;
+static float desired_speed;
+static int16_t desired_ticks;
 
 static float wheel_ratio;
 static float current_speed;
@@ -1180,7 +1181,7 @@ void update_roll_pitch_mode(void)
     int16_t bal_out = 0;
     int16_t vel_out = 0;
     int16_t nav_out = 0;
-    int16_t speed_error, ff_out, distance_error;
+    int16_t wheel_speed_error, ff_out;
 
 
 
@@ -1189,8 +1190,8 @@ void update_roll_pitch_mode(void)
             // we always hold position
             if(abs(g.rc_2.control_in) > 0){
                 // reset position
-                //next_WP.lat = current_loc.lat;
-                //next_WP.lng = current_loc.lng;
+                set_destination(inertial_nav.get_position());
+                _reached_destination = true;
                 g.pid_nav.reset_I();
             }
 
@@ -1210,35 +1211,34 @@ void update_roll_pitch_mode(void)
                    	vel_out,
                    	nav_out);*/
             break;
-        /*
+
         case ROLL_PITCH_FBW:
             // hold position if we let go of sticks
             if(abs(g.rc_2.control_in) > 0){
                 // reset position
-                //next_WP.lat = current_loc.lat;
-                //next_WP.lng = current_loc.lng;
+                set_destination(inertial_nav.get_position());
+                _reached_destination = true;
                 g.pid_nav.reset_I();
             }
 
-            //distance_error		= (float)long_error * cos_yaw_x + (float)lat_error * sin_yaw_y;
-
             // defaulting to 500 / 12 = 41cm/s = 1.5r/s = 1200e/s
             if(g.rc_2.control_in == 0){
-                desired_speed  = distance_error;
+                desired_speed  = wp_distance;
             }else{
                 desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
                 desired_speed 	= constrain(desired_speed, -80, 80);            // units = cm/s
             }
 
             // switching units to ticks
-            desired_speed   = convert_distance_to_encoder_speed(desired_speed); // units = ticks/second : 1RPM = 1000ticks/second
-            speed_error     = wheel.speed - desired_speed;                      // units = ticks/second : 1RPM = 1000ticks/second
+            desired_ticks       = convert_distance_to_encoder_speed(desired_speed); // units = ticks/second : 1RPM = 1000ticks/second
+            // wheel speed error in units of ticks/s
+            wheel_speed_error   = wheel.speed - desired_ticks;                      // units = ticks/second : 1RPM = 1000ticks/second
 
             // 4 components of stability and navigation
             bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
             vel_out         = get_velocity_pitch();                             // magic
-            ff_out          = (float)desired_speed * g.throttle;                // allows us to roll while vertical
-            nav_out      	= g.pid_nav.get_pid(speed_error, G_Dt);             // allows us to accelerate
+            ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical
+            nav_out      	= g.pid_nav.get_pid(wheel_speed_error, G_Dt);       // allows us to accelerate
 
            /*
             cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d, %d, %d\n"),
@@ -1249,28 +1249,26 @@ void update_roll_pitch_mode(void)
                 ff_out,
                 nav_out,
                 desired_speed,
-                speed_error);
+                wheel_speed_error);
             //*/
-        /*
             // sum the output
-            pitch_speed = (bal_out + vel_out + nav_out - ff_out);
-        break;
+            pitch_out = (bal_out + vel_out + nav_out - ff_out);
+            break;
 
         case ROLL_PITCH_AUTO:
             // in this mode we command the target angle
-            pitch_speed = get_stabilize_pitch(0); // neg = pitch forward
+            pitch_out = get_stabilize_pitch(0); // neg = pitch forward
 
             // speed control:
-            pitch_speed += get_velocity_pitch();
+            pitch_out += get_velocity_pitch();
 
             // maintain location:
-            if(wp_control == LOITER_MODE){
-                pitch_speed += get_nav_pitch(0, get_dist_err());
+            if(nav_mode == NAV_LOITER){
+                pitch_out += get_nav_pitch(0, wp_distance);
             }else{
-                pitch_speed += get_nav_pitch(500, get_dist_err()); // minimum speed for WP nav
+                pitch_out += get_nav_pitch(g.waypoint_speed, wp_distance); // minimum speed for WP nav
             }
             break;
-        */
     }
 
     if(ap_system.new_radio_frame) {

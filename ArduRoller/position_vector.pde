@@ -33,12 +33,6 @@ const int32_t pv_get_lon(const Vector3f pos_vec)
     return home.lng + (int32_t)(pos_vec.y / LATLON_TO_CM * scaleLongUp);
 }
 
-// pv_get_horizontal_distance_cm - return distance between two positions in cm
-const float pv_get_horizontal_distance_cm(const Vector3f origin, const Vector3f destination)
-{
-    return pythagorous2(destination.x-origin.x,destination.y-origin.y);
-}
-
 // pv_get_bearing_cd - return bearing in centi-degrees between two positions
 const float pv_get_bearing_cd(const Vector3f origin, const Vector3f destination)
 {
@@ -48,3 +42,19 @@ const float pv_get_bearing_cd(const Vector3f origin, const Vector3f destination)
     }
     return bearing;
 }
+
+
+/// get_distance_to_destination - get horizontal distance to destination in cm
+float get_distance_to_destination()
+{
+    // get current location
+    Vector3f curr = inertial_nav.get_position();
+    return pythagorous2(_destination.x - curr.x, _destination.y - curr.y);
+}
+
+/// get_bearing_to_destination - get bearing to next waypoint in centi-degrees
+int32_t get_bearing_to_destination()
+{
+    return pv_get_bearing_cd(inertial_nav.get_position(), _destination);
+}
+

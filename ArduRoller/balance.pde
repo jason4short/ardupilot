@@ -119,19 +119,19 @@ void update_wheel_encoders(){
 
 // ------------------
 
-int16_t convert_groundspeed_to_encoder_speed(int16_t _ground_speed)
+float convert_groundspeed_to_encoder_speed(float _ground_speed)
 {
-	return ((int32_t)_ground_speed * (int32_t)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
+	return (_ground_speed * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
 }
 
-int32_t convert_distance_to_encoder_speed(int32_t _distance)
+float convert_distance_to_encoder_speed(float _distance)
 {
-	return ((int32_t)_distance * (int32_t)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
+	return (_distance * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
 }
 
-int16_t convert_encoder_speed_to_ground_speed(int16_t encoder_speed)
+float convert_encoder_speed_to_ground_speed(float encoder_speed)
 {
-	return ((float)encoder_speed * WHEEL_DIAMETER_CM) / (float)g.wheel_encoder_speed;
+	return (encoder_speed * WHEEL_DIAMETER_CM) / (float)g.wheel_encoder_speed;
 }
 
 // ------------------

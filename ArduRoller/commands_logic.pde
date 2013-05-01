@@ -480,7 +480,8 @@ static bool verify_nav_roi()
 
 static void do_change_speed()
 {
-    set_horizontal_velocity(command_cond_queue.p1 * 100);
+	// to-do : make the param resettable
+	//wp_speed = command_cond_queue.p1 * 100;
 }
 
 static void do_jump()

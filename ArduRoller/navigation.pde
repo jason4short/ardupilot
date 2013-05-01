@@ -53,24 +53,14 @@ static void calc_position(){
 // calc_distance_and_bearing - calculate distance and direction to waypoints for reporting and autopilot decisions
 static void calc_distance_and_bearing()
 {
-    Vector3f curr = inertial_nav.get_position();
-
-    // get target from loiter or wpinav controller
-    if( nav_mode == NAV_LOITER || nav_mode == NAV_CIRCLE ) {
-        wp_distance = get_distance_to_target();
-        wp_bearing = get_bearing_to_target();
-    }else if( nav_mode == NAV_WP ) {
-        wp_distance = get_distance_to_destination();
-        wp_bearing = get_bearing_to_destination();
-    }else{
-        wp_distance = 0;
-        wp_bearing = 0;
-    }
+	wp_distance = get_distance_to_destination();
+	wp_bearing 	= get_bearing_to_destination();
 
     // calculate home distance and bearing
     if( ap.home_is_set ) {
+	    Vector3f curr = inertial_nav.get_position();
         home_distance = pythagorous2(curr.x, curr.y);
-        home_bearing = pv_get_bearing_cd(curr,Vector3f(0,0,0));
+        home_bearing = pv_get_bearing_cd(curr, Vector3f(0, 0, 0));
     }else{
         home_distance = 0;
         home_bearing = 0;
@@ -88,11 +78,16 @@ static void run_autopilot()
             // process the active navigation and conditional commands
             verify_commands();
             break;
+
         case GUIDED:
             // no need to do anything - wp_nav should take care of getting us to the desired location
             break;
+
         case RTL:
             verify_RTL();
+            break;
+
+        case CIRCLE:
             break;
     }
 }
@@ -122,7 +117,7 @@ static bool set_nav_mode(uint8_t new_nav_mode)
 
         case NAV_LOITER:
             // set target to current position
-            //wp_nav.set_loiter_target(inertial_nav.get_position(), inertial_nav.get_velocity());
+            //set_loiter_target(inertial_nav.get_position(), inertial_nav.get_velocity());
             nav_initialised = true;
             break;
 
@@ -151,7 +146,9 @@ static void update_nav_mode()
 
         case NAV_CIRCLE:
             // call circle controller which in turn calls loiter controller
-            update_circle(dTnav);
+            update_circle();
+            // log to dataflash
+            Log_Write_WPNAV();
             break;
 
         case NAV_LOITER:
@@ -180,8 +177,8 @@ static void reset_nav_params(void)
     wp_distance                     = 0;
 
     // Will be set by nav or loiter controllers
-    lon_error                       = 0;
-    lat_error                       = 0;
+    //lon_error                       = 0;
+    //lat_error                       = 0;
     nav_roll 						= 0;
     nav_pitch 						= 0;
 }
@@ -207,7 +204,7 @@ circle_set_center(const Vector3f current_position, float heading_in_radians)
 
 // update_circle - circle position controller's main call which in turn calls loiter controller with updated target position
 static void
-update_circle(float dt)
+update_circle()
 {
 
 }

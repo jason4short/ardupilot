@@ -284,18 +284,19 @@ static void set_mode(uint8_t mode)
 		case STABILIZE:
             yaw_mode        = YAW_HOLD;
             roll_pitch_mode = ROLL_PITCH_STABLE;
-			//set_nav_mode(NAV_NONE);
+			set_nav_mode(NAV_NONE);
 			break;
 
 		case LOITER:
             yaw_mode        = YAW_LOOK_AT_NEXT_WP;
             roll_pitch_mode = ROLL_PITCH_AUTO;
-			//set_nav_mode(LOITER_NAV);
+			set_nav_mode(NAV_LOITER);
 			break;
 
         case FBW:
             yaw_mode        = YAW_HOLD;
             roll_pitch_mode = ROLL_PITCH_FBW;
+			set_nav_mode(NAV_LOITER);
             break;
 
 		case AUTO:
@@ -307,13 +308,13 @@ static void set_mode(uint8_t mode)
 		case GUIDED:
             yaw_mode        = YAW_LOOK_AT_NEXT_WP;
             roll_pitch_mode = ROLL_PITCH_AUTO;
-			//set_nav_mode(GUIDED_NAV);
+			set_nav_mode(NAV_WP);
 			break;
 
 		case CIRCLE:
             yaw_mode        = YAW_LOOK_AT_NEXT_WP;
             roll_pitch_mode = ROLL_PITCH_AUTO;
-			//set_nav_mode(CIRCLE_NAV);
+			set_nav_mode(NAV_CIRCLE);
 			break;
 
 		case RTL:
