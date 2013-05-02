@@ -753,19 +753,19 @@ AP_Param param_loader(var_info, WP_START_BYTE);
   microseconds)
  */
 static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
-    { update_GPS,            2,     900 },
-    { update_navigation,     10,    500 },
-    { medium_loop,           2,     700 },
-    { fifty_hz_loop,         2,     950 },
-    { run_nav_updates,      10,     800 },
-    { slow_loop,            10,     500 },
-    { gcs_check_input,	     2,     700 },
-    { gcs_send_heartbeat,  100,     700 },
-    { gcs_data_stream_send,  2,    1500 },
-    { gcs_send_deferred,     2,    1200 },
-    { compass_accumulate,    2,     700 },
-    { super_slow_loop,     100,    1100 },
-    { perf_update,        1000,     500 }
+    { update_GPS,            2,     900 }, // 0
+    { update_navigation,     10,    500 }, // 1
+    { medium_loop,           2,     700 }, // 2
+    { fifty_hz_loop,         2,     950 }, // 3
+    { run_nav_updates,      10,     800 }, // 4
+    { slow_loop,            10,     500 }, // 5
+    { gcs_check_input,	     2,     700 }, // 6
+    { gcs_send_heartbeat,  100,     700 }, // 7
+    { gcs_data_stream_send,  2,    1500 }, // 8
+    { gcs_send_deferred,     2,    1200 }, // 9
+    { compass_accumulate,    2,     950 }, // 10
+    { super_slow_loop,     100,    1100 }, // 11
+    { perf_update,        1000,     500 }  // 12
 };
 
 
@@ -869,9 +869,6 @@ void loop()
 // Main loop - 100hz
 static void fast_loop()
 {
-    // debugging
-    cliSerial->printf_P(PSTR("F%.3f\n"), G_Dt);
-
     // IMU DCM Algorithm
     // --------------------
     read_AHRS();
@@ -915,7 +912,6 @@ static void medium_loop()
     //-----------------------------------------
     case 0:
         medium_loopCounter++;
-        cliSerial->print_P(PSTR("M\n"));
 
         // read battery before compass because it may be used for motor interference compensation
         if (g.battery_monitoring != 0) {
@@ -975,10 +971,6 @@ static void medium_loop()
         // --------------------------------------------
         read_trim_switch();
 
-        // Check for engine arming
-        // -----------------------
-        arm_motors();
-
         // agmatthews - USERHOOKS
 #ifdef USERHOOK_MEDIUMLOOP
         USERHOOK_MEDIUMLOOP
@@ -1001,7 +993,6 @@ static void medium_loop()
 // ---------------------------
 static void fifty_hz_loop()
 {
-    cliSerial->print_P(PSTR("5\n"));
 
 #if MOUNT == ENABLED
     // update camera mount's position
@@ -1036,7 +1027,6 @@ static void slow_loop()
     //----------------------------------------
     switch (slow_loopCounter) {
     case 0:
-     cliSerial->print_P(PSTR("S\n"));
        slow_loopCounter++;
         superslow_loopCounter++;
 

@@ -1,23 +1,22 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
 
-// called at 10hz
-static void arm_motors()
-{
-    set_armed(true);
-}
-
-
 static void init_arm_motors()
 {
+    if(ap.armed)
+        return;
+
     if(ap.home_is_set)
         init_home();
 
+    set_armed(true);
 }
 
 
 static void init_disarm_motors()
 {
+    if(!ap.armed)
+        return;
     // all I terms are invalid
     // -----------------------
     reset_I_all();
