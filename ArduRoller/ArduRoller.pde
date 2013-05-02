@@ -146,6 +146,8 @@ static GPS         *g_gps;
 // flight modes convenience array
 static AP_Int8 *flight_modes = &g.flight_mode1;
 
+#if HIL_MODE == HIL_MODE_DISABLED
+
 #if CONFIG_ADC == ENABLED
 	static AP_ADC_ADS7844 adc;
 #endif
@@ -160,6 +162,12 @@ static AP_Int8 *flight_modes = &g.flight_mode1;
 	static AP_InertialSensor_PX4 ins;
 #endif
 
+ #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
+ // When building for SITL we use the HIL barometer and compass drivers
+static AP_Baro_BMP085_HIL barometer;
+static AP_Compass_HIL compass;
+static SITL sitl;
+ #else
 // Otherwise, instantiate a real barometer and compass driver
 #if CONFIG_BARO == AP_BARO_BMP085
     static AP_Baro_BMP085 barometer;
@@ -173,13 +181,13 @@ static AP_Int8 *flight_modes = &g.flight_mode1;
     #else
     #error Unrecognized CONFIG_MS5611_SERIAL setting.
 #endif
+  #endif
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
     static AP_Compass_PX4 compass;
 #else
     static AP_Compass_HMC5843 compass;
 #endif
-
 #endif
 
 // real GPS selection
@@ -219,6 +227,49 @@ AP_GPS_None     g_gps_driver();
     static AP_AHRS_MPU6000  ahrs2(&ins, g_gps);               // only works with APM2
 #endif
 
+#elif HIL_MODE == HIL_MODE_SENSORS
+// sensor emulators
+static AP_ADC_HIL              adc;
+static AP_Baro_BMP085_HIL      barometer;
+static AP_Compass_HIL          compass;
+static AP_GPS_HIL              g_gps_driver;
+static AP_InertialSensor_Stub  ins;
+static AP_AHRS_DCM             ahrs(&ins, g_gps);
+
+static int32_t gps_base_alt;
+
+ #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
+ // When building for SITL we use the HIL barometer and compass drivers
+static SITL sitl;
+#endif
+
+#elif HIL_MODE == HIL_MODE_ATTITUDE
+static AP_ADC_HIL              adc;
+static AP_InertialSensor_Stub  ins;
+static AP_AHRS_HIL             ahrs(&ins, g_gps);
+static AP_GPS_HIL              g_gps_driver;
+static AP_Compass_HIL          compass;                  // never used
+static AP_Baro_BMP085_HIL      barometer;
+
+static int32_t gps_base_alt;
+
+#if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
+ // When building for SITL we use the HIL barometer and compass drivers
+static SITL sitl;
+#endif
+
+#else
+ #error Unrecognised HIL_MODE setting.
+#endif // HIL MODE
+
+////////////////////////////////////////////////////////////////////////////////
+// Optical flow sensor
+////////////////////////////////////////////////////////////////////////////////
+ #if OPTFLOW == ENABLED
+static AP_OpticalFlow_ADNS3080 optflow;
+ #else
+static AP_OpticalFlow optflow;
+ #endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // GCS selection
@@ -537,7 +588,7 @@ static AR_InertialNav inertial_nav(&ahrs, &ins, &barometer, &g_gps);
 // Waypoint navigation object
 // To-Do: move inertial nav up or other navigation variables down here
 ////////////////////////////////////////////////////////////////////////////////
-static AR_WPNav wp_nav(&inertial_nav, &g.pid_nav);
+//static AR_WPNav wp_nav(&inertial_nav, &g.pid_nav);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Performance monitoring
@@ -764,12 +815,13 @@ static void compass_accumulate(void)
 
 
 // enable this to get console logging of scheduler performance
-#define SCHEDULER_DEBUG 0
+#define SCHEDULER_DEBUG 1
 
 static void perf_update(void)
 {
     if (g.log_bitmask & MASK_LOG_PM)
         Log_Write_Performance();
+
     if (scheduler.debug()) {
         cliSerial->printf_P(PSTR("PERF: %u/%u %lu\n"),
                             (unsigned)perf_info_get_num_long_running(),
@@ -817,7 +869,9 @@ void loop()
 // Main loop - 100hz
 static void fast_loop()
 {
-    cliSerial->printf_P(PSTR("F%1.6f\n"), G_Dt);
+    // debugging
+    cliSerial->printf_P(PSTR("F%.3f\n"), G_Dt);
+
     // IMU DCM Algorithm
     // --------------------
     read_AHRS();
@@ -908,9 +962,6 @@ static void medium_loop()
                 Log_Write_DMP();
 #endif
             }
-
-            //if (g.log_bitmask & MASK_LOG_MOTORS)
-                //Log_Write_Motors();
         }
         break;
 

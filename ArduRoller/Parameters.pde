@@ -360,7 +360,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     //@Group: WPNAV_
     //@Path: ../libraries/AR_WPNav/AR_WPNav.cpp
-    GOBJECT(wp_nav, "WPNAV_",       AR_WPNav),
+    //GOBJECT(wp_nav, "WPNAV_",       AR_WPNav),
 
     // @Group: SR0_
     // @Path: ./GCS_Mavlink.pde

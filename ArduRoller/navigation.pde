@@ -148,21 +148,21 @@ static void update_nav_mode()
             // call circle controller which in turn calls loiter controller
             update_circle();
             // log to dataflash
-            Log_Write_WPNAV();
+            //Log_Write_WPNAV();
             break;
 
         case NAV_LOITER:
             // call loiter controller
             update_loiter();
             // log to dataflash
-            Log_Write_WPNAV();
+            //Log_Write_WPNAV();
             break;
 
         case NAV_WP:
             // call waypoint controller
             update_wpnav();
             // log to dataflash
-            Log_Write_WPNAV();
+            //Log_Write_WPNAV();
             break;
     }
 }

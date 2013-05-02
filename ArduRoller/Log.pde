@@ -1,5 +1,7 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
+#if LOGGING_ENABLED == ENABLED
+
 // Code to Write and Read packets from DataFlash log memory
 // Code to interact with the user to dump or erase logs
 
@@ -419,7 +421,6 @@ static void Log_Write_Mode(uint8_t mode)
     struct log_Mode pkt = {
         LOG_PACKET_HEADER_INIT(LOG_MODE_MSG),
         mode            : mode,
-        throttle_cruise : mode,
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -688,14 +689,12 @@ static const struct LogStructure log_structure[] PROGMEM = {
     LOG_COMMON_STRUCTURES,
     { LOG_CURRENT_MSG, sizeof(log_Current),
       "CURR", "hIhhhf",      "Thr,ThrInt,Volt,Curr,Vcc,CurrTot" },
-    //{ LOG_MOTORS_MSG, sizeof(log_Motors),
-      //"MOT",  "hhhh",        "Mot1,Mot2,Mot3,Mot4" },
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
       "NTUN", "Ecffcccc",    "WPDist,TargBrg,LatErr,LngErr,NavPtch,NavRll,LatSpd,LngSpd" },
     { LOG_COMPASS_MSG, sizeof(log_Compass),
       "MAG", "hhhhhhhhh",    "MagX,MagY,MagZ,OfsX,OfsY,OfsZ,MOfsX,MOfsY,MOfsZ" },
     { LOG_PERFORMANCE_MSG, sizeof(log_Performance),
-      "PM",  "BBBHHIhB",       "RenCnt,RenBlw,FixCnt,NLon,NLoop,MaxT,PMT,I2CErr" },
+      "PM",  "BBBHHIhB",      "RenCnt,RenBlw,FixCnt,NLon,NLoop,MaxT,PMT,I2CErr" },
     { LOG_CMD_MSG, sizeof(log_Cmd),
       "CMD", "BBBBBeLL",     "CTot,CNum,CId,COpt,Prm1,Alt,Lat,Lng" },
     { LOG_ATTITUDE_MSG, sizeof(log_Attitude),
@@ -703,7 +702,7 @@ static const struct LogStructure log_structure[] PROGMEM = {
     { LOG_INAV_MSG, sizeof(log_INAV),
       "INAV", "cccfffiiff",  "BAlt,IAlt,IClb,ACorrX,ACorrY,ACorrZ,GLat,GLng,ILat,ILng" },
     { LOG_MODE_MSG, sizeof(log_Mode),
-      "MODE", "Mh",          "Mode,ThrCrs" },
+      "MODE", "M",          "Mode" },
     { LOG_STARTUP_MSG, sizeof(log_Startup),
       "STRT", "",            "" },
     { LOG_EVENT_MSG, sizeof(log_Event),
@@ -756,3 +755,36 @@ static void start_logging()
     DataFlash.StartNewLog(sizeof(log_structure)/sizeof(log_structure[0]), log_structure);
 }
 
+#else // LOGGING_ENABLED
+
+static void Log_Write_Startup() {}
+static void Log_Write_Cmd(uint8_t num, const struct Location *wp) {}
+static void Log_Write_Mode(uint8_t mode) {}
+static void Log_Write_IMU() {}
+static void Log_Write_GPS() {}
+static void Log_Write_Current() {}
+static void Log_Write_Compass() {}
+static void Log_Write_Attitude() {}
+static void Log_Write_INAV() {}
+static void Log_Write_Data(uint8_t id, int16_t value){}
+static void Log_Write_Data(uint8_t id, uint16_t value){}
+static void Log_Write_Data(uint8_t id, int32_t value){}
+static void Log_Write_Data(uint8_t id, uint32_t value){}
+static void Log_Write_Data(uint8_t id, float value){}
+static void Log_Write_Event(uint8_t id){}
+static void Log_Write_Optflow() {}
+static void Log_Write_Nav_Tuning() {}
+static void Log_Write_Control_Tuning() {}
+static void Log_Write_Motors() {}
+static void Log_Write_Performance() {}
+static void Log_Write_PID(uint8_t pid_id, int32_t error, int32_t p, int32_t i, int32_t d, int32_t output, float gain) {}
+#if SECONDARY_DMP_ENABLED == ENABLED
+static void Log_Write_DMP() {}
+#endif
+static void Log_Write_Camera() {}
+static void Log_Write_Error(uint8_t sub_system, uint8_t error_code) {}
+static int8_t process_logs(uint8_t argc, const Menu::arg *argv) {
+    return 0;
+}
+
+#endif // LOGGING_DISABLED
