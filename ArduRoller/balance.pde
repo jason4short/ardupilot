@@ -4,7 +4,7 @@ void init_balance()
     g_gps->longitude 	= 0;
     g_gps->latitude 	= 0;
     I2Cfail 			= 0;
-    init_home();
+    //init_home();
 
 	set_armed(false);
 

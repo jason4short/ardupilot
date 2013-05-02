@@ -95,6 +95,7 @@ static void set_cmd_with_index(struct Location temp, int i)
 // -------------------------------
 static void init_home()
 {
+    cliSerial->print_P(PSTR("init_home\n"));
     set_home_is_set(true);
     home.id         = MAV_CMD_NAV_WAYPOINT;
     home.lng        = g_gps->longitude;     // Lon * 10**7
