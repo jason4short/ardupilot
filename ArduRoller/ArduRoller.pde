@@ -1,6 +1,6 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#define THISFIRMWARE "ArduCopter V2.9.1b-dev"
+#define THISFIRMWARE "ArduRoller V1a"
 /*
  *  ArduCopter Version 2.9
  *  Lead author:	Jason Short
@@ -54,7 +54,6 @@
 #include <APM_PI.h>             // PI library
 #include <AC_PID.h>             // PID library
 #include <RC_Channel.h>         // RC Channel Library
-//#include <AP_Motors.h>          // AP Motors library
 #include <AP_RangeFinder.h>     // Range finder library
 #include <AP_OpticalFlow.h>     // Optical Flow library
 #include <Filter.h>             // Filter library
@@ -64,7 +63,6 @@
 #include <AP_Mount.h>           // Camera/Antenna mount
 #include <AP_Airspeed.h>        // needed for AHRS build
 #include <AR_InertialNav.h>     // ArduPilot Mega inertial navigation library
-#include <AR_WPNav.h>     		// ArduCopter waypoint navigation library
 #include <AP_Declination.h>     // ArduPilot Mega Declination Helper Library
 #include <memcheck.h>           // memory limit checker
 #include <SITL.h>               // software in the loop support
@@ -794,8 +792,8 @@ void loop()
         // check loop time
         perf_info_check_loop_time(timer - fast_loopTimer);
 
-        G_Dt                            = (float)(timer - fast_loopTimer) / 1000000.f;                  // used by PI Loops
-        fast_loopTimer          = timer;
+        G_Dt            = (float)(timer - fast_loopTimer) / 1000000.f;                  // used by PI Loops
+        fast_loopTimer  = timer;
 
         // for mainloop failure monitoring
         mainLoop_count++;
@@ -819,6 +817,7 @@ void loop()
 // Main loop - 100hz
 static void fast_loop()
 {
+    cliSerial->printf_P(PSTR("F%1.6f\n"), G_Dt);
     // IMU DCM Algorithm
     // --------------------
     read_AHRS();
@@ -862,6 +861,7 @@ static void medium_loop()
     //-----------------------------------------
     case 0:
         medium_loopCounter++;
+        cliSerial->print_P(PSTR("M\n"));
 
         // read battery before compass because it may be used for motor interference compensation
         if (g.battery_monitoring != 0) {
@@ -950,6 +950,7 @@ static void medium_loop()
 // ---------------------------
 static void fifty_hz_loop()
 {
+    cliSerial->print_P(PSTR("5\n"));
 
 #if MOUNT == ENABLED
     // update camera mount's position
@@ -984,7 +985,8 @@ static void slow_loop()
     //----------------------------------------
     switch (slow_loopCounter) {
     case 0:
-        slow_loopCounter++;
+     cliSerial->print_P(PSTR("S\n"));
+       slow_loopCounter++;
         superslow_loopCounter++;
 
         // check if we've lost contact with the ground station
