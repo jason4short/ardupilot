@@ -54,7 +54,8 @@ static void init_rc_in()
 static void init_rc_out()
 {
     uint32_t mask = (1 << CH_1) | (1 << CH_2);
-    hal.rcout->set_freq(mask, g.rc_speed);
+    //hal.rcout->set_freq(mask, g.rc_speed);
+    hal.rcout->set_freq(mask, 50);
 
     hal.rcout->enable_ch(CH_1);
     hal.rcout->enable_ch(CH_2);

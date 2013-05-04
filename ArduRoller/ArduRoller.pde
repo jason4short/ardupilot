@@ -288,13 +288,6 @@ static AP_RangeFinder_MaxsonarXL *sonar;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
-// User variables
-////////////////////////////////////////////////////////////////////////////////
-#ifdef USERHOOK_VARIABLES
- #include USERHOOK_VARIABLES
-#endif
-
-////////////////////////////////////////////////////////////////////////////////
 // Global variables
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -877,9 +870,6 @@ static void fast_loop()
     // --------------------------------------------------------------------
     update_trig();
 
-    // write out the servo PWM values
-    // ------------------------------
-    set_servos();
 
     // Inertial Nav
     // --------------------
@@ -896,10 +886,9 @@ static void fast_loop()
     update_roll_pitch_mode();
 
 
-    // agmatthews - USERHOOKS
-#ifdef USERHOOK_FASTLOOP
-    USERHOOK_FASTLOOP
-#endif
+    // write out the servo PWM values
+    // ------------------------------
+    update_servos();
 }
 
 static void medium_loop()
@@ -971,10 +960,6 @@ static void medium_loop()
         // --------------------------------------------
         read_trim_switch();
 
-        // agmatthews - USERHOOKS
-#ifdef USERHOOK_MEDIUMLOOP
-        USERHOOK_MEDIUMLOOP
-#endif
 
 #if COPTER_LEDS == ENABLED
         update_copter_leds();
@@ -1061,11 +1046,6 @@ static void slow_loop()
 
 #if MOUNT2 == ENABLED
         camera_mount2.update_mount_type();
-#endif
-
-        // agmatthews - USERHOOKS
-#ifdef USERHOOK_SLOWLOOP
-        USERHOOK_SLOWLOOP
 #endif
 
         break;
@@ -1247,12 +1227,14 @@ void update_roll_pitch_mode(void)
             // sum control
             pitch_out   = (bal_out + vel_out + nav_out);
 
-           	/*cliSerial->printf_P(PSTR("a:%d\td:%d\tbal%d, vel%d, nav%d\n"),
+           	/*
+           	cliSerial->printf_P(PSTR("a:%d\td:%d\tbal%d, vel%d, nav%d\n"),
            	        (int16_t)ahrs.pitch_sensor,
                    	(int16_t)wp_distance,
                    	bal_out,
                    	vel_out,
-                   	nav_out);*/
+                   	nav_out);
+            //*/
             break;
 
         case ROLL_PITCH_FBW:

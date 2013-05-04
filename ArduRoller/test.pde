@@ -12,6 +12,7 @@ static int8_t   test_gps(uint8_t argc,                  const Menu::arg *argv);
 //static int8_t	test_tri(uint8_t argc,          const Menu::arg *argv);
 //static int8_t	test_adc(uint8_t argc,          const Menu::arg *argv);
 static int8_t   test_ins(uint8_t argc,                  const Menu::arg *argv);
+static int8_t   test_euler(uint8_t argc,                  const Menu::arg *argv);
 //static int8_t	test_imu(uint8_t argc,          const Menu::arg *argv);
 //static int8_t	test_dcm_eulers(uint8_t argc,   const Menu::arg *argv);
 //static int8_t	test_dcm(uint8_t argc,          const Menu::arg *argv);
@@ -58,6 +59,7 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"radio",               test_radio},
     {"gps",                 test_gps},
     {"ins",                 test_ins},
+    {"euler",                test_euler},
     {"battery",             test_battery},
     {"tune",                test_tuning},
     {"relay",               test_relay},
@@ -170,6 +172,38 @@ test_radio(uint8_t argc, const Menu::arg *argv)
             return (0);
         }
     }
+}
+
+static int8_t
+test_euler(uint8_t argc, const Menu::arg *argv)
+{
+    print_hit_enter();
+    cliSerial->printf_P(PSTR("EULERS\n"));
+    delay(1000);
+
+    ahrs.init();
+    ins.init(AP_InertialSensor::COLD_START,
+             ins_sample_rate,
+             flash_leds);
+
+    delay(50);
+
+
+    while(1) {
+        read_AHRS();
+
+        cliSerial->printf_P(PSTR("P:%ld R:%ld Y:%ld\n"),
+				ahrs.pitch_sensor,
+				ahrs.roll_sensor,
+				ahrs.yaw_sensor);
+
+        delay(40);
+
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+    }
+    return (0);
 }
 
 static int8_t

@@ -30,15 +30,6 @@ static void init_disarm_motors()
 #endif
 }
 
-/*****************************************
-* Set the flight control servos based on the current calculated values
-*****************************************/
-static void
-set_servos()
-{
-    //motors.output();
-}
-
 
 
 /*****************************************
@@ -54,10 +45,9 @@ update_servos()
 		return;
 	}
 
-    uint8_t dir_left;
-    uint8_t dir_right;
+    uint8_t dir_left, dir_right;
 
-#if USE_WHEEL_LUT == ENABLED
+//#if USE_WHEEL_LUT == ENABLED
 	/*
     motor_out[LEFT_MOT_CH]  = get_pwm_from_speed_wheel_mixer_left(); // left motor
     motor_out[RIGHT_MOT_CH] = get_pwm_from_speed_wheel_mixer_right(); // righ motor
@@ -71,7 +61,7 @@ update_servos()
 	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])); // left motor
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
 	*/
-#else
+//#else
     motor_out[LEFT_MOT_CH]  = (float)(pitch_out + yaw_out) * g.pid_wheel_left_mixer.kP(); // left motor
     motor_out[RIGHT_MOT_CH] = (float)(pitch_out - yaw_out) * g.pid_wheel_right_mixer.kP(); // righ motor
 
@@ -83,7 +73,14 @@ update_servos()
 
 	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])  + g.dead_zone); // left motor
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH]) + g.dead_zone); // right motor
-#endif
+
+//#endif
+
+    cliSerial->printf_P(PSTR("l:%d r:%d, %d, %d\n"),
+    	motor_out[LEFT_MOT_CH],
+    	motor_out[RIGHT_MOT_CH],
+    	dir_left,
+    	dir_right);
 
     digitalWrite(COPTER_LED_2, dir_left); // left
     digitalWrite(COPTER_LED_1, dir_right); // right
