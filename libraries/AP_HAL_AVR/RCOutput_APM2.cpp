@@ -87,7 +87,7 @@ uint16_t APM2RCOutput::get_freq(uint8_t ch) {
         case CH_4:
         case CH_5:
             icr = ICR4;
-            break; 
+            break;
         case CH_6:
         case CH_7:
         case CH_8:
@@ -167,6 +167,7 @@ void APM2RCOutput::write(uint8_t ch, uint16_t period_us) {
     /* constrain, then scale from 1us resolution (input units)
      * to 0.5us (timer units) */
     //uint16_t pwm = constrain_period(period_us) << 1;
+    uint16_t pwm = period_us << 1;
     switch(ch)
     {
     case 0:  OCR1B=pwm; break;  // out1
@@ -184,7 +185,7 @@ void APM2RCOutput::write(uint8_t ch, uint16_t period_us) {
 
 void APM2RCOutput::write(uint8_t ch, uint16_t* period_us, uint8_t len) {
     for (int i = 0; i < len; i++) {
-        write(i + ch, period_us[i]); 
+        write(i + ch, period_us[i]);
     }
 }
 
