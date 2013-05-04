@@ -166,7 +166,7 @@ static inline uint16_t constrain_period(uint16_t p) {
 void APM2RCOutput::write(uint8_t ch, uint16_t period_us) {
     /* constrain, then scale from 1us resolution (input units)
      * to 0.5us (timer units) */
-    uint16_t pwm = constrain_period(period_us) << 1;
+    //uint16_t pwm = constrain_period(period_us) << 1;
     switch(ch)
     {
     case 0:  OCR1B=pwm; break;  // out1
