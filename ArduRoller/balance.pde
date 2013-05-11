@@ -67,14 +67,15 @@ int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 	return output;
 }
 
-void update_wheel_encoders(){
-
+void update_wheel_encoders()
+{
 	uint8_t buff[15];
 
 	//read(uint8_t address, uint8_t numberBytes, uint8_t *dataBuffer)
 	if (hal.i2c->read((uint8_t)ENCODER_ADDRESS, 15, buff) != 0) {
 		I2Cfail++;
-		return;
+		cliSerial->printf_P(PSTR("fail: %d\n"), I2Cfail);
+		//return;
 	}
 
 	memcpy(bytes_union.bytes, &buff[1], 4);
@@ -114,7 +115,7 @@ void update_wheel_encoders(){
 		current_loc.lat  = ((float)g_gps->latitude  * .01) + (current_encoder_y / 10) * .99;
 	}
 
-	//Serial.printf("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left, wheel.right, wheel.left_speed, wheel.right_speed);
+	//cliSerial->printf_P("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left, wheel.right, wheel.left_speed, wheel.right_speed);
 }
 
 // ------------------
