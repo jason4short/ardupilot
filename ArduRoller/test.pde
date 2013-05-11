@@ -27,7 +27,7 @@ static int8_t   test_wp(uint8_t argc,                   const Menu::arg *argv);
 static int8_t   test_sonar(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_mag(uint8_t argc,                  const Menu::arg *argv);
 static int8_t   test_logging(uint8_t argc,              const Menu::arg *argv);
-//static int8_t	test_xbee(uint8_t argc,         const Menu::arg *argv);
+static int8_t	test_encoder(uint8_t argc, 	        const Menu::arg *argv);
 static int8_t   test_eedump(uint8_t argc,               const Menu::arg *argv);
 //static int8_t   test_rawgps(uint8_t argc,               const Menu::arg *argv);
 //static int8_t	test_mission(uint8_t argc,      const Menu::arg *argv);
@@ -69,10 +69,12 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"eedump",              test_eedump},
     {"logging",             test_logging},
     {"nav",                 test_wp_nav},
+    {"encoder",             test_encoder},
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
     {"shell", 				test_shell},
 #endif
 };
+
 
 // A Macro to create the Menu
 MENU(test_menu, "test", test_menu_commands);
@@ -333,6 +335,42 @@ test_battery(uint8_t argc, const Menu::arg *argv)
     set_armed(false);
     return (0);
 }
+
+/*
+static struct {
+	int16_t left_distance;
+	int16_t right_distance;
+	int16_t left_speed;
+	int16_t right_speed;
+    int16_t left_speed_output;
+    int16_t right_speed_output;
+	int16_t speed;
+} wheel;
+*/
+
+static int8_t test_encoder(uint8_t argc, const Menu::arg *argv)
+{
+    print_hit_enter();
+    delay(1000);
+
+    while(1) {
+        delay(20);
+        update_wheel_encoders();
+
+		cliSerial->printf_P(PSTR("%d, %d | %d, %d | %d, %d\n"),
+						wheel.left_distance,
+						wheel.right_distance,
+						wheel.left_speed,
+						wheel.right_speed,
+						wheel.left_speed_output,
+						wheel.right_speed_output);
+
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+    }
+}
+
 
 static int8_t test_relay(uint8_t argc, const Menu::arg *argv)
 {
