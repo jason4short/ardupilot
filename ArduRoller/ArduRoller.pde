@@ -979,6 +979,10 @@ static void medium_loop()
 static void fifty_hz_loop()
 {
 
+    // read wheel encoders:
+    // -------------------
+    update_wheel_encoders();
+
 #if MOUNT == ENABLED
     // update camera mount's position
     camera_mount.update_mount_position();
