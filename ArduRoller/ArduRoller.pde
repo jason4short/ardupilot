@@ -625,6 +625,7 @@ static uint32_t balance_timer;
 
 static bool gps_available;
 
+AP_HAL::Semaphore*  _i2c_sem;
 
 ////////////////////////////////////////////////////////////////////////////////
 // WP Nav

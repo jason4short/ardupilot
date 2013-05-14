@@ -5,6 +5,11 @@ void init_balance()
     g_gps->latitude 	= 0;
     I2Cfail 			= 0;
     //init_home();
+	_i2c_sem = hal.i2c->get_semaphore();
+    if (!_i2c_sem->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
+        hal.scheduler->panic(PSTR("Failed to get Encoder semaphore"));
+    }
+   _i2c_sem->give();
 
 	set_armed(false);
 
@@ -70,6 +75,13 @@ int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 void update_wheel_encoders()
 {
 	uint8_t buff[12];
+	_i2c_sem = hal.i2c->get_semaphore();
+
+   //if (!_i2c_sem->take_nonblocking()) {
+   if (!_i2c_sem->take(5)) {
+       // the bus is busy - try again later
+       return;
+   }
 
 	//read(uint8_t address, uint8_t numberBytes, uint8_t *dataBuffer)
 	if (hal.i2c->read((uint8_t)ENCODER_ADDRESS, 12, buff) != 0) {
@@ -77,6 +89,7 @@ void update_wheel_encoders()
 		cliSerial->printf_P(PSTR("fail: %d\n"), I2Cfail);
 		return;
 	}
+   _i2c_sem->give();
 
 	memcpy(bytes_union.bytes, &buff[1], 2);
 	wheel.left_distance = bytes_union.int_value * WHEEL_ENCODER_DIR_LEFT;
