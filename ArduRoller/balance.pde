@@ -69,19 +69,19 @@ int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 
 void update_wheel_encoders()
 {
-	uint8_t buff[15];
+	uint8_t buff[12];
 
 	//read(uint8_t address, uint8_t numberBytes, uint8_t *dataBuffer)
-	if (hal.i2c->read((uint8_t)ENCODER_ADDRESS, 15, buff) != 0) {
+	if (hal.i2c->read((uint8_t)ENCODER_ADDRESS, 12, buff) != 0) {
 		I2Cfail++;
 		cliSerial->printf_P(PSTR("fail: %d\n"), I2Cfail);
-		//return;
+		return;
 	}
 
-	memcpy(bytes_union.bytes, &buff[1], 4);
+	memcpy(bytes_union.bytes, &buff[1], 2);
 	wheel.left_distance = bytes_union.int_value * WHEEL_ENCODER_DIR_LEFT;
 
-	memcpy(bytes_union.bytes, &buff[3], 4);
+	memcpy(bytes_union.bytes, &buff[3], 2);
 	wheel.right_distance = bytes_union.int_value * WHEEL_ENCODER_DIR_RIGHT;
 
 	memcpy(bytes_union.bytes, &buff[5], 2);
