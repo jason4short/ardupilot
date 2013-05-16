@@ -186,7 +186,7 @@ static void init_ardupilot()
     adc.Init();           // APM ADC library initialization
  #endif // CONFIG_ADC
 
-    barometer.init();
+    //barometer.init();
 
     // Do GPS init
     g_gps = &g_gps_driver;

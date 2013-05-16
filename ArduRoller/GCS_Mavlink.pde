@@ -376,12 +376,14 @@ static void NOINLINE send_raw_imu1(mavlink_channel_t chan)
 
 static void NOINLINE send_raw_imu2(mavlink_channel_t chan)
 {
+	/*
     mavlink_msg_scaled_pressure_send(
         chan,
         millis(),
         (float)barometer.get_pressure()/100.0f,
         (float)(barometer.get_pressure() - barometer.get_ground_pressure())/100.0f,
         (int)(barometer.get_temperature()*10));
+    */
 }
 
 static void NOINLINE send_raw_imu3(mavlink_channel_t chan)
@@ -395,8 +397,8 @@ static void NOINLINE send_raw_imu3(mavlink_channel_t chan)
                                     mag_offsets.y,
                                     mag_offsets.z,
                                     compass.get_declination(),
-                                    barometer.get_raw_pressure(),
-                                    barometer.get_raw_temp(),
+                                    0,//barometer.get_raw_pressure(),
+                                    0,//barometer.get_raw_temp(),
                                     gyro_offsets.x,
                                     gyro_offsets.y,
                                     gyro_offsets.z,
@@ -1833,7 +1835,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         y = 1.0/exp(y);
         y *= 95446.0;
 
-        barometer.setHIL(Temp, y);
+        //barometer.setHIL(Temp, y);
 
         Vector3f Bearth, m;
         Matrix3f R;
@@ -1935,7 +1937,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         // set pressure hil sensor
         // TODO: check scaling
         float temp = 70;
-        barometer.setHIL(temp,packet.press_diff1);
+        //barometer.setHIL(temp,packet.press_diff1);
         break;
     }
 #endif // HIL_MODE

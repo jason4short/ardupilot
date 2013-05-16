@@ -5,7 +5,6 @@
 
 #include <AP_AHRS.h>
 #include <AP_InertialSensor.h>          // ArduPilot Mega IMU Library
-#include <AP_Baro.h>                    // ArduPilot Mega Barometer Library
 #include <AP_Buffer.h>                  // FIFO buffer library
 
 #define AP_INTERTIALNAV_TC_XY   3.0f // default time constant for complementary filter's X & Y axis
@@ -27,15 +26,13 @@ class AR_InertialNav
 public:
 
     // Constructor
-    AR_InertialNav( AP_AHRS* ahrs, AP_InertialSensor* ins, AP_Baro* baro, GPS** gps_ptr ) :
+    AR_InertialNav( AP_AHRS* ahrs, AP_InertialSensor* ins, GPS** gps_ptr ) :
         _ahrs(ahrs),
         _ins(ins),
-        _baro(baro),
         _gps_ptr(gps_ptr),
-        _xy_enabled(false),
+        _xy_enabled(true),
         _gps_last_update(0),
-        _gps_last_time(0),
-        _baro_last_update(0)
+        _gps_last_time(0)
         {
             AP_Param::setup_object_defaults(this, var_info);
         }
@@ -86,29 +83,6 @@ public:
     // set velocity in latitude & longitude directions (in cm/s)
     void        set_velocity_xy(float x, float y);
 
-    //
-    // Z Axis methods
-    //
-
-    // set time constant - set timeconstant used by complementary filter
-    void        set_time_constant_z( float time_constant_in_seconds );
-
-    // altitude_ok, position_ok - true if inertial based altitude and position can be trusted
-    bool        altitude_ok() const { return true; }
-
-    // check_baro - check if new baro readings have arrived and use them to correct vertical accelerometer offsets
-    void        check_baro();
-
-    // correct_with_baro - modifies accelerometer offsets using barometer.  dt is time since last baro reading
-    void        correct_with_baro(float baro_alt, float dt);
-
-    // get_altitude - get latest altitude estimate in cm
-    float       get_altitude() const { return _position_base.z + _position_correction.z; }
-    void        set_altitude( float new_altitude);
-
-    // get_velocity_z - get latest climb rate (in cm/s)
-    float       get_velocity_z() const { return _velocity.z; }
-    void        set_velocity_z( float new_velocity );
 
     // class level parameters
     static const struct AP_Param::GroupInfo var_info[];
@@ -122,7 +96,6 @@ protected:
 
     AP_AHRS*                _ahrs;                      // pointer to ahrs object
     AP_InertialSensor*      _ins;                       // pointer to inertial sensor
-    AP_Baro*                _baro;                      // pointer to barometer
     GPS**                   _gps_ptr;                   // pointer to pointer to gps
 
     // XY Axis specific variables
@@ -139,14 +112,6 @@ protected:
     int32_t                 _base_lat;                  // base latitude
     int32_t                 _base_lon;                  // base longitude
     float                   _lon_to_m_scaling;          // conversion of longitude to meters
-
-    // Z Axis specific variables
-    AP_Float                _time_constant_z;           // time constant for vertical corrections
-    float                   _k1_z;                      // gain for vertical position correction
-    float                   _k2_z;                      // gain for vertical velocity correction
-    float                   _k3_z;                      // gain for vertical accelerometer offset correction
-    uint32_t                _baro_last_update;           // time of last barometer update
-    AP_BufferFloat_Size15   _hist_position_estimate_z;  // buffer of historic accel based altitudes to account for lag
 
     // general variables
     Vector3f                _position_base;             // position estimate

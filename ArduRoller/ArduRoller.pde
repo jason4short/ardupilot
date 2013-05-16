@@ -45,7 +45,7 @@
 #include <DataFlash.h>          // ArduPilot Mega Flash Memory Library
 #include <AP_ADC.h>             // ArduPilot Mega Analog to Digital Converter Library
 #include <AP_ADC_AnalogSource.h>
-#include <AP_Baro.h>
+//#include <AP_Baro.h>
 #include <AP_Compass.h>         // ArduPilot Mega Magnetometer Library
 #include <AP_Math.h>            // ArduPilot Mega Vector/Matrix math Library
 #include <AP_Curve.h>           // Curve used to linearlise throttle pwm to thrust
@@ -164,20 +164,20 @@ static AP_Int8 *flight_modes = &g.flight_mode1;
 
  #if CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
  // When building for SITL we use the HIL barometer and compass drivers
-static AP_Baro_BMP085_HIL barometer;
+//static AP_Baro_BMP085_HIL barometer;
 static AP_Compass_HIL compass;
 static SITL sitl;
  #else
 // Otherwise, instantiate a real barometer and compass driver
 #if CONFIG_BARO == AP_BARO_BMP085
-    static AP_Baro_BMP085 barometer;
+    //static AP_Baro_BMP085 barometer;
 #elif CONFIG_BARO == AP_BARO_PX4
-    static AP_Baro_PX4 barometer;
+    //static AP_Baro_PX4 barometer;
 #elif CONFIG_BARO == AP_BARO_MS5611
     #if CONFIG_MS5611_SERIAL == AP_BARO_MS5611_SPI
-        static AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
+        //static AP_Baro_MS5611 barometer(&AP_Baro_MS5611::spi);
     #elif CONFIG_MS5611_SERIAL == AP_BARO_MS5611_I2C
-     static AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
+     //static AP_Baro_MS5611 barometer(&AP_Baro_MS5611::i2c);
     #else
     #error Unrecognized CONFIG_MS5611_SERIAL setting.
 #endif
@@ -230,7 +230,7 @@ AP_GPS_None     g_gps_driver();
 #elif HIL_MODE == HIL_MODE_SENSORS
 // sensor emulators
 static AP_ADC_HIL              adc;
-static AP_Baro_BMP085_HIL      barometer;
+//static AP_Baro_BMP085_HIL      barometer;
 static AP_Compass_HIL          compass;
 static AP_GPS_HIL              g_gps_driver;
 static AP_InertialSensor_Stub  ins;
@@ -249,7 +249,7 @@ static AP_InertialSensor_Stub  ins;
 static AP_AHRS_HIL             ahrs(&ins, g_gps);
 static AP_GPS_HIL              g_gps_driver;
 static AP_Compass_HIL          compass;                  // never used
-static AP_Baro_BMP085_HIL      barometer;
+//static AP_Baro_BMP085_HIL      barometer;
 
 static int32_t gps_base_alt;
 
@@ -575,7 +575,7 @@ static float G_Dt = 0.02;
 ////////////////////////////////////////////////////////////////////////////////
 // Inertial Navigation
 ////////////////////////////////////////////////////////////////////////////////
-static AR_InertialNav inertial_nav(&ahrs, &ins, &barometer, &g_gps);
+static AR_InertialNav inertial_nav(&ahrs, &ins, &g_gps);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Waypoint navigation object

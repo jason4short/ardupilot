@@ -13,14 +13,7 @@ const AP_Param::GroupInfo AR_InertialNav::var_info[] PROGMEM = {
     // @Range: 0 10
     // @Increment: 0.1
     AP_GROUPINFO("TC_XY",   1, AR_InertialNav, _time_constant_xy, AP_INTERTIALNAV_TC_XY),
-
-    // @Param: TC_Z
-    // @DisplayName: Vertical Time Constant
-    // @Description: Time constant for baro and accel mixing. Higher TC decreases barometers impact on altitude estimate
-    // @Range: 0 10
-    // @Increment: 0.1
-    AP_GROUPINFO("TC_Z",    2, AR_InertialNav, _time_constant_z, AP_INTERTIALNAV_TC_Z),
-
+    
     AP_GROUPEND
 };
 
@@ -31,7 +24,7 @@ void AR_InertialNav::init()
     update_gains();
 }
 
-// update - updates velocities and positions using latest info from ahrs, ins and barometer if new data is available;
+// update - updates velocities and positions using latest info from ahrs, ins if new data is available;
 void AR_InertialNav::update(float dt)
 {
     Vector3f accel_ef;
@@ -41,9 +34,6 @@ void AR_InertialNav::update(float dt)
     if( dt > 0.1f ) {
         return;
     }
-
-    // check barometer
-    check_baro();
 
     // check gps
     check_gps();
@@ -66,17 +56,17 @@ void AR_InertialNav::update(float dt)
     float tmp = _k3_xy * dt;
     accel_correction_ef.x += _position_error.x * tmp;
     accel_correction_ef.y += _position_error.y * tmp;
-    accel_correction_ef.z += _position_error.z * _k3_z  * dt;
+    //accel_correction_ef.z += _position_error.z * _k3_z  * dt;
 
     tmp = _k2_xy * dt;
     _velocity.x += _position_error.x * tmp;
     _velocity.y += _position_error.y * tmp;
-    _velocity.z += _position_error.z * _k2_z  * dt;
+    //_velocity.z += _position_error.z * _k2_z  * dt;
 
     tmp = _k1_xy * dt;
     _position_correction.x += _position_error.x * tmp;
     _position_correction.y += _position_error.y * tmp;
-    _position_correction.z += _position_error.z * _k1_z  * dt;
+    //_position_correction.z += _position_error.z * _k1_z  * dt;
 
     // calculate velocity increase adding new acceleration from accelerometers
     velocity_increase = (accel_ef + accel_correction_ef) * dt;
@@ -87,8 +77,6 @@ void AR_InertialNav::update(float dt)
     // calculate new velocity
     _velocity += velocity_increase;
 
-    // store 3rd order estimate (i.e. estimated vertical position) for future use
-    _hist_position_estimate_z.add(_position_base.z);
 
     // store 3rd order estimate (i.e. horizontal position) for future use at 10hz
     _historic_xy_counter++;
@@ -98,10 +86,6 @@ void AR_InertialNav::update(float dt)
         _hist_position_estimate_y.add(_position_base.y);
     }
 }
-
-//
-// XY Axis specific methods
-//
 
 // set time constant - set timeconstant used by complementary filter
 void AR_InertialNav::set_time_constant_xy( float time_constant_in_seconds )
@@ -237,7 +221,7 @@ float AR_InertialNav::get_latitude_diff() const
         return 0;
     }
 
-    return ((_position_base.x+_position_correction.x)/AP_INERTIALNAV_LATLON_TO_CM);
+    return ((_position_base.x + _position_correction.x) / AP_INERTIALNAV_LATLON_TO_CM);
 }
 
 // get accel based longitude
@@ -248,7 +232,7 @@ float AR_InertialNav::get_longitude_diff() const
         return 0;
     }
 
-    return (_position_base.y+_position_correction.y) / _lon_to_m_scaling;
+    return (_position_base.y + _position_correction.y) / _lon_to_m_scaling;
 }
 
 // get velocity in latitude & longitude directions
@@ -281,75 +265,6 @@ void AR_InertialNav::set_velocity_xy(float x, float y)
 }
 
 //
-// Z Axis methods
-//
-
-// set time constant - set timeconstant used by complementary filter
-void AR_InertialNav::set_time_constant_z( float time_constant_in_seconds )
-{
-    // ensure it's a reasonable value
-    if( time_constant_in_seconds > 0 && time_constant_in_seconds < 30 ) {
-        _time_constant_z = time_constant_in_seconds;
-        update_gains();
-    }
-}
-
-// check_baro - check if new baro readings have arrived and use them to correct vertical accelerometer offsets
-void AR_InertialNav::check_baro()
-{
-    uint32_t baro_update_time;
-
-    if( _baro == NULL )
-        return;
-
-    // calculate time since last baro reading
-    baro_update_time = _baro->get_last_update();
-    if( baro_update_time != _baro_last_update ) {
-        float dt = (float)(baro_update_time - _baro_last_update) * 0.001f;
-        // call correction method
-        correct_with_baro(_baro->get_altitude()*100, dt);
-        _baro_last_update = baro_update_time;
-    }
-}
-
-
-// correct_with_baro - modifies accelerometer offsets using barometer.  dt is time since last baro reading
-void AR_InertialNav::correct_with_baro(float baro_alt, float dt)
-{
-    static uint8_t first_reads = 0;
-    float hist_position_base_z;
-
-    // discard samples where dt is too large
-    if( dt > 0.5f ) {
-        return;
-    }
-
-    // discard first 10 reads but perform some initialisation
-    if( first_reads <= 10 ) {
-        set_altitude(baro_alt);
-        first_reads++;
-    }
-
-    // 3rd order samples (i.e. position from baro) are delayed by 150ms (15 iterations at 100hz)
-    // so we should calculate error using historical estimates
-    if( _hist_position_estimate_z.num_items() >= 15 ) {
-        hist_position_base_z = _hist_position_estimate_z.peek(14);
-    }else{
-        hist_position_base_z = _position_base.z;
-    }
-
-    // calculate error in position from baro with our estimate
-    _position_error.z = baro_alt - (hist_position_base_z + _position_correction.z);
-}
-
-// set_altitude - set base altitude estimate in cm
-void AR_InertialNav::set_altitude( float new_altitude)
-{
-    _position_base.z = new_altitude;
-    _position_correction.z = 0;
-}
-
-//
 // Private methods
 //
 
@@ -364,19 +279,4 @@ void AR_InertialNav::update_gains()
         _k2_xy = 3 / (_time_constant_xy*_time_constant_xy);
         _k3_xy = 1 / (_time_constant_xy*_time_constant_xy*_time_constant_xy);
     }
-
-    // Z axis time constant
-    if( _time_constant_z == 0 ) {
-        _k1_z = _k2_z = _k3_z = 0;
-    }else{
-        _k1_z = 3 / _time_constant_z;
-        _k2_z = 3 / (_time_constant_z*_time_constant_z);
-        _k3_z = 1 / (_time_constant_z*_time_constant_z*_time_constant_z);
-    }
-}
-
-// set_velocity_z - get latest climb rate (in cm/s)
-void AR_InertialNav::set_velocity_z(float z )
-{
-    _velocity.z = z;
 }

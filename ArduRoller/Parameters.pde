@@ -390,7 +390,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     GOBJECT(sitl, "SIM_", SITL),
 #endif
 
-    //GOBJECT(barometer, "GND_", AP_Baro),
     GOBJECT(scheduler, "SCHED_", AP_Scheduler),
 
     // @Group: MOT_

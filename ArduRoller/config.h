@@ -228,9 +228,9 @@
 // Barometer
 //
 
-#ifndef CONFIG_BARO
- # define CONFIG_BARO AP_BARO_BMP085
-#endif
+//#ifndef CONFIG_BARO
+// # define CONFIG_BARO AP_BARO_BMP085
+//#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Sonar
