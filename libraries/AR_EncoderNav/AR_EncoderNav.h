@@ -1,36 +1,33 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#ifndef __AP_INERTIALNAV_H__
-#define __AP_INERTIALNAV_H__
+#ifndef __AR_ENCODERNAV_H__
+#define __AR_ENCODERNAV_H__
 
 #include <AP_AHRS.h>
-#include <AP_InertialSensor.h>          // ArduPilot Mega IMU Library
 #include <AP_Buffer.h>                  // FIFO buffer library
 
-#define AP_INTERTIALNAV_TC_XY   3.0f // default time constant for complementary filter's X & Y axis
-#define AP_INTERTIALNAV_TC_Z    5.0f // default time constant for complementary filter's Z axis
+#define AR_ENCODERNAV_TC   3.0f // default time constant for complementary filter's X & Y axis
 
 // #defines to control how often historical accel based positions are saved
 // so they can later be compared to laggy gps readings
-#define AP_INTERTIALNAV_SAVE_POS_AFTER_ITERATIONS   10
-#define AP_INTERTIALNAV_GPS_LAG_IN_10HZ_INCREMENTS  4       // must not be larger than size of _hist_position_estimate_x and _hist_position_estimate_y
-#define AP_INTERTIALNAV_GPS_TIMEOUT_MS              300     // timeout after which position error from GPS will fall to zero
+#define AR_ENCODERNAV_SAVE_POS_AFTER_ITERATIONS   10
+#define AR_ENCODERNAV_GPS_LAG_IN_10HZ_INCREMENTS  4       // must not be larger than size of _hist_position_estimate_x and _hist_position_estimate_y
+#define AR_ENCODERNAV_GPS_TIMEOUT_MS              300     // timeout after which position error from GPS will fall to zero
 
 #define AP_INERTIALNAV_LATLON_TO_CM 1.1113175f
 
 /*
- * AR_InertialNav is an attempt to use accelerometers to augment other sensors to improve altitud e position hold
+ * AR_EncoderNav is an attempt to use accelerometers to augment other sensors to improve altitud e position hold
  */
-class AR_InertialNav
+class AR_EncoderNav
 {
 public:
 
     // Constructor
-    AR_InertialNav( AP_AHRS* ahrs, AP_InertialSensor* ins, GPS** gps_ptr ) :
+    AR_EncoderNav( AP_AHRS* ahrs, GPS** gps_ptr ) :
         _ahrs(ahrs),
-        _ins(ins),
         _gps_ptr(gps_ptr),
-        _xy_enabled(true),
+        _enabled(true),
         _gps_last_update(0),
         _gps_last_time(0)
         {
@@ -43,14 +40,10 @@ public:
     // update - updates velocities and positions using latest info from accelerometers;
     void        update(float dt);
 
-    //
-    // XY Axis specific methods
-    //
-
     // set time constant - set timeconstant used by complementary filter
-    void        set_time_constant_xy( float time_constant_in_seconds );
+    void        set_time_constant( float time_constant_in_seconds );
 
-    // altitude_ok, position_ok - true if inertial based altitude and position can be trusted
+    // altitude_ok, position_ok - true if encoder based position can be trusted
     bool        position_ok() const;
 
     // check_gps - check if new gps readings have arrived and use them to correct position estimates
@@ -60,7 +53,7 @@ public:
     void        correct_with_gps(int32_t lon, int32_t lat, float dt);
 
     // get_position - returns current position from home in cm
-    Vector3f    get_position() const { return _position_base + _position_correction; }
+    Vector3f    get_position() const { return _position_estimation + _position_correction; }
 
     // get latitude & longitude positions
     int32_t     get_latitude() const;
@@ -81,43 +74,41 @@ public:
     Vector3f    get_velocity() const { return _velocity; }
 
     // set velocity in latitude & longitude directions (in cm/s)
-    void        set_velocity_xy(float x, float y);
+    void        set_velocity(float x, float y);
 
 
     // class level parameters
     static const struct AP_Param::GroupInfo var_info[];
 
     // public variables
-    Vector3f                accel_correction_ef;        // earth frame accelerometer corrections. here for logging purposes only
+    //Vector3f                accel_correction_ef;        // earth frame accelerometer corrections. here for logging purposes only
 
 protected:
 
     void                    update_gains();             // update_gains - update gains from time constant (given in seconds)
 
     AP_AHRS*                _ahrs;                      // pointer to ahrs object
-    AP_InertialSensor*      _ins;                       // pointer to inertial sensor
     GPS**                   _gps_ptr;                   // pointer to pointer to gps
 
-    // XY Axis specific variables
-    bool                    _xy_enabled;                // xy position estimates enabled
-    AP_Float                _time_constant_xy;          // time constant for horizontal corrections
-    float                   _k1_xy;                     // gain for horizontal position correction
-    float                   _k2_xy;                     // gain for horizontal velocity correction
-    float                   _k3_xy;                     // gain for horizontal accelerometer offset correction
+    bool                    _enabled;                	//  position estimates enabled
+    AP_Float                _time_constant; 	        // time constant for horizontal corrections
+    float                   _k1;        	            // gain for horizontal position correction
+    float                   _k2;    	                // gain for horizontal velocity correction
+    float                   _k3;	                    // gain for horizontal accelerometer offset correction
     uint32_t                _gps_last_update;           // system time of last gps update
     uint32_t                _gps_last_time;             // time of last gps update according to the gps itself
-    uint8_t                 _historic_xy_counter;       // counter used to slow saving of position estimates for later comparison to gps
+    uint8_t                 _historic_counter;       	// counter used to slow saving of position estimates for later comparison to gps
     AP_BufferFloat_Size5    _hist_position_estimate_x;  // buffer of historic accel based position to account for lag
     AP_BufferFloat_Size5    _hist_position_estimate_y;  // buffer of historic accel based position to account for lag
-    int32_t                 _base_lat;                  // base latitude
-    int32_t                 _base_lon;                  // base longitude
+    int32_t                 _home_lat;                  // base latitude
+    int32_t                 _home_lon;                  // base longitude
     float                   _lon_to_m_scaling;          // conversion of longitude to meters
 
     // general variables
-    Vector3f                _position_base;             // position estimate
+    Vector3f                _position_estimation;             // position estimate
     Vector3f                _position_correction;       // sum of correction to _comp_h from delayed 1st order samples
     Vector3f                _velocity;                  // latest velocity estimate (integrated from accelerometer values)
     Vector3f                _position_error;
 };
 
-#endif // __AP_INERTIALNAV_H__
+#endif // __AR_ENCODERNAV_H__

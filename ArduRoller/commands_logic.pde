@@ -230,7 +230,7 @@ static void do_loiter_unlimited()
 {
     // get current position
     // To-Do: change this to projection based on current location and velocity
-    Vector3f curr = inertial_nav.get_position();
+    Vector3f curr = encoder_nav.get_position();
 
     // default to use position provided
     Vector3f pos = pv_location_to_vector(command_nav_queue);
@@ -275,7 +275,7 @@ static void do_loiter_time()
 {
     // get current position
     // To-Do: change this to projection based on current location and velocity
-    Vector3f curr = inertial_nav.get_position();
+    Vector3f curr = encoder_nav.get_position();
 
     // default to use position provided
     Vector3f pos = pv_location_to_vector(command_nav_queue);

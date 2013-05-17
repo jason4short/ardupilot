@@ -7,7 +7,7 @@ static void update_navigation()
     static uint32_t nav_last_update = 0;        // the system time of the last time nav was run update
 
     // check for inertial nav updates
-    if( inertial_nav.position_ok() ) {
+    if( encoder_nav.position_ok() ) {
 
         // calculate time since nav controllers last ran
         dTnav = (float)(millis() - nav_last_update)/ 1000.0f;
@@ -43,10 +43,10 @@ static void run_nav_updates(void)
 
 // calc_position - get lat and lon positions from inertial nav library
 static void calc_position(){
-    if( inertial_nav.position_ok() ) {
+    if( encoder_nav.position_ok() ) {
         // pull position from interial nav library
-        current_loc.lng = inertial_nav.get_longitude();
-        current_loc.lat = inertial_nav.get_latitude();
+        current_loc.lng = encoder_nav.get_longitude();
+        current_loc.lat = encoder_nav.get_latitude();
     }
 }
 
@@ -58,7 +58,7 @@ static void calc_distance_and_bearing()
 
     // calculate home distance and bearing
     if( ap.home_is_set ) {
-	    Vector3f curr = inertial_nav.get_position();
+	    Vector3f curr = encoder_nav.get_position();
         home_distance = pythagorous2(curr.x, curr.y);
         home_bearing = pv_get_bearing_cd(curr, Vector3f(0, 0, 0));
     }else{
@@ -111,13 +111,13 @@ static bool set_nav_mode(uint8_t new_nav_mode)
 
         case NAV_CIRCLE:
             // set center of circle to current position
-            circle_set_center(inertial_nav.get_position(), ahrs.yaw);
+            circle_set_center(encoder_nav.get_position(), ahrs.yaw);
             nav_initialised = true;
             break;
 
         case NAV_LOITER:
             // set target to current position
-            //set_loiter_target(inertial_nav.get_position(), inertial_nav.get_velocity());
+            //set_loiter_target(encoder_nav.get_position(), encoder_nav.get_velocity());
             nav_initialised = true;
             break;
 

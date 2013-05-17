@@ -78,7 +78,7 @@ static void get_circle_yaw()
         look_at_yaw_counter++;
         if( look_at_yaw_counter >= 10 ) {
             look_at_yaw_counter = 0;
-            yaw_look_at_WP_bearing = pv_get_bearing_cd(inertial_nav.get_position(), yaw_look_at_WP);
+            yaw_look_at_WP_bearing = pv_get_bearing_cd(encoder_nav.get_position(), yaw_look_at_WP);
         }
         // slew yaw
         nav_yaw = get_yaw_slew(nav_yaw, yaw_look_at_WP_bearing, AUTO_YAW_SLEW_RATE);

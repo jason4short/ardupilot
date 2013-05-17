@@ -197,7 +197,7 @@ static void init_ardupilot()
         init_compass();
 
     // initialise inertial nav
-    inertial_nav.init();
+    encoder_nav.init();
 
 #ifdef USERHOOK_INIT
     USERHOOK_INIT

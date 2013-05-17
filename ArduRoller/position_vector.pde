@@ -48,13 +48,13 @@ const float pv_get_bearing_cd(const Vector3f origin, const Vector3f destination)
 float get_distance_to_destination()
 {
     // get current location
-    Vector3f curr = inertial_nav.get_position();
+    Vector3f curr = encoder_nav.get_position();
     return pythagorous2(_destination.x - curr.x, _destination.y - curr.y);
 }
 
 /// get_bearing_to_destination - get bearing to next waypoint in centi-degrees
 int32_t get_bearing_to_destination()
 {
-    return pv_get_bearing_cd(inertial_nav.get_position(), _destination);
+    return pv_get_bearing_cd(encoder_nav.get_position(), _destination);
 }
 

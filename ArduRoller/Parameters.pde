@@ -356,7 +356,7 @@ const AP_Param::Info var_info[] PROGMEM = {
 
     // @Group: INAV_
     // @Path: ../libraries/AR_InertialNav/AR_InertialNav.cpp
-    GOBJECT(inertial_nav,           "INAV_",    AR_InertialNav),
+    GOBJECT(encoder_nav,           "INAV_",    AR_EncoderNav),
 
     //@Group: WPNAV_
     //@Path: ../libraries/AR_WPNav/AR_WPNav.cpp

@@ -62,7 +62,7 @@
 #include <AP_Camera.h>          // Photo or video camera
 #include <AP_Mount.h>           // Camera/Antenna mount
 #include <AP_Airspeed.h>        // needed for AHRS build
-#include <AR_InertialNav.h>     // ArduPilot Mega inertial navigation library
+#include <AR_EncoderNav.h>     // ArduPilot Mega inertial navigation library
 #include <AP_Declination.h>     // ArduPilot Mega Declination Helper Library
 #include <memcheck.h>           // memory limit checker
 #include <SITL.h>               // software in the loop support
@@ -575,13 +575,7 @@ static float G_Dt = 0.02;
 ////////////////////////////////////////////////////////////////////////////////
 // Inertial Navigation
 ////////////////////////////////////////////////////////////////////////////////
-static AR_InertialNav inertial_nav(&ahrs, &ins, &g_gps);
-
-////////////////////////////////////////////////////////////////////////////////
-// Waypoint navigation object
-// To-Do: move inertial nav up or other navigation variables down here
-////////////////////////////////////////////////////////////////////////////////
-//static AR_WPNav wp_nav(&inertial_nav, &g.pid_nav);
+static AR_EncoderNav encoder_nav(&ahrs, &g_gps);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Performance monitoring
@@ -871,11 +865,6 @@ static void fast_loop()
     // --------------------------------------------------------------------
     update_trig();
 
-
-    // Inertial Nav
-    // --------------------
-    read_inertia();
-
     // Read radio and 3-position switch on radio
     // -----------------------------------------
     read_radio();
@@ -983,6 +972,10 @@ static void fifty_hz_loop()
     // read wheel encoders:
     // -------------------
     update_wheel_encoders();
+
+	// encoder nav
+    // --------------------
+    encoder_nav_update();
 
 #if MOUNT == ENABLED
     // update camera mount's position
@@ -1218,7 +1211,7 @@ void update_roll_pitch_mode(void)
             // we always hold position
             if(abs(g.rc_2.control_in) > 0){
                 // reset position
-                set_destination(inertial_nav.get_position());
+                set_destination(encoder_nav.get_position());
                 _reached_destination = true;
                 g.pid_nav.reset_I();
             }
@@ -1246,7 +1239,7 @@ void update_roll_pitch_mode(void)
             // hold position if we let go of sticks
             if(abs(g.rc_2.control_in) > 0){
                 // reset position
-                set_destination(inertial_nav.get_position());
+                set_destination(encoder_nav.get_position());
                 _reached_destination = true;
                 g.pid_nav.reset_I();
             }

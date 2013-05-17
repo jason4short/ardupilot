@@ -20,7 +20,7 @@
 #include <APM_PI.h>             // PID library
 #include <AP_Buffer.h>          // ArduPilot general purpose FIFO buffer
 
-#include <AR_InertialNav.h>
+#include <AR_EncoderNav.h>
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM2
@@ -45,7 +45,7 @@ AP_GPS_Auto auto_gps(&gps);
 AP_Compass_HMC5843 compass;
 AP_AHRS_DCM ahrs(&ins, gps);
 
-AR_InertialNav inertialnav(&ahrs, &ins, &baro, &gps);
+AR_EncoderNav encoder_nav(&ahrs, &gps);
 
 uint32_t last_update;
 
@@ -56,7 +56,7 @@ static void flash_leds(bool on) {
 
 void setup(void)
 {
-    hal.console->println_P(PSTR("AR_InertialNav test startup..."));
+    hal.console->println_P(PSTR("AR_encoder_nav test startup..."));
     hal.gpio->pinMode(A_LED_PIN, GPIO_OUTPUT);
     hal.gpio->pinMode(C_LED_PIN, GPIO_OUTPUT);
 
@@ -71,9 +71,9 @@ void setup(void)
 
     last_update = hal.scheduler->millis();
 
-    inertialnav.init();
-    inertialnav.set_velocity_xy(0,0);
-    inertialnav.set_current_position(0,0);
+    encoder_nav.init();
+    encoder_nav.set_velocity(0,0);
+    encoder_nav.set_current_position(0,0);
 }
 
 void loop(void)
@@ -84,12 +84,12 @@ void loop(void)
     uint32_t currtime = hal.scheduler->millis();
     float dt = (currtime - last_update) / 1000.0f;
     last_update = currtime;
-    inertialnav.update(dt);
+    encoder_nav.update(dt);
 
-    float dx =  inertialnav.get_latitude_diff();
-    float dy =  inertialnav.get_longitude_diff();
-    float velx =  inertialnav.get_latitude_velocity();
-    float vely =  inertialnav.get_longitude_velocity();
+    float dx =  encoder_nav.get_latitude_diff();
+    float dy =  encoder_nav.get_longitude_diff();
+    float velx =  encoder_nav.get_latitude_velocity();
+    float vely =  encoder_nav.get_longitude_velocity();
 
     hal.console->printf_P(
             PSTR("inertial nav pos: (%f,%f) velocity: (%f, %f)\r\n"),
