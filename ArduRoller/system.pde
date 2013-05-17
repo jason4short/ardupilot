@@ -377,7 +377,7 @@ static void check_usb_mux(void)
  *  called by gyro/accel init to flash LEDs so user
  *  has some mesmerising lights to watch while waiting
  */
-void flash_leds(bool on)
+static void flash_leds(bool on)
 {
     digitalWrite(A_LED_PIN, on ? LED_OFF : LED_ON);
     digitalWrite(C_LED_PIN, on ? LED_ON : LED_OFF);
@@ -386,7 +386,7 @@ void flash_leds(bool on)
 /*
  * Read Vcc vs 1.1v internal reference
  */
-uint16_t board_voltage(void)
+static uint16_t board_voltage(void)
 {
     return board_vcc_analog_source->read_latest();
 }

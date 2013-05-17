@@ -1,4 +1,4 @@
-void init_balance()
+static void init_balance()
 {
 	wheel_ratio 		= 1000.0 / g.wheel_encoder_speed;
     g_gps->longitude 	= 0;
@@ -19,7 +19,7 @@ void init_balance()
 
 // 815 ticks per revolution
 
-int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
+static int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
 {
 	// mix output speeds
 	wheel.left_speed_output = (pitch_out + yaw_out);
@@ -43,7 +43,7 @@ int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
 }
 
 
-int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
+static int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 {
 	// mix output speeds
 	wheel.right_speed_output 	= (pitch_out - yaw_out);
@@ -72,24 +72,25 @@ int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 	return output;
 }
 
-void update_wheel_encoders()
+static bool update_wheel_encoders()
 {
 	uint8_t buff[12];
-	_i2c_sem = hal.i2c->get_semaphore();
 
-   //if (!_i2c_sem->take_nonblocking()) {
    if (!_i2c_sem->take(5)) {
        // the bus is busy - try again later
-       return;
+       return false;
    }
+    //if (hal.i2c->readRegisters(MS5611_ADDR, reg, sizeof(buf), buf) == 0)
 
 	//read(uint8_t address, uint8_t numberBytes, uint8_t *dataBuffer)
-	if (hal.i2c->read((uint8_t)ENCODER_ADDRESS, 12, buff) != 0) {
+	//if (hal.i2c->readRegisters(ENCODER_ADDRESS, 1, sizeof(buff), buff) != 0) {
+	if (hal.i2c->read(ENCODER_ADDRESS, sizeof(buff), buff) != 0) {
 		I2Cfail++;
-		cliSerial->printf_P(PSTR("fail: %d\n"), I2Cfail);
-		return;
+	   _i2c_sem->give();
+		return false;
 	}
-   _i2c_sem->give();
+	_i2c_sem->give();
+
 
 	memcpy(bytes_union.bytes, &buff[1], 2);
 	wheel.left_distance = bytes_union.int_value * WHEEL_ENCODER_DIR_LEFT;
@@ -127,30 +128,30 @@ void update_wheel_encoders()
 		current_loc.lng	 = ((float)g_gps->longitude * .01) + (current_encoder_x / 10) * .99;
 		current_loc.lat  = ((float)g_gps->latitude  * .01) + (current_encoder_y / 10) * .99;
 	}
-
+	return true;
 	//cliSerial->printf_P("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left, wheel.right, wheel.left_speed, wheel.right_speed);
 }
 
 // ------------------
 
-float convert_groundspeed_to_encoder_speed(float _ground_speed)
+static float convert_groundspeed_to_encoder_speed(float _ground_speed)
 {
 	return (_ground_speed * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
 }
 
-float convert_distance_to_encoder_speed(float _distance)
+static float convert_distance_to_encoder_speed(float _distance)
 {
 	return (_distance * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
 }
 
-float convert_encoder_speed_to_ground_speed(float encoder_speed)
+static float convert_encoder_speed_to_ground_speed(float encoder_speed)
 {
 	return (encoder_speed * WHEEL_DIAMETER_CM) / (float)g.wheel_encoder_speed;
 }
 
 // ------------------
 
-int16_t convert_speed_to_PWM(int16_t lut[], int16_t encoder_speed){
+static int16_t convert_speed_to_PWM(int16_t lut[], int16_t encoder_speed){
 	int8_t flip_sign = (encoder_speed < 0) ? -1 : 1;
 
 	uint16_t input;

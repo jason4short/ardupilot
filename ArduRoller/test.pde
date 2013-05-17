@@ -350,20 +350,29 @@ static struct {
 
 static int8_t test_encoder(uint8_t argc, const Menu::arg *argv)
 {
+	_i2c_sem = hal.i2c->get_semaphore();
+    if (!_i2c_sem->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
+        hal.scheduler->panic(PSTR("Semi for!!"));
+    }
+   _i2c_sem->give();
+
     print_hit_enter();
     delay(1000);
 
     while(1) {
         delay(20);
-        update_wheel_encoders();
 
-		cliSerial->printf_P(PSTR("%d, %d | %d, %d | %d, %d\n"),
+        if(update_wheel_encoders()){
+			cliSerial->printf_P(PSTR("%d, %d | %d, %d | %d, %d\n"),
 						wheel.left_distance,
 						wheel.right_distance,
 						wheel.left_speed,
 						wheel.right_speed,
 						wheel.left_speed_output,
 						wheel.right_speed_output);
+		}else{
+			cliSerial->printf("E %d\n", I2Cfail);
+		}
 
         if(cliSerial->available() > 0) {
             return (0);

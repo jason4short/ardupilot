@@ -87,7 +87,7 @@ void AVRI2CDriver::begin() {
 void AVRI2CDriver::end() {
     TWCR = 0;
 }
- 
+
 void AVRI2CDriver::setHighSpeed(bool active) {
     if (active) {
         TWBR = ((CPU_FREQ / 400000) - 16) / 2;
@@ -148,14 +148,13 @@ uint8_t AVRI2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data){
         len = 1;
     uint8_t nackposition = len - 1;
     stat = 0;
+
     stat = _start();
     if(stat) goto error;
-    stat = _sendAddress(SLA_W(addr));
-    if(stat) goto error;
-    stat = _start();
-    if(stat) goto error;
+
     stat = _sendAddress(SLA_R(addr));
     if(stat) goto error;
+
     for(uint8_t i = 0; i < len ; i++) {
         if ( i == nackposition ) {
             stat = _receiveByte(false);
@@ -166,6 +165,7 @@ uint8_t AVRI2CDriver::read(uint8_t addr, uint8_t len, uint8_t* data){
         }
         data[i] = TWDR;
     }
+
     stat = _stop();
     if (stat) goto error;
     return stat;
@@ -174,8 +174,7 @@ error:
     return stat;
 }
 
-uint8_t AVRI2CDriver::readRegisters(uint8_t addr, uint8_t reg,
-                                    uint8_t len, uint8_t* data){
+uint8_t AVRI2CDriver::readRegisters(uint8_t addr, uint8_t reg, uint8_t len, uint8_t* data){
     uint8_t stat;
     if ( len == 0)
         len = 1;
@@ -294,7 +293,7 @@ uint8_t AVRI2CDriver::_waitStop() {
         while( TWCR & _BV(TWSTO) ) {
             uint32_t current = hal.scheduler->millis();
             if (current - start >= _timeoutDelay) {
-                _handleLockup(); 
+                _handleLockup();
                 return 1;
             }
         }
