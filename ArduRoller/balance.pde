@@ -107,18 +107,22 @@ static bool update_wheel_encoders()
 	wheel.speed 	= wheel.speed + ((wheel.left_speed + wheel.right_speed) >> 1);
 	wheel.speed 	>>= 1;
 
-	ground_speed 	= convert_encoder_speed_to_ground_speed(wheel.speed);
-
 	// convert wheel.speed to 1rps = 1000
 	// 815 * 1.2 = 1000;
 	wheel.speed = (float)wheel.speed * wheel_ratio;
 
-	float delta   = (float)(wheel.left_distance + wheel.right_distance) / 2;	// correct
+	ground_speed 	= convert_encoder_speed_to_ground_speed(wheel.speed);
+
+
+	float delta   = (float)(wheel.left_distance + wheel.right_distance) / 2;
+
 	//int16_t delta   = wheel.right_distance;	// testing
 
 	// using the mm accuracy of the encoders to get an overall location
- 	current_encoder_x += cos_yaw * delta;
-	current_encoder_y += sin_yaw * delta;
+ 	//current_encoder_x += cos_yaw * delta;
+	//current_encoder_y += sin_yaw * delta;
+	
+	encoder_nav.set_velocity(cos_yaw * ground_speed, sin_yaw * ground_speed);
 
 	if(gps_available == false){
 		// scaling the mm accuracy to cm
