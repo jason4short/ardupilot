@@ -6,15 +6,11 @@
 #include <AP_AHRS.h>
 #include <AP_Buffer.h>                  // FIFO buffer library
 
-#define AR_ENCODERNAV_TC   3.0f // default time constant for complementary filter's X & Y axis
+#define AR_ENCODERNAV_TC   8.0f 			// default time constant for complementary filter's X & Y axis
+#define AR_ENCODERNAV_GPS_LAG  4			// must not be larger than size of _hist_position_estimate_x and _hist_position_estimate_y
+#define AR_ENCODERNAV_GPS_TIMEOUT_MS 300    // timeout after which position error from GPS will fall to zero
 
-// #defines to control how often historical accel based positions are saved
-// so they can later be compared to laggy gps readings
-#define AR_ENCODERNAV_SAVE_POS_AFTER_ITERATIONS   10
-#define AR_ENCODERNAV_GPS_LAG_IN_10HZ_INCREMENTS  4       // must not be larger than size of _hist_position_estimate_x and _hist_position_estimate_y
-#define AR_ENCODERNAV_GPS_TIMEOUT_MS              300     // timeout after which position error from GPS will fall to zero
-
-#define AP_INERTIALNAV_LATLON_TO_CM 1.1113175f
+#define AP_ENCODERNAV_LATLON_TO_CM 1.1113175f
 
 /*
  * AR_EncoderNav is an attempt to use accelerometers to augment other sensors to improve altitud e position hold
@@ -24,8 +20,7 @@ class AR_EncoderNav
 public:
 
     // Constructor
-    AR_EncoderNav( AP_AHRS* ahrs, GPS** gps_ptr ) :
-        _ahrs(ahrs),
+    AR_EncoderNav( GPS** gps_ptr ) :
         _gps_ptr(gps_ptr),
         _enabled(true),
         _gps_last_update(0),
@@ -42,9 +37,6 @@ public:
 
     // set time constant - set timeconstant used by complementary filter
     void        set_time_constant( float time_constant_in_seconds );
-
-    // altitude_ok, position_ok - true if encoder based position can be trusted
-    bool        position_ok() const;
 
     // check_gps - check if new gps readings have arrived and use them to correct position estimates
     void        check_gps();
@@ -87,14 +79,11 @@ protected:
 
     void                    update_gains();             // update_gains - update gains from time constant (given in seconds)
 
-    AP_AHRS*                _ahrs;                      // pointer to ahrs object
     GPS**                   _gps_ptr;                   // pointer to pointer to gps
 
     bool                    _enabled;                	//  position estimates enabled
     AP_Float                _time_constant; 	        // time constant for horizontal corrections
     float                   _k1;        	            // gain for horizontal position correction
-    float                   _k2;    	                // gain for horizontal velocity correction
-    float                   _k3;	                    // gain for horizontal accelerometer offset correction
     uint32_t                _gps_last_update;           // system time of last gps update
     uint32_t                _gps_last_time;             // time of last gps update according to the gps itself
     uint8_t                 _historic_counter;       	// counter used to slow saving of position estimates for later comparison to gps
