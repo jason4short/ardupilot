@@ -28,6 +28,8 @@ static int8_t   test_sonar(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_mag(uint8_t argc,                  const Menu::arg *argv);
 static int8_t   test_logging(uint8_t argc,              const Menu::arg *argv);
 static int8_t	test_encoder(uint8_t argc, 	        const Menu::arg *argv);
+static int8_t	test_motor(uint8_t argc, 	        const Menu::arg *argv);
+
 static int8_t   test_eedump(uint8_t argc,               const Menu::arg *argv);
 //static int8_t   test_rawgps(uint8_t argc,               const Menu::arg *argv);
 //static int8_t	test_mission(uint8_t argc,      const Menu::arg *argv);
@@ -70,6 +72,8 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"logging",             test_logging},
     {"nav",                 test_wp_nav},
     {"encoder",             test_encoder},
+    {"motor",             test_motor},
+
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
     {"shell", 				test_shell},
 #endif
@@ -379,6 +383,49 @@ static int8_t test_encoder(uint8_t argc, const Menu::arg *argv)
         }
     }
 }
+
+static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
+{
+    print_hit_enter();
+    delay(1000);
+
+	motor_out[LEFT_MOT_CH] = 0;
+	motor_out[RIGHT_MOT_CH] = 0;
+
+	int16_t speed = argv[3].i;
+
+	if (speed == 0) speed = 1000;
+
+	if (!strcmp_P(argv[1].str, PSTR("l"))) {
+		hal.rcout->write(CH_1, speed); // left motor
+
+		if (!strcmp_P(argv[2].str, PSTR("f"))) {
+			hal.gpio->write(AN0, HIGH);
+		}else{
+			hal.gpio->write(AN0, LOW);
+		}
+
+	}else{
+		hal.rcout->write(CH_2, speed); // right motor
+		if (!strcmp_P(argv[2].str, PSTR("f"))) {
+			hal.gpio->write(AN1, LOW);
+		}else{
+			hal.gpio->write(AN1, HIGH);
+		}
+	}
+
+
+    while(1) {
+        delay(20);
+
+        if(cliSerial->available() > 0) {
+			hal.rcout->write(CH_1, 0); // left motor
+			hal.rcout->write(CH_2, 0); // right motor
+            return (0);
+        }
+    }
+}
+
 
 
 static int8_t test_relay(uint8_t argc, const Menu::arg *argv)

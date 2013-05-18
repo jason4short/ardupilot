@@ -973,9 +973,9 @@ static void fifty_hz_loop()
     // -------------------
     update_wheel_encoders();
     if(update_wheel_encoders()){
-        cliSerial->println("OK");
+        //cliSerial->println("OK");
     }else{
-        cliSerial->printf("E %d\n", I2Cfail);
+        //cliSerial->printf("E %d\n", I2Cfail);
     }
 
 	// encoder nav

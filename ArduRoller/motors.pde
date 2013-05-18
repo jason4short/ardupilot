@@ -74,29 +74,42 @@ update_servos()
     motor_out[LEFT_MOT_CH]  = constrain(motor_out[LEFT_MOT_CH],  -2000, 2000);
     motor_out[RIGHT_MOT_CH] = constrain(motor_out[RIGHT_MOT_CH], -2000, 2000);
 
-    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? LOW : HIGH;
-    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? LOW : HIGH;
 
-	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])  + g.dead_zone); // left motor
-	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH]) + g.dead_zone); // right motor
+	if(motor_out[LEFT_MOT_CH] != 0){
+		hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])  + g.dead_zone); // left motor
+	}else{
+		hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])); // left motor
+	}
+
+	if(motor_out[RIGHT_MOT_CH] != 0){
+		hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])  + g.dead_zone); // right motor
+	}else{
+		hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
+	}
 
 //#endif
 
-    cliSerial->printf_P(PSTR("l:%d r:%d, %d, %d\n"),
+    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? HIGH : LOW;	// reverse : forward
+    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? LOW : HIGH;	// reverse : forward
+    hal.gpio->write(LEFT_DIR, dir_left);
+    hal.gpio->write(RIGHT_DIR, dir_right);
+
+    /*cliSerial->printf_P(PSTR("p:%d, y:%d, l:%d r:%d, %d, %d\n"),
+    	pitch_out,
+    	yaw_out,
     	motor_out[LEFT_MOT_CH],
     	motor_out[RIGHT_MOT_CH],
     	dir_left,
     	dir_right);
-
-    digitalWrite(COPTER_LED_2, dir_left); // left
-    digitalWrite(COPTER_LED_1, dir_right); // right
+    	*/
 }
+
+
 
 static void
 set_servos_direct(int16_t pwm)
 {
-    uint8_t dir_left;
-    uint8_t dir_right;
+    uint8_t dir_left, dir_right;
 
 #if USE_WHEEL_LUT == ENABLED
     motor_out[0] = get_pwm_from_speed_wheel_mixer_left();
@@ -106,13 +119,13 @@ set_servos_direct(int16_t pwm)
     motor_out[1] = pwm;
 #endif
 
-    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? LOW : HIGH;
-    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? LOW : HIGH;
 
 	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])); // left motor
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
 
-    digitalWrite(COPTER_LED_2, dir_left); // left
-    digitalWrite(COPTER_LED_1, dir_right); // right
+    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? LOW : HIGH;	// reverse : forward
+    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? HIGH : LOW;	// reverse : forward
+    hal.gpio->write(LEFT_DIR, dir_left);
+    hal.gpio->write(RIGHT_DIR, dir_right);
 }
 
