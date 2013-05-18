@@ -6,24 +6,20 @@ static void update_navigation()
 {
     static uint32_t nav_last_update = 0;        // the system time of the last time nav was run update
 
-    // check for inertial nav updates
-    if( encoder_nav.position_ok() ) {
+	// calculate time since nav controllers last ran
+	dTnav = (float)(millis() - nav_last_update)/ 1000.0f;
+	nav_last_update = millis();
 
-        // calculate time since nav controllers last ran
-        dTnav = (float)(millis() - nav_last_update)/ 1000.0f;
-        nav_last_update = millis();
+	// prevent runnup in dTnav value
+	dTnav = min(dTnav, 1.0f);
 
-        // prevent runnup in dTnav value
-        dTnav = min(dTnav, 1.0f);
+	// run the navigation controllers
+	update_nav_mode();
 
-        // run the navigation controllers
-        update_nav_mode();
-
-        // update log
-        if ((g.log_bitmask & MASK_LOG_NTUN) && ap.armed) {
-            Log_Write_Nav_Tuning();
-        }
-    }
+	// update log
+	if ((g.log_bitmask & MASK_LOG_NTUN) && ap.armed) {
+		Log_Write_Nav_Tuning();
+	}
 }
 
 // run_nav_updates - top level call for the autopilot
@@ -32,22 +28,14 @@ static void update_navigation()
 static void run_nav_updates(void)
 {
     // fetch position from inertial navigation
-    calc_position();
+	current_loc.lng = encoder_nav.get_longitude();
+	current_loc.lat = encoder_nav.get_latitude();
 
     // calculate distance and bearing for reporting and autopilot decisions
     calc_distance_and_bearing();
 
     // run autopilot to make high level decisions about control modes
     run_autopilot();
-}
-
-// calc_position - get lat and lon positions from inertial nav library
-static void calc_position(){
-    if( encoder_nav.position_ok() ) {
-        // pull position from interial nav library
-        current_loc.lng = encoder_nav.get_longitude();
-        current_loc.lat = encoder_nav.get_latitude();
-    }
 }
 
 // calc_distance_and_bearing - calculate distance and direction to waypoints for reporting and autopilot decisions
