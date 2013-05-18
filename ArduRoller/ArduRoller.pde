@@ -570,7 +570,7 @@ static uint32_t condition_start;
 ////////////////////////////////////////////////////////////////////////////////
 // Integration time for the gyros (DCM algorithm)
 // Updated with the fast loop
-static float G_Dt = 0.02;
+static float G_Dt = 0.01;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inertial Navigation
@@ -875,7 +875,6 @@ static void fast_loop()
     update_yaw_mode();
     update_roll_pitch_mode();
 
-
     // write out the servo PWM values
     // ------------------------------
     update_servos();
@@ -968,19 +967,22 @@ static void medium_loop()
 // ---------------------------
 static void fifty_hz_loop()
 {
-
     // read wheel encoders:
     // -------------------
-    update_wheel_encoders();
     if(update_wheel_encoders()){
         //cliSerial->println("OK");
     }else{
         //cliSerial->printf("E %d\n", I2Cfail);
     }
 
-	// encoder nav
-    // --------------------
-    encoder_nav_update();
+    if(ap.armed){
+        // encoder nav
+        // --------------------
+        encoder_nav_update();
+    }else{
+        // XXX temp
+        encoder_nav_update();
+    }
 
 #if MOUNT == ENABLED
     // update camera mount's position

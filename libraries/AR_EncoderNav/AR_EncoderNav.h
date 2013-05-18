@@ -8,7 +8,7 @@
 
 #define AR_ENCODERNAV_TC   8.0f 			// default time constant for complementary filter's X & Y axis
 #define AR_ENCODERNAV_GPS_LAG  4			// must not be larger than size of _hist_position_estimate_x and _hist_position_estimate_y
-#define AR_ENCODERNAV_GPS_TIMEOUT_MS 300    // timeout after which position error from GPS will fall to zero
+#define AR_ENCODERNAV_GPS_TIMEOUT_MS 2000    // timeout after which position error from GPS will fall to zero
 
 #define AP_ENCODERNAV_LATLON_TO_CM 1.1113175f
 

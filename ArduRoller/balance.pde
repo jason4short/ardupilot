@@ -71,6 +71,25 @@ static int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
 	return output;
 }
 
+// read_inertia - read inertia in from accelerometers
+static void encoder_nav_update()
+{
+    static uint8_t log_counter_inav = 0;
+    static float last_GDT = 0;
+
+    // inertial altitude estimates
+    encoder_nav.update(G_Dt + last_GDT); // 50 hz
+    last_GDT = G_Dt;
+
+    if(g.log_bitmask & MASK_LOG_INAV) {
+        log_counter_inav++;
+        if( log_counter_inav >= 10 ) {
+            log_counter_inav = 0;
+            Log_Write_INAV();
+        }
+    }
+}
+
 static bool update_wheel_encoders()
 {
 	uint8_t buff[12];
@@ -120,7 +139,7 @@ static bool update_wheel_encoders()
 	// using the mm accuracy of the encoders to get an overall location
  	//current_encoder_x += cos_yaw * delta;
 	//current_encoder_y += sin_yaw * delta;
-	
+
 	encoder_nav.set_velocity(cos_yaw * ground_speed, sin_yaw * ground_speed);
 
 	if(gps_available == false){

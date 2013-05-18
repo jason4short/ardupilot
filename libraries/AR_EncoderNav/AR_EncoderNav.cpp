@@ -13,8 +13,8 @@ const AP_Param::GroupInfo AR_EncoderNav::var_info[] PROGMEM = {
     // @Range: 0 10
     // @Increment: 0.1
     AP_GROUPINFO("TC",   1, AR_EncoderNav, _time_constant, AR_ENCODERNAV_TC),
-    
-    AP_GROUPEND
+
+	AP_GROUPEND
 };
 
 // init - initialise library
@@ -38,9 +38,10 @@ void AR_EncoderNav::update(float dt)
 		_position_correction.x += _position_error.x * tmp;
 		_position_correction.y += _position_error.y * tmp;
 	}
-	
+
 	// calculate new estimate of position
 	_position_estimation += _velocity * dt;
+	//hal.console->printf_P(PSTR("pos, %1.4f, %1.4f\n"), (_position_estimation.x + _position_correction.x), (_position_estimation.y + _position_correction.y));
 }
 
 // check_gps - check if new gps readings have arrived and use them to correct position estimates
@@ -87,7 +88,7 @@ void AR_EncoderNav::correct_with_gps(int32_t lon, int32_t lat, float dt)
     if( dt > 1.0f || dt == 0 || !_enabled) {
         return;
     }
-    
+
     // store 3rd order estimate (i.e. horizontal position) for future use
 	_hist_position_estimate_x.add(_position_estimation.x);
 	_hist_position_estimate_y.add(_position_estimation.y);
@@ -109,6 +110,8 @@ void AR_EncoderNav::correct_with_gps(int32_t lon, int32_t lat, float dt)
     // calculate error in position from gps with our historical estimate
     _position_error.x = x - (hist_position_est_x + _position_correction.x); // latitude
     _position_error.y = y - (hist_position_est_y + _position_correction.y); // longitude
+
+	//hal.console->printf_P(PSTR("err, %1.4f, %1.4f\n"), _position_error.x, _position_error.y);
 }
 
 // set_current_position - all internal calculations are recorded as the distances from this point
