@@ -116,6 +116,11 @@ static void init_home()
     // update navigation scalers.  used to offset the shrinking longitude as we go towards the poles
     scaleLongDown = longitude_scale(&home);
     scaleLongUp   = 1.0f/scaleLongDown;
+
+	if (g.compass_enabled) {
+		// Set compass declination automatically
+		compass.set_initial_location(g_gps->latitude, g_gps->longitude);
+	}    
 }
 
 

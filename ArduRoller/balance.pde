@@ -4,7 +4,6 @@ static void init_balance()
     g_gps->longitude 	= 0;
     g_gps->latitude 	= 0;
     I2Cfail 			= 0;
-    //init_home();
 	_i2c_sem = hal.i2c->get_semaphore();
     if (!_i2c_sem->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
         hal.scheduler->panic(PSTR("Failed to get Encoder semaphore"));

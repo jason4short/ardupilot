@@ -1113,32 +1113,10 @@ static void update_GPS(void)
 
         // for performance monitoring
         gps_fix_count++;
-
-        // check if we can initialise home yet
-        if (!ap.home_is_set) {
-            // if we have a 3d lock and valid location
-            if(g_gps->status() >= GPS::GPS_OK_FIX_3D && g_gps->latitude != 0) {
-                if( ground_start_count > 0 ) {
-                    ground_start_count--;
-                }else{
-                    // after 10 successful reads store home location
-                    // ap.home_is_set will be true so this will only happen once
-                    ground_start_count = 0;
-                    init_home();
-                    if (g.compass_enabled) {
-                        // Set compass declination automatically
-                        compass.set_initial_location(g_gps->latitude, g_gps->longitude);
-                    }
-                }
-            }else{
-                // start again if we lose 3d lock
-                ground_start_count = 10;
-            }
-        }
     }
 
     // check for loss of gps
-    failsafe_gps_check();
+    //failsafe_gps_check();
 }
 
 // update_yaw_mode - run high level yaw controllers

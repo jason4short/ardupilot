@@ -6,9 +6,15 @@ static void init_arm_motors()
     if(ap.armed)
         return;
 
-    if(ap.home_is_set)
+	// healthy GPS
+    if(ap.gps_status) {
+		// we set encoder nav to GPS location and enable error correction
         init_home();
-
+	}else{
+		// we set encoder nav to 0,0 which means don't GPS error correct
+	    encoder_nav.set_current_position(0, 0);
+	}
+	
     set_armed(true);
 }
 
