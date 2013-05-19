@@ -50,6 +50,7 @@ void Vector3<T>::rotate(enum Rotation rotation)
     case ROTATION_YAW_180:
         x = -x; y = -y;
         return;
+
     case ROTATION_YAW_225: {
         tmp = HALF_SQRT_2*(y - x);
         y   = -HALF_SQRT_2*(x + y);
@@ -160,6 +161,9 @@ void Vector3<T>::rotate(enum Rotation rotation)
         tmp = z; z = x; x = -tmp;
         return;
     }
+    case ROTATION_PITCH_90_YAW_180: {
+        tmp = z; z = -x; x = -tmp; y = -y;
+	}
     }
 }
 

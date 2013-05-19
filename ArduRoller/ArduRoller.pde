@@ -875,6 +875,13 @@ static void fast_loop()
     update_yaw_mode();
     update_roll_pitch_mode();
 
+    /*
+    cliSerial->printf_P(PSTR("a:%d\tP: %d\tY: %d\n"),
+            (int16_t)ahrs.pitch_sensor,
+            pitch_out,
+            yaw_out);
+    //*/
+
     // write out the servo PWM values
     // ------------------------------
     update_servos();
@@ -1094,7 +1101,7 @@ static void super_slow_loop()
 static void update_GPS(void)
 {
     // A counter that is used to grab at least 10 reads before commiting the Home location
-    static uint8_t ground_start_count  = 10;
+    //static uint8_t ground_start_count  = 10;
 
     g_gps->update();
     update_GPS_light();
@@ -1171,6 +1178,8 @@ void update_roll_pitch_mode(void)
         nav_yaw             = ahrs.yaw_sensor;
         current_encoder_x   = 0;
         current_encoder_y   = 0;
+        pitch_out           = 0;
+        yaw_out             = 0;
         return;
     }
 
@@ -1210,8 +1219,10 @@ void update_roll_pitch_mode(void)
             // sum control
             pitch_out   = (bal_out + vel_out + nav_out);
 
-           	/*
-           	cliSerial->printf_P(PSTR("a:%d\td:%d\tbal%d, vel%d, nav%d\n"),
+           /*
+           	//a:-1000	d:0	bal2911, vel2, nav0
+
+           	cliSerial->printf_P(PSTR("a:%d\td:%d\tbal %d, vel%d, nav%d\n"),
            	        (int16_t)ahrs.pitch_sensor,
                    	(int16_t)wp_distance,
                    	bal_out,
@@ -1248,7 +1259,7 @@ void update_roll_pitch_mode(void)
             ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical
             nav_out      	= g.pid_nav.get_pid(wheel_speed_error, G_Dt);       // allows us to accelerate
 
-           /*
+           ///*
             cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d, %d, %d\n"),
                 (int16_t)ahrs.pitch_sensor,
                 (int16_t)balance_offset,

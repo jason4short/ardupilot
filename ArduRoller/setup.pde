@@ -284,7 +284,7 @@ setup_flightmodes(uint8_t argc, const Menu::arg *argv)
         }
 
         // look for stick input
-        if (abs(g.rc_1.control_in) > 3000) {
+        if (abs(g.rc_1.control_in) > 300) {
             mode++;
             if(mode >= NUM_MODES)
                 mode = 0;

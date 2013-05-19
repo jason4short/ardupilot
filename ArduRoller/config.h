@@ -597,17 +597,23 @@
  # define BALANCE_I       	        .01
 #endif
 #ifndef BALANCE_D
- # define BALANCE_D       	        0.24
+ # define BALANCE_D       	        0.16 // 0.24
 #endif
 #ifndef BALANCE_IMAX
  # define BALANCE_IMAX              3.0      // degrees
 #endif
 
 #ifndef VELOCITY_P
- # define VELOCITY_P                .4      // degrees
+ # define VELOCITY_P                .4
 #endif
 
+#ifndef P_THROTTLE
+ # define P_THROTTLE                .45
+#endif
 
+#ifndef DEAD_ZONE
+ # define DEAD_ZONE                50
+#endif
 
 #ifndef YAW_P
  # define YAW_P                     .22
@@ -671,7 +677,7 @@
 #endif
 
 #ifndef WHEEL_ENCODER_DIR_LEFT
- # define WHEEL_ENCODER_DIR_LEFT        1
+ # define WHEEL_ENCODER_DIR_LEFT        -1
 #endif
 
 

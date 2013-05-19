@@ -187,6 +187,8 @@ test_euler(uint8_t argc, const Menu::arg *argv)
     cliSerial->printf_P(PSTR("EULERS\n"));
     delay(1000);
 
+    // setup fast AHRS gains to get right attitude
+    ahrs.set_fast_gains(true);
     ahrs.init();
     ins.init(AP_InertialSensor::COLD_START,
              ins_sample_rate,

@@ -162,6 +162,20 @@ const AP_Param::Info var_info[] PROGMEM = {
     GSCALAR(rssi_pin,            "RSSI_PIN",         -1),
 
 
+    GSCALAR(fbw_speed,   	"FBW_SPEED",   12),			// 500 / 12 = 42
+    GSCALAR(throttle,   	"P_THROT",     P_THROTTLE), 	// ~3 second time constant
+    GSCALAR(dead_zone,   	"P_DEAD_Z",    DEAD_ZONE), 		//
+    GSCALAR(p_vel,    	 	"P_VEL",       VELOCITY_P),
+
+	// @Param: XTRK_GAIN_SC
+    // @DisplayName: Cross-Track Gain
+    // @Description: This controls the rate that the Auto Controller will attempt to return original track
+    // @Units: Dimensionless
+	// @User: Standard
+    GSCALAR(crosstrack_gain,        "XTRK_GAIN_SC", CROSSTRACK_GAIN),
+
+
+
     // @Param: WP_TOTAL
     // @DisplayName: Waypoint Total
     // @Description: Total number of commands in the mission stored in the eeprom.  Do not update this parameter directly!
@@ -357,10 +371,6 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @Group: INAV_
     // @Path: ../libraries/AR_InertialNav/AR_InertialNav.cpp
     GOBJECT(encoder_nav,           "INAV_",    AR_EncoderNav),
-
-    //@Group: WPNAV_
-    //@Path: ../libraries/AR_WPNav/AR_WPNav.cpp
-    //GOBJECT(wp_nav, "WPNAV_",       AR_WPNav),
 
     // @Group: SR0_
     // @Path: ./GCS_Mavlink.pde

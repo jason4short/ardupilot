@@ -1,6 +1,6 @@
 static void init_balance()
 {
-	wheel_ratio 		= 1000.0 / g.wheel_encoder_speed;
+	wheel_ratio 		= 1000.0 / (float)g.wheel_encoder_speed;
     g_gps->longitude 	= 0;
     g_gps->latitude 	= 0;
     I2Cfail 			= 0;
@@ -98,10 +98,6 @@ static bool update_wheel_encoders()
        // the bus is busy - try again later
        return false;
    }
-    //if (hal.i2c->readRegisters(MS5611_ADDR, reg, sizeof(buf), buf) == 0)
-
-	//read(uint8_t address, uint8_t numberBytes, uint8_t *dataBuffer)
-	//if (hal.i2c->readRegisters(ENCODER_ADDRESS, 1, sizeof(buff), buff) != 0) {
 	if (hal.i2c->read(ENCODER_ADDRESS, sizeof(buff), buff) != 0) {
 		I2Cfail++;
 	   _i2c_sem->give();
@@ -116,31 +112,26 @@ static bool update_wheel_encoders()
 	memcpy(bytes_union.bytes, &buff[3], 2);
 	wheel.right_distance = bytes_union.int_value * WHEEL_ENCODER_DIR_RIGHT;
 
+	// raw ticks per sec
 	memcpy(bytes_union.bytes, &buff[5], 2);
 	wheel.left_speed = bytes_union.int_value * WHEEL_ENCODER_DIR_LEFT;
 
 	memcpy(bytes_union.bytes, &buff[7], 2);
 	wheel.right_speed = bytes_union.int_value * WHEEL_ENCODER_DIR_RIGHT;
 
-	wheel.speed 	= wheel.speed + ((wheel.left_speed + wheel.right_speed) >> 1);
-	wheel.speed 	>>= 1;
-
 	// convert wheel.speed to 1rps = 1000
-	// 815 * 1.2 = 1000;
-	wheel.speed = (float)wheel.speed * wheel_ratio;
+	int16_t tmp 	= ((float)(wheel.left_speed + wheel.right_speed) * wheel_ratio);
 
+	// divide tmp speeds by number of wheels
+	tmp 		 	= tmp >> 1;
+
+	// small averaging
+	wheel.speed 	= (wheel.speed + tmp) >> 1;
+
+	// convert to CM/s
 	ground_speed 	= convert_encoder_speed_to_ground_speed(wheel.speed);
-
-
-	float delta   = (float)(wheel.left_distance + wheel.right_distance) / 2;
-
-	//int16_t delta   = wheel.right_distance;	// testing
-
-	// using the mm accuracy of the encoders to get an overall location
- 	//current_encoder_x += cos_yaw * delta;
-	//current_encoder_y += sin_yaw * delta;
-
 	encoder_nav.set_velocity(cos_yaw * ground_speed, sin_yaw * ground_speed);
+
 
 	if(gps_available == false){
 		// scaling the mm accuracy to cm
@@ -156,19 +147,21 @@ static bool update_wheel_encoders()
 
 // ------------------
 
-static float convert_groundspeed_to_encoder_speed(float _ground_speed)
-{
-	return (_ground_speed * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
-}
+//static float convert_groundspeed_to_encoder_speed(float _ground_speed)
+//{
+//	return (_ground_speed * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
+//}
 
 static float convert_distance_to_encoder_speed(float _distance)
 {
-	return (_distance * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
+	//return (_distance * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
+	return (_distance * 1000.0 ) / WHEEL_DIAMETER_CM;
 }
 
 static float convert_encoder_speed_to_ground_speed(float encoder_speed)
 {
-	return (encoder_speed * WHEEL_DIAMETER_CM) / (float)g.wheel_encoder_speed;
+	//return (encoder_speed * WHEEL_DIAMETER_CM) / (float)g.wheel_encoder_speed;
+	return (encoder_speed * WHEEL_DIAMETER_CM) / 1000.0;
 }
 
 // ------------------

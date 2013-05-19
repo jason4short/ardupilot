@@ -25,6 +25,7 @@
 
 // these rotation values are stored to EEPROM, so be careful not to
 // change the numbering of any existing entry when adding a new entry.
+
 enum Rotation {
     ROTATION_NONE = 0,
     ROTATION_YAW_45,
@@ -52,5 +53,6 @@ enum Rotation {
     ROTATION_ROLL_270_YAW_135,
     ROTATION_PITCH_90,
     ROTATION_PITCH_270,
+    ROTATION_PITCH_90_YAW_180,
     ROTATION_MAX
 };

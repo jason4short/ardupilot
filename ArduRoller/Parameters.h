@@ -78,10 +78,9 @@ public:
         //k_param_motors = 90,
 
         //
-        // 100: Inertial Nav
+        // 100: Encoder Nav
         //
         k_param_encoder_nav = 100,
-        k_param_wp_nav = 101,
 
         // 110: Telemetry control
         //
