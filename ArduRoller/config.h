@@ -264,8 +264,8 @@
  # define CONFIG_SONAR ENABLED
 #endif
 
-#ifndef SONAR_ALT_HEALTH_MAX
- # define SONAR_ALT_HEALTH_MAX 3            // number of good reads that indicates a healthy sonar
+#ifndef SONAR_HEALTH_MAX
+ # define SONAR_HEALTH_MAX 3            // number of good reads that indicates a healthy sonar
 #endif
 
 #ifndef SONAR_GAIN_DEFAULT
@@ -452,65 +452,6 @@
 // Attitude Control
 //
 
-// AUTO Mode
-// AUTO Mode
-#ifndef AUTO_YAW
- # define AUTO_YAW                  YAW_LOOK_AT_NEXT_WP
-#endif
-
-#ifndef AUTO_RP
- # define AUTO_RP                   ROLL_PITCH_AUTO
-#endif
-
-#ifndef AUTO_THR
- # define AUTO_THR                  THROTTLE_AUTO
-#endif
-
-// CIRCLE Mode
-#ifndef CIRCLE_YAW
- # define CIRCLE_YAW             	YAW_LOOK_AT_NEXT_WP
-#endif
-
-#ifndef CIRCLE_RP
- # define CIRCLE_RP                 ROLL_PITCH_AUTO
-#endif
-
-#ifndef CIRCLE_THR
- # define CIRCLE_THR                THROTTLE_HOLD
-#endif
-
-// LOITER Mode
-#ifndef LOITER_YAW
- # define LOITER_YAW             	YAW_HOLD
-#endif
-
-#ifndef LOITER_RP
- # define LOITER_RP                 ROLL_PITCH_AUTO
-#endif
-
-#ifndef LOITER_THR
- # define LOITER_THR                THROTTLE_HOLD
-#endif
-
-
-// RTL Mode
-#ifndef RTL_YAW
-# define RTL_YAW                    YAW_HOLD
-#endif
-
-#ifndef RTL_RP
- # define RTL_RP                    ROLL_PITCH_AUTO
-#endif
-
-#ifndef RTL_THR
- # define RTL_THR                   THROTTLE_HOLD
-#endif
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Attitude Control
-//
-
 // Extra motor values that are changed from time to time by jani @ jDrones as software
 // and charachteristics changes.
 #ifdef MOTORS_JD880
@@ -635,7 +576,7 @@
  # define WAYPOINT_RADIUS           50         //cm
 #endif
 #ifndef WAYPOINT_SPEED
- # define WAYPOINT_SPEED           500         //cm
+ # define WAYPOINT_SPEED           150         //cm
 #endif
 
 #ifndef NAV_P
@@ -655,9 +596,6 @@
  # define AUTO_YAW_SLEW_RATE        60          // degrees/sec
 #endif
 
-#ifndef WAYPOINT_SPEED_MAX
- # define WAYPOINT_SPEED_MAX        100         // 6m/s error = 13mph
-#endif
 
 #ifndef WAYPOINT_SPEED_MIN
  # define WAYPOINT_SPEED_MIN        10          // 1m/s

@@ -18,21 +18,21 @@ static int16_t read_sonar(void)
 #if CONFIG_SONAR == ENABLED
     // exit immediately if sonar is disabled
     if( !g.sonar_enabled ) {
-        sonar_alt_health = 0;
+        sonar_health = 0;
         return 0;
     }
 
-    int16_t temp_alt = sonar->read();
+    int16_t temp = sonar->read();
 
-    if (temp_alt >= sonar->min_distance && temp_alt <= sonar->max_distance * 0.70f) {
-        if ( sonar_alt_health < SONAR_ALT_HEALTH_MAX ) {
-            sonar_alt_health++;
+    if(temp >= sonar->min_distance && temp <= sonar->max_distance * 0.70f){
+        if ( sonar_health < SONAR_HEALTH_MAX ) {
+            sonar_health++;
         }
     }else{
-        sonar_alt_health = 0;
+        sonar_health = 0;
     }
 
-    return temp_alt;
+    return temp;
 #else
     return 0;
 #endif

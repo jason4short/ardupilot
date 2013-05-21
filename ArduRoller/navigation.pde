@@ -1,27 +1,5 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-// update_navigation - invokes navigation routines
-// called at 10hz
-static void update_navigation()
-{
-    static uint32_t nav_last_update = 0;        // the system time of the last time nav was run update
-
-	// calculate time since nav controllers last ran
-	dTnav = (float)(millis() - nav_last_update)/ 1000.0f;
-	nav_last_update = millis();
-
-	// prevent runnup in dTnav value
-	dTnav = min(dTnav, 1.0f);
-
-	// run the navigation controllers
-	update_nav_mode();
-
-	// update log
-	if ((g.log_bitmask & MASK_LOG_NTUN) && ap.armed) {
-		Log_Write_Nav_Tuning();
-	}
-}
-
 // run_nav_updates - top level call for the autopilot
 // ensures calculations such as "distance to waypoint" are calculated before autopilot makes decisions
 // To-Do - rename and move this function to make it's purpose more clear
@@ -32,17 +10,15 @@ static void run_nav_updates(void)
 	current_loc.lat = encoder_nav.get_latitude();
 
     // calculate distance and bearing for reporting and autopilot decisions
-    calc_distance_and_bearing();
-
-    // run autopilot to make high level decisions about control modes
-    run_autopilot();
-}
-
-// calc_distance_and_bearing - calculate distance and direction to waypoints for reporting and autopilot decisions
-static void calc_distance_and_bearing()
-{
 	wp_distance = get_distance_to_destination();
 	wp_bearing 	= get_bearing_to_destination();
+	//target_bearing 	= wp_bearing;
+
+    loiter_distance = get_distance_to_loiter();
+
+	// obstacle avoidance
+	sonar_distance += read_sonar();
+	sonar_distance >>= 1;
 
     // calculate home distance and bearing
     if( ap.home_is_set ) {
@@ -53,11 +29,8 @@ static void calc_distance_and_bearing()
         home_distance = 0;
         home_bearing = 0;
     }
-}
 
-// run_autopilot - highest level call to process mission commands
-static void run_autopilot()
-{
+    // run autopilot to make high level decisions about control modes
     switch( control_mode ) {
         case AUTO:
             // load the next command if the command queues are empty
@@ -72,7 +45,9 @@ static void run_autopilot()
             break;
 
         case RTL:
-            verify_RTL();
+        	if(verify_RTL()){
+        		set_mode(FBW);
+        	}
             break;
 
         case CIRCLE:
@@ -80,80 +55,60 @@ static void run_autopilot()
     }
 }
 
-// set_nav_mode - update nav mode and initialise any variables as required
-static bool set_nav_mode(uint8_t new_nav_mode)
+
+void set_destination(const Vector3f& destination)
 {
-    // boolean to ensure proper initialisation of nav modes
-    bool nav_initialised = false;
-
-    // return immediately if no change
-    if( new_nav_mode == nav_mode ) {
-        return true;
-    }
-
-    switch( new_nav_mode ) {
-
-        case NAV_NONE:
-            nav_initialised = true;
-            break;
-
-        case NAV_CIRCLE:
-            // set center of circle to current position
-            circle_set_center(encoder_nav.get_position(), ahrs.yaw);
-            nav_initialised = true;
-            break;
-
-        case NAV_LOITER:
-            // set target to current position
-            //set_loiter_target(encoder_nav.get_position(), encoder_nav.get_velocity());
-            nav_initialised = true;
-            break;
-
-        case NAV_WP:
-            nav_initialised = true;
-            break;
-    }
-
-    // if initialisation has been successful update the yaw mode
-    if( nav_initialised ) {
-        nav_mode = new_nav_mode;
-    }
-
-    // return success or failure
-    return nav_initialised;
+    _reached_destination = false;
+    _destination = destination;
 }
 
-// update_nav_mode - run navigation controller based on nav_mode
-static void update_nav_mode()
+
+// calc_pitch_out
+static void calc_pitch_out(int16_t speed)
 {
-    switch( nav_mode ) {
+    int16_t bal_out = 0;
+    int16_t vel_out = 0;
+    int16_t nav_out = 0;
+    int16_t wheel_speed_error, ff_out;
 
-        case NAV_NONE:
-            // do nothing
-            break;
+	// limit speed
+	speed   = limit_acceleration(speed, 50); // cm/s
 
-        case NAV_CIRCLE:
-            // call circle controller which in turn calls loiter controller
-            update_circle();
-            // log to dataflash
-            //Log_Write_WPNAV();
-            break;
+	// switch units to encoder ticks
+	desired_ticks   = convert_velocity_to_encoder_speed(speed);
 
-        case NAV_LOITER:
-            // call loiter controller
-            update_loiter();
-            // log to dataflash
-            //Log_Write_WPNAV();
-            break;
+	// grab the wheel speed error
+	wheel_speed_error 	= wheel.speed - desired_ticks;
 
-        case NAV_WP:
-            // call waypoint controller
-            update_wpnav();
-            // log to dataflash
-            //Log_Write_WPNAV();
-            break;
-    }
+	// 4 components of stability and navigation
+	bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
+	vel_out         = get_velocity_pitch();                             // magic
+	ff_out          = (float)desired_ticks * g.throttle;                       // allows us to roll while vertical
+	nav_out      	= g.pid_nav.get_pid(wheel_speed_error, G_Dt);
+
+	// sum the output
+	pitch_out = (bal_out + vel_out + nav_out - ff_out);
 }
+
+int16_t limit_acceleration(int16_t speed, int16_t acc)
+{
+	// scale speed by delta time
+	acc *= G_Dt;
+
+	if(speed < ground_speed){ // slow down
+		int16_t temp_speed = ground_speed - acc;
+		speed = max(temp_speed, speed);
+
+	}else if (speed > ground_speed){ // speed up
+		int16_t temp_speed = ground_speed + acc;
+		speed = min(temp_speed, speed);
+	}
+
+    int16_t speed_limit = g.waypoint_speed;
+    return constrain(speed, -speed_limit, speed_limit);            // units = cm/s
+}
+
+
 
 // Keeps old data out of our calculation / logs
 static void reset_nav_params(void)
@@ -163,12 +118,7 @@ static void reset_nav_params(void)
 
     // Will be set by new command
     wp_distance                     = 0;
-
-    // Will be set by nav or loiter controllers
-    //lon_error                       = 0;
-    //lat_error                       = 0;
-    nav_roll 						= 0;
-    nav_pitch 						= 0;
+    loiter_distance                 = 0;
 }
 
 // get_yaw_slew - reduces rate of change of yaw to a maximum
@@ -196,3 +146,18 @@ update_circle()
 {
 
 }
+
+
+// ------------------------
+
+static int32_t avoid_obstacle(int32_t bearing)
+{
+	if(sonar_distance > 220){
+		return bearing;
+	}
+
+	float scale = (float)(sonar_distance - 20) / 200.0;
+	bearing += 9000 * scale;
+	return wrap_360_cd(bearing);
+}
+

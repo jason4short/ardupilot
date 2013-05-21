@@ -41,7 +41,7 @@ void AR_EncoderNav::update(float dt)
 
 	// calculate new estimate of position
 	_position_estimation += _velocity * dt;
-	//hal.console->printf_P(PSTR("pos, %1.4f, %1.4f\n"), (_position_estimation.x + _position_correction.x), (_position_estimation.y + _position_correction.y));
+	//hal.console->printf_P(PSTR("pos, %1.4f, %1.4f\n"), (_position_estimation.y + _position_correction.y), (_position_estimation.x + _position_correction.x));
 }
 
 // check_gps - check if new gps readings have arrived and use them to correct position estimates

@@ -64,6 +64,9 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Standard
     GSCALAR(sonar_enabled,  "SONAR_ENABLE",     DISABLED),
 
+    GSCALAR(avoid_obstacle,  "AVOID_ENABLE",     DISABLED),
+
+
     // @Param: SONAR_TYPE
     // @DisplayName: Sonar type
     // @Description: Used to adjust scaling to match the sonar used (only Maxbotix sonars are supported at this time)

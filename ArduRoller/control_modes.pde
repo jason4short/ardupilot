@@ -12,6 +12,7 @@ static void read_control_switch()
         if(switch_counter >= CONTROL_SWITCH_COUNTER) {
             oldSwitchPosition       = switchPosition;
             switch_counter          = 0;
+			set_mode(flight_modes[switchPosition]);
         }
     }else{
         // reset switch_counter if there's been no change
@@ -70,8 +71,8 @@ static void read_trim_switch()
                 // engage RTL
                 set_mode(RTL);
             }else{
-                // disengage RTL to previous flight mode if we are currently in RTL or loiter
-                if (control_mode == RTL || control_mode == LOITER) {
+                // disengage RTL to previous flight mode if we are currently in RTL
+                if (control_mode == RTL) {
                     reset_control_switch();
                 }
             }

@@ -81,7 +81,6 @@ static void failsafe_gps_check()
         // modes requiring GPS force a land
         case AUTO:
         case GUIDED:
-        case LOITER:
         case RTL:
         case CIRCLE:
             // We have no GPS or are very close to home so we will land

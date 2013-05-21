@@ -194,7 +194,7 @@ static bool verify_may()
 static void do_RTL(void)
 {
 	// set navigation mode
-	set_nav_mode(NAV_WP);
+	nav_mode = NAV_WP;
 
 	// Set wp navigation target to above home
 	set_destination(Vector3f(0,0,0));
@@ -209,7 +209,7 @@ static void do_RTL(void)
 static void do_nav_wp()
 {
     // set nav mode
-    set_nav_mode(NAV_WP);
+    nav_mode = NAV_WP;
 
     // Set wp navigation target
     set_destination(pv_location_to_vector(command_nav_queue));
@@ -247,7 +247,7 @@ static void do_loiter_unlimited()
     }
 
     // start way point navigator and provide it the desired location
-    set_nav_mode(NAV_WP);
+    nav_mode = NAV_WP;
     set_destination(pos);
 }
 
@@ -255,7 +255,8 @@ static void do_loiter_unlimited()
 static void do_circle()
 {
     // set nav mode to CIRCLE
-    set_nav_mode(NAV_CIRCLE);
+    nav_mode = NAV_CIRCLE;
+    circle_set_center(encoder_nav.get_position(), ahrs.yaw);
 
     // override default horizontal location target
     if( command_nav_queue.lat != 0 || command_nav_queue.lng != 0) {
@@ -287,7 +288,7 @@ static void do_loiter_time()
     }
 
     // start way point navigator and provide it the desired location
-    set_nav_mode(NAV_WP);
+    nav_mode = NAV_WP;
     set_destination(pos);
 
     // setup loiter timer

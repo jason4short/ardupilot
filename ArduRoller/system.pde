@@ -282,48 +282,44 @@ static void set_mode(uint8_t mode)
 
     // report the GPS and Motor arming status
     led_mode = NORMAL_LEDS;
-
+	print_flight_mode(cliSerial, control_mode);
     switch(control_mode)
     {
 		case STABILIZE:
-            yaw_mode        = YAW_HOLD;
+            yaw_mode = YAW_HOLD;
             roll_pitch_mode = ROLL_PITCH_STABLE;
-			set_nav_mode(NAV_NONE);
-			break;
-
-		case LOITER:
-            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
-            roll_pitch_mode = ROLL_PITCH_AUTO;
-			set_nav_mode(NAV_LOITER);
+			nav_mode = NAV_NONE;
 			break;
 
         case FBW:
-            yaw_mode        = YAW_HOLD;
+            yaw_mode = YAW_HOLD;
             roll_pitch_mode = ROLL_PITCH_FBW;
-			set_nav_mode(NAV_LOITER);
+			nav_mode = NAV_LOITER;
             break;
 
 		case AUTO:
-			yaw_mode        = AUTO_YAW;
-			roll_pitch_mode = AUTO_RP;
+			yaw_mode = YAW_LOOK_AT_NEXT_WP;
+			roll_pitch_mode = ROLL_PITCH_AUTO;
 			init_commands();
 			break;
 
 		case GUIDED:
-            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            yaw_mode = YAW_LOOK_AT_NEXT_WP;
             roll_pitch_mode = ROLL_PITCH_AUTO;
-			set_nav_mode(NAV_WP);
+			nav_mode = NAV_WP;
 			break;
 
 		case CIRCLE:
-            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            yaw_mode = YAW_LOOK_AT_NEXT_WP;
             roll_pitch_mode = ROLL_PITCH_AUTO;
-			set_nav_mode(NAV_CIRCLE);
+			nav_mode = NAV_CIRCLE;
+            circle_set_center(encoder_nav.get_position(), ahrs.yaw);
 			break;
 
 		case RTL:
-            yaw_mode        = YAW_LOOK_AT_NEXT_WP;
+            yaw_mode = YAW_LOOK_AT_NEXT_WP;
             roll_pitch_mode = ROLL_PITCH_AUTO;
+			nav_mode = NAV_WP;
 			do_RTL();
 			break;
 
@@ -416,9 +412,6 @@ print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case GUIDED:
         port->print_P(PSTR("GUIDED"));
-        break;
-    case LOITER:
-        port->print_P(PSTR("LOITER"));
         break;
     case RTL:
         port->print_P(PSTR("RTL"));

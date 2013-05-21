@@ -406,6 +406,7 @@ static int32_t home_bearing;
 static int32_t home_distance;
 // distance between plane and next waypoint in cm.  is not static because AP_Camera uses it
 uint32_t wp_distance;
+float loiter_distance;
 // navigation mode - options include NAV_NONE, NAV_LOITER, NAV_CIRCLE, NAV_WP
 static uint8_t nav_mode;
 // Register containing the index of the current navigation command in the mission script
@@ -478,8 +479,8 @@ static float current_total1;
 // Sonar
 ////////////////////////////////////////////////////////////////////////////////
 // The altitude as reported by Sonar in cm – Values are 20 to 700 generally.
-static int16_t sonar_alt;
-static uint8_t sonar_alt_health;   // true if we can trust the altitude from the sonar
+static int16_t sonar_distance;
+static uint8_t sonar_health;   // true if we can trust the altitude from the sonar
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -602,7 +603,7 @@ static int16_t motor_out[2];    // This is the array of PWM values being sent to
 static float balance_offset;
 
 static int32_t nav_bearing;
-static int16_t ground_speed;
+static float ground_speed;
 //static int32_t ground_position;
 
 static int16_t pitch_out;
@@ -742,7 +743,6 @@ AP_Param param_loader(var_info, WP_START_BYTE);
  */
 static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { update_GPS,            2,     900 }, // 0
-    { update_navigation,     10,    500 }, // 1
     { medium_loop,           2,     700 }, // 2
     { fifty_hz_loop,         2,     950 }, // 3
     { run_nav_updates,      10,     800 }, // 4
@@ -1139,7 +1139,7 @@ void update_yaw_mode(void)
         nav_yaw = ahrs.yaw_sensor;
         return;
     }
-
+//target_bearing
     switch(yaw_mode){
         case YAW_ACRO:
             yaw_out = g.rc_1.control_in;
@@ -1160,7 +1160,11 @@ void update_yaw_mode(void)
             break;
 
         case YAW_LOOK_AT_NEXT_WP:
-            nav_yaw = wp_bearing;
+            if(g.avoid_obstacle){
+                nav_yaw = avoid_obstacle(wp_bearing);
+            }else{
+                nav_yaw = wp_bearing;
+            }
             yaw_out = get_stabilize_yaw(nav_yaw);
             break;
     }
@@ -1191,15 +1195,6 @@ void update_roll_pitch_mode(void)
         init_arm_motors();
     }
 
-
-    // init
-    int16_t bal_out = 0;
-    int16_t vel_out = 0;
-    int16_t nav_out = 0;
-    int16_t wheel_speed_error, ff_out;
-
-
-
     switch(roll_pitch_mode){
         case ROLL_PITCH_STABLE:
             // we always hold position
@@ -1210,83 +1205,39 @@ void update_roll_pitch_mode(void)
                 g.pid_nav.reset_I();
             }
 
-            // in this mode we command the target angle
-            bal_out     = get_stabilize_pitch(g.rc_2.control_in); // neg = pitch forward
-
-            // speed control:
-            vel_out     = get_velocity_pitch();
-
             // sum control
-            pitch_out   = (bal_out + vel_out + nav_out);
+            pitch_out   = (get_stabilize_pitch(g.rc_2.control_in) + get_velocity_pitch());
 
-           /*
-           	//a:-1000	d:0	bal2911, vel2, nav0
-
-           	cliSerial->printf_P(PSTR("a:%d\td:%d\tbal %d, vel%d, nav%d\n"),
-           	        (int16_t)ahrs.pitch_sensor,
-                   	(int16_t)wp_distance,
-                   	bal_out,
-                   	vel_out,
-                   	nav_out);
-            //*/
             break;
 
         case ROLL_PITCH_FBW:
             // hold position if we let go of sticks
-            if(abs(g.rc_2.control_in) > 0){
-                // reset position
+            if(g.rc_2.control_in != 0){
+                // we are in manual control
                 set_destination(encoder_nav.get_position());
                 _reached_destination = true;
                 g.pid_nav.reset_I();
-            }
 
-            // defaulting to 500 / 12 = 41cm/s = 1.5r/s = 1200e/s
-            if(g.rc_2.control_in == 0){
-                desired_speed  = wp_distance;
-            }else{
+                // calc speed of bot
                 desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
-                desired_speed 	= constrain(desired_speed, -80, 80);            // units = cm/s
+
+            } else{
+                // we are in position hold
+                desired_speed = loiter_distance;
             }
 
-            // switching units to ticks
-            desired_ticks       = convert_distance_to_encoder_speed(desired_speed); // units = ticks/second : 1RPM = 1000ticks/second
-            // wheel speed error in units of ticks/s
-            wheel_speed_error   = wheel.speed - desired_ticks;                      // units = ticks/second : 1RPM = 1000ticks/second
-
-            // 4 components of stability and navigation
-            bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
-            vel_out         = get_velocity_pitch();                             // magic
-            ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical
-            nav_out      	= g.pid_nav.get_pid(wheel_speed_error, G_Dt);       // allows us to accelerate
-
-           ///*
-            cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d, %d, %d\n"),
-                (int16_t)ahrs.pitch_sensor,
-                (int16_t)balance_offset,
-                bal_out,
-                vel_out,
-                ff_out,
-                nav_out,
-                desired_speed,
-                wheel_speed_error);
-            //*/
-            // sum the output
-            pitch_out = (bal_out + vel_out + nav_out - ff_out);
+            calc_pitch_out(desired_speed);
             break;
 
         case ROLL_PITCH_AUTO:
-            // in this mode we command the target angle
-            pitch_out = get_stabilize_pitch(0); // neg = pitch forward
-
-            // speed control:
-            pitch_out += get_velocity_pitch();
-
-            // maintain location:
-            if(nav_mode == NAV_LOITER){
-                pitch_out += get_nav_pitch(0, wp_distance);
-            }else{
-                pitch_out += get_nav_pitch(g.waypoint_speed, wp_distance); // minimum speed for WP nav
+            // calc speed of bot
+            if(nav_mode == NAV_WP){
+                desired_speed  = wp_distance;
+            }else if (nav_mode == NAV_LOITER){
+                desired_speed = loiter_distance;
             }
+
+            calc_pitch_out(desired_speed);
             break;
     }
 
@@ -1314,24 +1265,12 @@ static void update_trig(void){
     Vector2f yawvector;
     const Matrix3f &temp   = ahrs.get_dcm_matrix();
 
-    yawvector.x     = temp.a.x;     // sin
-    yawvector.y     = temp.b.x;         // cos
+    yawvector.x     = temp.a.x; // sin
+    yawvector.y     = temp.b.x; // cos
     yawvector.normalize();
-
-    cos_pitch_x     = safe_sqrt(1 - (temp.c.x * temp.c.x));     // level = 1
-    cos_roll_x      = temp.c.z / cos_pitch_x;                       // level = 1
-
-    cos_pitch_x     = constrain(cos_pitch_x, 0, 1.0);
-    // this relies on constrain() of infinity doing the right thing,
-    // which it does do in avr-libc
-    cos_roll_x      = constrain(cos_roll_x, -1.0, 1.0);
 
     sin_yaw         = constrain(yawvector.y, -1.0, 1.0);
     cos_yaw         = constrain(yawvector.x, -1.0, 1.0);
-
-    // added to convert earth frame to body frame for rate controllers
-    sin_pitch       = -temp.c.x;
-    sin_roll        = temp.c.y / cos_pitch_x;
 
     //flat:
     // 0 ° = cos_yaw:  1.00, sin_yaw:  0.00,

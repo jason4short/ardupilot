@@ -185,7 +185,7 @@ static void exit_mission()
     g.command_index = 255;
 
     // if we are on the ground, enter stabilize, else Land
-    set_mode(LOITER);
+    set_mode(FBW);
 
 }
 

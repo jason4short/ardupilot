@@ -129,7 +129,7 @@ static bool update_wheel_encoders()
 	wheel.speed 	= (wheel.speed + tmp) >> 1;
 
 	// convert to CM/s
-	ground_speed 	= convert_encoder_speed_to_ground_speed(wheel.speed);
+	ground_speed 	= convert_encoder_speed_to_velocity(wheel.speed);
 	encoder_nav.set_velocity(cos_yaw * ground_speed, sin_yaw * ground_speed);
 
 
@@ -147,20 +147,13 @@ static bool update_wheel_encoders()
 
 // ------------------
 
-//static float convert_groundspeed_to_encoder_speed(float _ground_speed)
-//{
-//	return (_ground_speed * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
-//}
-
-static float convert_distance_to_encoder_speed(float _distance)
+static float convert_velocity_to_encoder_speed(float _velocity)
 {
-	//return (_distance * (float)g.wheel_encoder_speed ) / WHEEL_DIAMETER_CM;
-	return (_distance * 1000.0 ) / WHEEL_DIAMETER_CM;
+	return (_velocity * 1000.0 ) / WHEEL_DIAMETER_CM;
 }
 
-static float convert_encoder_speed_to_ground_speed(float encoder_speed)
+static float convert_encoder_speed_to_velocity(float encoder_speed)
 {
-	//return (encoder_speed * WHEEL_DIAMETER_CM) / (float)g.wheel_encoder_speed;
 	return (encoder_speed * WHEEL_DIAMETER_CM) / 1000.0;
 }
 

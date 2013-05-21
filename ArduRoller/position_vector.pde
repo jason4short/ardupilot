@@ -58,3 +58,10 @@ int32_t get_bearing_to_destination()
     return pv_get_bearing_cd(encoder_nav.get_position(), _destination);
 }
 
+float get_distance_to_loiter()
+{
+    // get current location
+    Vector3f curr = encoder_nav.get_position();
+    return (_destination.y - curr.y ) * cos_yaw /*North*/ + (_destination.x - curr.x) * sin_yaw; /*East*/
+}
+

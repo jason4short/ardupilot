@@ -593,7 +593,6 @@ test_wp_nav(uint8_t argc, const Menu::arg *argv)
     set_destination(pv_latlon_to_vector(389538528,-1199541248,0));
 
     // got 23506;, should be 22800
-    update_navigation();
     cliSerial->printf_P(PSTR("bear: %ld\n"), wp_bearing);
     return 0;
 }

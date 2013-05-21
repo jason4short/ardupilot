@@ -59,7 +59,6 @@ static NOINLINE void send_heartbeat(mavlink_channel_t chan)
     switch (control_mode) {
     case AUTO:
     case RTL:
-    case LOITER:
     case GUIDED:
     case CIRCLE:
         base_mode |= MAV_MODE_FLAG_GUIDED_ENABLED;
@@ -146,7 +145,7 @@ static NOINLINE void send_extended_status1(mavlink_channel_t chan, uint16_t pack
     switch (control_mode) {
     case AUTO:
     case RTL:
-    case LOITER:
+    case FBW:
     case GUIDED:
     case CIRCLE:
         control_sensors_enabled |= (1<<12); // yaw position
@@ -1101,7 +1100,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         switch(packet.command) {
 
         case MAV_CMD_NAV_LOITER_UNLIM:
-            set_mode(LOITER);
+            set_mode(FBW);
             result = MAV_RESULT_ACCEPTED;
             break;
 
@@ -1190,7 +1189,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
         case STABILIZE:
         case AUTO:
         case GUIDED:
-        case LOITER:
+        case FBW:
         case RTL:
         case CIRCLE:
             set_mode(packet.custom_mode);

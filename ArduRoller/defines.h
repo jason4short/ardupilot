@@ -105,14 +105,13 @@
 
 // Auto Pilot modes
 // ----------------
-#define STABILIZE 0                     // hold level position
-#define LOITER 1                          // rate control
-#define FBW 2                      // AUTO control
-#define AUTO 3                          // AUTO control
-#define GUIDED 4                        // AUTO control
-#define RTL 5                           // AUTO control
-#define CIRCLE 6                        // AUTO control
-#define NUM_MODES 7
+#define STABILIZE 0                     //
+#define FBW 1                      		//
+#define AUTO 2                          //
+#define GUIDED 3                        //
+#define RTL 4                           //
+#define CIRCLE 5                        //
+#define NUM_MODES 6
 
 // CH_6 Tuning
 // -----------

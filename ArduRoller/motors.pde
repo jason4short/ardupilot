@@ -6,15 +6,9 @@ static void init_arm_motors()
     if(ap.armed)
         return;
 
-	// healthy GPS
-    if(ap.gps_status) {
-		// we set encoder nav to GPS location and enable error correction
+    if(ap.home_is_set)
         init_home();
-	}else{
-		// we set encoder nav to 0,0 which means don't GPS error correct
-	    encoder_nav.set_current_position(0, 0);
-	}
-	
+
     set_armed(true);
 }
 
@@ -47,6 +41,7 @@ update_servos()
 	if(!ap.armed){
 		hal.rcout->write(CH_1, 0);
 		hal.rcout->write(CH_2, 0);
+		hal.rcout->write(CH_3, 1500);
 		reset_I_all();
 		return;
 	}
@@ -89,8 +84,11 @@ update_servos()
 
 //#endif
 
-    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? HIGH : LOW;	// reverse : forward
-    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? LOW : HIGH;	// reverse : forward
+
+	hal.rcout->write(CH_3, 1500); // balance servo
+
+    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? LOW : HIGH;	// reverse : forward
+    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? HIGH : LOW;	// reverse : forward
     hal.gpio->write(LEFT_DIR, dir_left);
     hal.gpio->write(RIGHT_DIR, dir_right);
 

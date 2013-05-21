@@ -108,6 +108,7 @@ public:
         k_param_sonar_type,
         k_param_copter_leds_mode,
         k_param_ahrs, // AHRS group
+        k_param_avoid_obstacle,
 
         //
         // 160: Navigation parameters
@@ -194,6 +195,7 @@ public:
     AP_Int8         serial3_baud;
     AP_Int8         telem_delay;
 
+    AP_Int8         avoid_obstacle;
     AP_Int8         sonar_enabled;
     AP_Int8         sonar_type;       // 0 = XL, 1 = LV,
                                       // 2 = XLL (XL with 10m range)
