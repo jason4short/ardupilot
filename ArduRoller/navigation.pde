@@ -64,15 +64,19 @@ void set_destination(const Vector3f& destination)
 
 
 // calc_pitch_out
-static void calc_pitch_out(int16_t speed)
+static void calc_pitch_out(float speed)
 {
     int16_t bal_out = 0;
     int16_t vel_out = 0;
     int16_t nav_out = 0;
     int16_t wheel_speed_error, ff_out;
 
+    //cliSerial->printf("s %1.4f\t", speed);
+
 	// limit speed
-	speed   = limit_acceleration(speed, 50); // cm/s
+	speed   = limit_acceleration(speed, 90.0); // cm/s
+
+    //cliSerial->printf("speed %1.4f, ", speed);
 
 	// switch units to encoder ticks
 	desired_ticks   = convert_velocity_to_encoder_speed(speed);
@@ -90,20 +94,25 @@ static void calc_pitch_out(int16_t speed)
 	pitch_out = (bal_out + vel_out + nav_out - ff_out);
 }
 
-int16_t limit_acceleration(int16_t speed, int16_t acc)
+// speed 0, s 81	acc 0, s 0
+
+int16_t limit_acceleration(float speed, float acc)
 {
+	static float speed_old = 0;
 	// scale speed by delta time
 	acc *= G_Dt;
 
-	if(speed < ground_speed){ // slow down
-		int16_t temp_speed = ground_speed - acc;
+	if(speed < speed_old){ // slow down
+		float temp_speed = speed_old - acc;
 		speed = max(temp_speed, speed);
 
 	}else if (speed > ground_speed){ // speed up
-		int16_t temp_speed = ground_speed + acc;
+		float temp_speed = speed_old + acc;
 		speed = min(temp_speed, speed);
 	}
+    //cliSerial->printf("ss %1.4f\n", speed);
 
+	speed_old = speed;
     int16_t speed_limit = g.waypoint_speed;
     return constrain(speed, -speed_limit, speed_limit);            // units = cm/s
 }
@@ -152,7 +161,7 @@ update_circle()
 
 static int32_t avoid_obstacle(int32_t bearing)
 {
-	if(sonar_distance > 220){
+	if(sonar_distance >= 220){
 		return bearing;
 	}
 

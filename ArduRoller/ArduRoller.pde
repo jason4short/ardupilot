@@ -1226,6 +1226,8 @@ void update_roll_pitch_mode(void)
                 desired_speed = loiter_distance;
             }
 
+            //cliSerial->printf("ds %1.1f\n", desired_speed);
+
             calc_pitch_out(desired_speed);
             break;
 
