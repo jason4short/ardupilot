@@ -283,6 +283,10 @@ static void set_mode(uint8_t mode)
     // report the GPS and Motor arming status
     led_mode = NORMAL_LEDS;
 	print_flight_mode(cliSerial, control_mode);
+
+	// position hold
+	set_destination(encoder_nav.get_position());
+
     switch(control_mode)
     {
 		case STABILIZE:
