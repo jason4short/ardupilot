@@ -16,61 +16,6 @@ static void init_balance()
     nav_yaw     		= ahrs.yaw_sensor;
 }
 
-// 815 ticks per revolution
-
-static int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
-{
-	// mix output speeds
-	wheel.left_speed_output = (pitch_out + yaw_out);
-
-	// Lookup our PWM output:
-	int16_t wheel_ff		= convert_speed_to_PWM(pwm_LUT_L, wheel.left_speed_output);
-	int16_t speed_err 		= wheel.left_speed_output - wheel.left_speed;
-
-    int16_t wheel_P 		= g.pid_wheel_left_mixer.get_p(speed_err);
-    int16_t wheel_I 		= g.pid_wheel_left_mixer.get_i(speed_err, .02);
-    int16_t wheel_D 		= g.pid_wheel_left_mixer.get_d(speed_err, .02);
-
-	/*cliSerial->printf_P(PSTR("%d, %d, %d, %d\n"),
-				wheel.left_speed,
-				speed_err,
-				wheel_ff,
-				wheel_pid);
-	//*/
-
-	return (wheel_ff + wheel_P + wheel_I + wheel_D);
-}
-
-
-static int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
-{
-	// mix output speeds
-	wheel.right_speed_output 	= (pitch_out - yaw_out);
-
-	// Lookup our PWM output:
-	int16_t wheel_ff			= convert_speed_to_PWM(pwm_LUT_R, wheel.right_speed_output);	// Lookup our PWM output:
-	int16_t speed_err 			= wheel.right_speed_output - wheel.right_speed;
-
-	int16_t wheel_P 			= g.pid_wheel_right_mixer.get_p(speed_err);
-    int16_t wheel_I 			= g.pid_wheel_right_mixer.get_i(speed_err, .02);
-    int16_t wheel_D 			= g.pid_wheel_right_mixer.get_d(speed_err, .02);
-
-	int16_t output = (wheel_ff + wheel_P + wheel_I + wheel_D);
-
-
-	/*
-							//1   2   3   4   5   6
-	cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d\n"),
-					(int16_t)ahrs.pitch_sensor,			// 1
-					pitch_out,						// 2
-					wheel.right_speed,					// 3
-					speed_err,							// 4
-					wheel_ff,							// 5
-					output);							// 6
-	//*/
-	return output;
-}
-
 // read_inertia - read inertia in from accelerometers
 static void encoder_nav_update()
 {
@@ -165,3 +110,64 @@ static int16_t convert_speed_to_PWM(int16_t lut[], int16_t encoder_speed){
 	int16_t output = lut[index] + ((input - index * 100) * (lut[index + 1] - lut[index])) / 100;
 	return output * flip_sign;
 }
+
+
+
+
+
+// 815 ticks per revolution
+#if USE_WHEEL_LUT == ENABLED
+
+static int16_t get_pwm_from_speed_wheel_mixer_left()  // left motor
+{
+	// mix output speeds
+	wheel.left_speed_output = (pitch_out + yaw_out);
+
+	// Lookup our PWM output:
+	int16_t wheel_ff		= convert_speed_to_PWM(pwm_LUT_L, wheel.left_speed_output);
+	int16_t speed_err 		= wheel.left_speed_output - wheel.left_speed;
+
+    int16_t wheel_P 		= g.pid_wheel_left_mixer.get_p(speed_err);
+    int16_t wheel_I 		= g.pid_wheel_left_mixer.get_i(speed_err, .02);
+    int16_t wheel_D 		= g.pid_wheel_left_mixer.get_d(speed_err, .02);
+
+	/*cliSerial->printf_P(PSTR("%d, %d, %d, %d\n"),
+				wheel.left_speed,
+				speed_err,
+				wheel_ff,
+				wheel_pid);
+	//*/
+
+	return (wheel_ff + wheel_P + wheel_I + wheel_D);
+}
+
+
+static int16_t get_pwm_from_speed_wheel_mixer_right()  // right motor
+{
+	// mix output speeds
+	wheel.right_speed_output 	= (pitch_out - yaw_out);
+
+	// Lookup our PWM output:
+	int16_t wheel_ff			= convert_speed_to_PWM(pwm_LUT_R, wheel.right_speed_output);	// Lookup our PWM output:
+	int16_t speed_err 			= wheel.right_speed_output - wheel.right_speed;
+
+	int16_t wheel_P 			= g.pid_wheel_right_mixer.get_p(speed_err);
+    int16_t wheel_I 			= g.pid_wheel_right_mixer.get_i(speed_err, .02);
+    int16_t wheel_D 			= g.pid_wheel_right_mixer.get_d(speed_err, .02);
+
+	int16_t output = (wheel_ff + wheel_P + wheel_I + wheel_D);
+
+
+	/*
+							//1   2   3   4   5   6
+	cliSerial->printf_P(PSTR("%d, %d, %d, %d, %d, %d\n"),
+					(int16_t)ahrs.pitch_sensor,			// 1
+					pitch_out,						 	// 2
+					wheel.right_speed,					// 3
+					speed_err,							// 4
+					wheel_ff,							// 5
+					output);							// 6
+	//*/
+	return output;
+}
+#endif  // USE_WHEEL_LUT
