@@ -458,8 +458,8 @@ test_wp(uint8_t argc, const Menu::arg *argv)
 {
     delay(1000);
 
-    cliSerial->printf_P(PSTR("%d wp\n"), (int)g.command_total);
-    cliSerial->printf_P(PSTR("Hit rad: %dm\n"), (int)g.waypoint_radius.get());
+    cliSerial->printf_P(PSTR("%d wp\n"), (int16_t)g.command_total);
+    cliSerial->printf_P(PSTR("Hit rad: %dm\n"), (int16_t)g.waypoint_radius.get());
 
     report_wp();
 
