@@ -37,7 +37,7 @@ static void update_commands()
     // B: We have completed the mission, don't redo the mission
     // XXX debug
     //uint8_t tmp = g.command_index.get();
-    //cliSerial->printf("command_index %u \n", tmp);
+    //cliSerial->printf_P(PSTR("command_index %d \n"), (int16_t)g.command_index.get());
 
     if(g.command_total <= 1 || g.command_index >= 255)
         return;
@@ -56,11 +56,14 @@ static void update_commands()
             tmp_index = find_next_nav_index(command_nav_index + 1);
 
             if(tmp_index == -1) {
+            	cliSerial->printf_P(PSTR("EXIT MISSION\n"));
                 exit_mission();
                 return;
             }else{
                 command_nav_index = tmp_index;
                 command_nav_queue = get_cmd_with_index(command_nav_index);
+            	cliSerial->printf_P(PSTR("LOAD WP:\n"));
+                report_wp(command_nav_index);
                 execute_nav_command();
             }
         }else{
@@ -186,6 +189,5 @@ static void exit_mission()
 
     // if we are on the ground, enter stabilize, else Land
     set_mode(FBW);
-
 }
 
