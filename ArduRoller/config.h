@@ -682,17 +682,6 @@
 #ifndef LOG_CMD
  # define LOG_CMD                       ENABLED
 #endif
-// current
-#ifndef LOG_CURRENT
- # define LOG_CURRENT                   ENABLED
-#endif
-// quad motor PWMs
-#ifndef LOG_MOTORS
- # define LOG_MOTORS                    DISABLED
-#endif
-#ifndef LOG_PID
- # define LOG_PID                       DISABLED
-#endif
 #ifndef LOG_COMPASS
  # define LOG_COMPASS                   DISABLED
 #endif
@@ -715,9 +704,6 @@
     LOGBIT(MODE)            | \
     LOGBIT(IMU)             | \
     LOGBIT(CMD)             | \
-    LOGBIT(CURRENT)         | \
-    LOGBIT(MOTORS)          | \
-    LOGBIT(PID)             | \
     LOGBIT(COMPASS)         | \
     LOGBIT(INAV)
 

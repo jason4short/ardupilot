@@ -1,6 +1,6 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#if LOGGING_ENABLED == ENABLED
+//#if LOGGING_ENABLED == ENABLED
 
 // Code to Write and Read packets from DataFlash log memory
 // Code to interact with the user to dump or erase logs
@@ -41,9 +41,6 @@ print_log_menu(void)
         if (g.log_bitmask & MASK_LOG_NTUN) cliSerial->printf_P(PSTR(" NTUN"));
         if (g.log_bitmask & MASK_LOG_IMU) cliSerial->printf_P(PSTR(" IMU"));
         if (g.log_bitmask & MASK_LOG_CMD) cliSerial->printf_P(PSTR(" CMD"));
-        if (g.log_bitmask & MASK_LOG_CURRENT) cliSerial->printf_P(PSTR(" CURRENT"));
-        //if (g.log_bitmask & MASK_LOG_MOTORS) cliSerial->printf_P(PSTR(" MOTORS"));
-        if (g.log_bitmask & MASK_LOG_PID) cliSerial->printf_P(PSTR(" PID"));
         if (g.log_bitmask & MASK_LOG_COMPASS) cliSerial->printf_P(PSTR(" COMPASS"));
         if (g.log_bitmask & MASK_LOG_INAV) cliSerial->printf_P(PSTR(" INAV"));
         if (g.log_bitmask & MASK_LOG_CAMERA) cliSerial->printf_P(PSTR(" CAMERA"));
@@ -73,7 +70,7 @@ dump_log(uint8_t argc, const Menu::arg *argv)
         cliSerial->printf_P(PSTR("dumping all\n"));
         Log_Read(0, 1, 0);
         return(-1);
-    } else if ((argc != 2) || (dump_log <= (last_log_num - DataFlash.get_num_logs())) || (dump_log > last_log_num)) {
+    } else if ((argc != 2) || (dump_log <= (int16_t)(last_log_num - DataFlash.get_num_logs())) || (dump_log > (int16_t)last_log_num)) {
         cliSerial->printf_P(PSTR("bad log number\n"));
         return(-1);
     }
@@ -129,9 +126,6 @@ select_logs(uint8_t argc, const Menu::arg *argv)
         TARG(MODE);
         TARG(IMU);
         TARG(CMD);
-        TARG(CURRENT);
-        //TARG(MOTORS);
-        TARG(PID);
         TARG(COMPASS);
         TARG(INAV);
         TARG(CAMERA);
@@ -154,78 +148,6 @@ process_logs(uint8_t argc, const Menu::arg *argv)
     return 0;
 }
 
-struct PACKED log_Current {
-    LOG_PACKET_HEADER;
-    int16_t throttle_in;
-    uint32_t throttle_integrator;
-    int16_t battery_voltage;
-    int16_t current_amps;
-    uint16_t board_voltage;
-    float current_total;
-};
-
-// Write an Current data packet
-static void Log_Write_Current()
-{
-    struct log_Current pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_CURRENT_MSG),
-        throttle_in         : g.rc_3.control_in,
-        throttle_integrator : g.rc_3.control_in,
-        battery_voltage     : (int16_t) (battery_voltage1 * 100.0f),
-        current_amps        : (int16_t) (current_amps1 * 100.0f),
-        board_voltage       : board_voltage(),
-        current_total       : current_total1
-    };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
-/*struct PACKED log_Motors {
-    LOG_PACKET_HEADER;
-    int16_t motor_out[4];
-};
-
-// Write an Motors packet
-static void Log_Write_Motors()
-{
-    struct log_Motors pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_MOTORS_MSG),
-#if FRAME_CONFIG == OCTA_FRAME || FRAME_CONFIG == OCTA_QUAD_FRAME
-        motor_out   :   {motors.motor_out[AP_MOTORS_MOT_1],
-                         motors.motor_out[AP_MOTORS_MOT_2],
-                         motors.motor_out[AP_MOTORS_MOT_3],
-                         motors.motor_out[AP_MOTORS_MOT_4],
-                         motors.motor_out[AP_MOTORS_MOT_5],
-                         motors.motor_out[AP_MOTORS_MOT_6],
-                         motors.motor_out[AP_MOTORS_MOT_7],
-                         motors.motor_out[AP_MOTORS_MOT_8]}
-#elif FRAME_CONFIG == HEXA_FRAME || FRAME_CONFIG == Y6_FRAME
-        motor_out   :   {motors.motor_out[AP_MOTORS_MOT_1],
-                         motors.motor_out[AP_MOTORS_MOT_2],
-                         motors.motor_out[AP_MOTORS_MOT_3],
-                         motors.motor_out[AP_MOTORS_MOT_4],
-                         motors.motor_out[AP_MOTORS_MOT_5],
-                         motors.motor_out[AP_MOTORS_MOT_6]}
-#elif FRAME_CONFIG == HELI_FRAME
-        motor_out   :   {motors.motor_out[AP_MOTORS_MOT_1],
-                         motors.motor_out[AP_MOTORS_MOT_2],
-                         motors.motor_out[AP_MOTORS_MOT_3],
-                         motors.motor_out[AP_MOTORS_MOT_4]},
-        ext_gyro_gain   : motors.ext_gyro_gain
-#elif FRAME_CONFIG == TRI_FRAME
-        motor_out   :   {motors.motor_out[AP_MOTORS_MOT_1],
-                         motors.motor_out[AP_MOTORS_MOT_2],
-                         motors.motor_out[AP_MOTORS_MOT_4],
-                         motors.motor_out[g.rc_4.radio_out]}
-#else // QUAD frame
-        motor_out   :   {motors.motor_out[AP_MOTORS_MOT_1],
-                         motors.motor_out[AP_MOTORS_MOT_2],
-                         motors.motor_out[AP_MOTORS_MOT_3],
-                         motors.motor_out[AP_MOTORS_MOT_4]}
-#endif
-    };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-*/
 
 struct PACKED log_Nav_Tuning {
     LOG_PACKET_HEADER;
@@ -349,8 +271,6 @@ static void Log_Write_Cmd(uint8_t num, const struct Location *wp)
 
 struct PACKED log_Attitude {
     LOG_PACKET_HEADER;
-    int16_t roll_in;
-    int16_t roll;
     int16_t pitch_in;
     int16_t pitch;
     int16_t yaw_in;
@@ -363,9 +283,7 @@ static void Log_Write_Attitude()
 {
     struct log_Attitude pkt = {
         LOG_PACKET_HEADER_INIT(LOG_ATTITUDE_MSG),
-        roll_in     : (int16_t)control_roll,
-        roll        : (int16_t)ahrs.roll_sensor,
-        pitch_in    : (int16_t)control_pitch,
+        pitch_in    : (int16_t)g.rc_2.control_in,
         pitch       : (int16_t)ahrs.pitch_sensor,
         yaw_in      : (int16_t)g.rc_4.control_in,
         yaw         : (uint16_t)ahrs.yaw_sensor,
@@ -538,33 +456,6 @@ static void Log_Write_Data(uint8_t id, float value)
     }
 }
 
-struct PACKED log_PID {
-    LOG_PACKET_HEADER;
-    uint8_t id;
-    int32_t error;
-    int32_t p;
-    int32_t i;
-    int32_t d;
-    int32_t output;
-    float  gain;
-};
-
-// Write an PID packet
-static void Log_Write_PID(uint8_t pid_id, int32_t error, int32_t p, int32_t i, int32_t d, int32_t output, float gain)
-{
-    struct log_PID pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_PID_MSG),
-        id      : pid_id,
-        error   : error,
-        p       : p,
-        i       : i,
-        d       : d,
-        output  : output,
-        gain    : gain
-    };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
 struct PACKED log_DMP {
     LOG_PACKET_HEADER;
     int16_t  dcm_roll;
@@ -675,8 +566,6 @@ static void Log_Write_WPNAV()
 
 static const struct LogStructure log_structure[] PROGMEM = {
     LOG_COMMON_STRUCTURES,
-    { LOG_CURRENT_MSG, sizeof(log_Current),
-      "CURR", "hIhhhf",      "Thr,ThrInt,Volt,Curr,Vcc,CurrTot" },
     { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
       "NTUN", "Ecffcccc",    "WPDist,TargBrg,LatErr,LngErr,NavPtch,NavRll,LatSpd,LngSpd" },
     { LOG_COMPASS_MSG, sizeof(log_Compass),
@@ -705,8 +594,6 @@ static const struct LogStructure log_structure[] PROGMEM = {
       "DU32",  "BI",         "Id,Value" },
     { LOG_DATA_FLOAT_MSG, sizeof(log_Data_Float),
       "DFLT",  "Bf",         "Id,Value" },
-    { LOG_PID_MSG, sizeof(log_PID),
-      "PID",   "Biiiiif",    "Id,Error,P,I,D,Out,Gain" },
     { LOG_DMP_MSG, sizeof(log_DMP),
       "DMP",   "ccccCC",     "DCMRoll,DMPRoll,DCMPtch,DMPPtch,DCMYaw,DMPYaw" },
     { LOG_CAMERA_MSG, sizeof(log_Camera),
@@ -743,6 +630,7 @@ static void start_logging()
     DataFlash.StartNewLog(sizeof(log_structure)/sizeof(log_structure[0]), log_structure);
 }
 
+/*
 #else // LOGGING_ENABLED
 
 static void Log_Write_Startup() {}
@@ -750,7 +638,6 @@ static void Log_Write_Cmd(uint8_t num, const struct Location *wp) {}
 static void Log_Write_Mode(uint8_t mode) {}
 static void Log_Write_IMU() {}
 static void Log_Write_GPS() {}
-static void Log_Write_Current() {}
 static void Log_Write_Compass() {}
 static void Log_Write_Attitude() {}
 static void Log_Write_INAV() {}
@@ -760,12 +647,9 @@ static void Log_Write_Data(uint8_t id, int32_t value){}
 static void Log_Write_Data(uint8_t id, uint32_t value){}
 static void Log_Write_Data(uint8_t id, float value){}
 static void Log_Write_Event(uint8_t id){}
-static void Log_Write_Optflow() {}
 static void Log_Write_Nav_Tuning() {}
 static void Log_Write_Control_Tuning() {}
-static void Log_Write_Motors() {}
 static void Log_Write_Performance() {}
-static void Log_Write_PID(uint8_t pid_id, int32_t error, int32_t p, int32_t i, int32_t d, int32_t output, float gain) {}
 #if SECONDARY_DMP_ENABLED == ENABLED
 static void Log_Write_DMP() {}
 #endif
@@ -776,3 +660,4 @@ static int8_t process_logs(uint8_t argc, const Menu::arg *argv) {
 }
 
 #endif // LOGGING_DISABLED
+*/
