@@ -130,17 +130,7 @@ static bool update_wheel_encoders()
 
 	// convert to CM/s
 	ground_speed 	= convert_encoder_speed_to_velocity(wheel.speed);
-	encoder_nav.set_velocity(cos_yaw * ground_speed, sin_yaw * ground_speed);
-
-
-	if(gps_available == false){
-		// scaling the mm accuracy to cm
-		current_loc.lng	 = current_encoder_x / 10;
-		current_loc.lat  = current_encoder_y / 10;
-	} else {
-		current_loc.lng	 = ((float)g_gps->longitude * .01) + (current_encoder_x / 10) * .99;
-		current_loc.lat  = ((float)g_gps->latitude  * .01) + (current_encoder_y / 10) * .99;
-	}
+	encoder_nav.set_velocity(sin_yaw * ground_speed, cos_yaw * ground_speed);
 	return true;
 	//cliSerial->printf_P("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left, wheel.right, wheel.left_speed, wheel.right_speed);
 }
