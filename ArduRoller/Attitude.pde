@@ -5,11 +5,11 @@
 #define K3 .5
 #define K4 1.1
 
-static int16_t
-get_stabilize_roll(int32_t target_angle)
-{
-	return 0;
-}
+//static int16_t
+//get_stabilize_roll(int32_t target_angle)
+//{
+//	return 0;
+//}
 
 static int16_t
 get_stabilize_pitch(int32_t target_angle)
