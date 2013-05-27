@@ -1176,14 +1176,18 @@ void update_roll_pitch_mode(void)
 {
     if(labs(ahrs.pitch_sensor) > 4000){
         balance_timer = millis();
+        if(ap.armed){
+            init_disarm_motors();
+            current_speed       = 0;
+            nav_yaw             = ahrs.yaw_sensor;
+            current_encoder_x   = 0;
+            current_encoder_y   = 0;
+            pitch_out           = 0;
+            yaw_out             = 0;
+            encoder_nav.set_current_position(g_gps->longitude, g_gps->latitude);
+        }
 
-        init_disarm_motors();
-        current_speed       = 0;
-        nav_yaw             = ahrs.yaw_sensor;
-        current_encoder_x   = 0;
-        current_encoder_y   = 0;
-        pitch_out           = 0;
-        yaw_out             = 0;
+        // halt here, don't output pitch or yaw
         return;
     }
 
