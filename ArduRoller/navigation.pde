@@ -9,6 +9,7 @@ static void run_nav_updates(void)
 	current_loc.lng = encoder_nav.get_longitude();
 	current_loc.lat = encoder_nav.get_latitude();
 
+
     // calculate distance and bearing for reporting and autopilot decisions
 	wp_distance = get_distance_to_destination();
 	wp_bearing 	= get_bearing_to_destination();
@@ -29,6 +30,15 @@ static void run_nav_updates(void)
         home_distance = 0;
         home_bearing = 0;
     }
+
+	// only check if we have not reached so we don't "un-reach"
+	if(_reached_destination == false){
+		_reached_destination = (wp_distance < g.waypoint_radius);
+	}
+
+    //cliSerial->printf("y:%d, lat %ld, lon %ld", (int16_t)(ahrs.yaw_sensor / 100), current_loc.lat, current_loc.lng);
+    cliSerial->printf("\tdis:%d, be %d\n", (int16_t)loiter_distance, (int16_t)(wp_bearing / 100));
+    cliSerial->printf_P(PSTR("desitination  %1.4f, %1.4f\n"), _destination.y, _destination.x);
 
     // run autopilot to make high level decisions about control modes
     switch( control_mode ) {
