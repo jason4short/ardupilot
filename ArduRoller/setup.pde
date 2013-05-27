@@ -699,7 +699,12 @@ static void report_batt_monitor()
     print_blanks(2);
 }
 
-static void report_wp(uint8_t index = 255)
+static void report_wp()
+{
+	report_wp(255);
+}
+
+static void report_wp(int16_t index)
 {
     if(index == 255) {
         for(uint8_t i = 0; i < g.command_total; i++) {
