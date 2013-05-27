@@ -40,7 +40,7 @@ static void init_disarm_motors()
 static void
 update_servos()
 {
-	if(!ap.armed){
+	if(!ap.armed || startup_counter != -1){
 		hal.rcout->write(CH_1, 0);
 		hal.rcout->write(CH_2, 0);
 		hal.rcout->write(CH_3, 1500);

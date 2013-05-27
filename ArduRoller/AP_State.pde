@@ -37,17 +37,12 @@ void set_low_battery(bool b)
 
 
 // ---------------------------------------------
+/*
 static void set_failsafe_gps(bool mode)
 {
     ap.failsafe_gps = mode;
 }
-
-// ---------------------------------------------
-static void set_failsafe_gcs(bool mode)
-{
-    ap.failsafe_gcs = mode;
-}
-
+*/
 
 // ---------------------------------------------
 

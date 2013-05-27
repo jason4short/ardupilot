@@ -421,9 +421,6 @@ static uint8_t command_cond_index;
 // NAV_ALTITUDE - have we reached the desired altitude?
 // NAV_LOCATION - have we reached the desired location?
 // NAV_DELAY    - have we waited at the waypoint the desired time?
-//static float lon_error, lat_error;      // Used to report how many cm we are from the next waypoint or loiter target position
-static int16_t control_roll;
-static int16_t control_pitch;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Orientation
@@ -432,12 +429,8 @@ static int16_t control_pitch;
 // by the DCM through a few simple equations. They are used throughout the code where cos and sin
 // would normally be used.
 // The cos values are defaulted to 1 to get a decent initial value for a level state
-static float cos_roll_x         = 1;
-static float cos_pitch_x        = 1;
 static float cos_yaw            = 1;
 static float sin_yaw            = 1;
-static float sin_roll           = 1;
-static float sin_pitch          = 1;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -523,7 +516,7 @@ static int32_t nav_pitch;
 // Navigation Throttle control
 ////////////////////////////////////////////////////////////////////////////////
 // This could be useful later in determining and debuging current usage and predicting battery life
-static uint32_t throttle_integrator;
+//static uint32_t throttle_integrator;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -595,14 +588,17 @@ static int16_t pmTest1;
 
 int16_t I2Cfail;
 
+#if USE_WHEEL_LUT == ENABLED
 //                          0  1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38   39
 static int16_t pwm_LUT_R[] = {0, 214, 235, 252, 267, 281, 295, 308, 320, 333, 346, 357, 370, 381, 393, 407, 423, 437, 452, 468, 483, 501, 520, 540, 561, 584, 609, 634, 663, 693, 719, 757, 797, 850, 892, 947, 1014, 1097, 1172, 1271};
 static int16_t pwm_LUT_L[] = {0, 249, 277, 311, 342, 369, 394, 420, 444, 468, 490, 513, 532, 548, 568, 585, 606, 625, 643, 663, 642, 661, 687, 714, 739, 774, 808, 840, 876, 918, 984, 1021, 1111, 1171, 1192, 1251, 1351, 1578, 1671, 1824};
+//
+#endif
 
 static int16_t motor_out[2];    // This is the array of PWM values being sent to the motors
 static float balance_offset;
 
-static int32_t nav_bearing;
+//static int32_t nav_bearing;
 static float ground_speed;
 //static int32_t ground_position;
 
@@ -618,7 +614,7 @@ static float current_encoder_y;
 static float current_encoder_x;
 static uint32_t balance_timer;
 
-static bool gps_available;
+//static bool gps_available;
 
 AP_HAL::Semaphore*  _i2c_sem;
 
@@ -679,9 +675,13 @@ static uint8_t slow_loopCounter;
 // Counter of main loop executions.  Used for performance monitoring and failsafe processing
 static uint16_t mainLoop_count;
 // Delta Time in milliseconds for navigation computations, updated with every good GPS read
-static float dTnav;
+//static float dTnav;
 // Counters for branching from 4 minute control loop used to save Compass offsets
-static int16_t superslow_loopCounter;
+static uint16_t superslow_loopCounter;
+
+// I hate when the motors spin up during startup
+static int8_t startup_counter;
+
 
 // prevents duplicate GPS messages from entering system
 static uint32_t last_gps_time;
@@ -1024,17 +1024,20 @@ static void slow_loop()
     //----------------------------------------
     switch (slow_loopCounter) {
     case 0:
-       slow_loopCounter++;
+        slow_loopCounter++;
         superslow_loopCounter++;
 
-        // check if we've lost contact with the ground station
-        failsafe_gcs_check();
+        if(startup_counter == -1 || startup_counter > 33) {
+            startup_counter = -1;
+        }else{
+            startup_counter++;
+        }
 
         // record if the compass is healthy
         set_compass_healthy(compass.healthy);
 
-        if(superslow_loopCounter > 1200) {
-            if(g.rc_3.control_in == 0 && control_mode == STABILIZE && g.compass_enabled) {
+        if(superslow_loopCounter > 4000) {  // 20 min
+            if(control_mode == FBW && g.compass_enabled) {
                 compass.save_offsets();
                 superslow_loopCounter = 0;
             }
@@ -1083,18 +1086,12 @@ static void slow_loop()
     }
 }
 
-#define AUTO_DISARMING_DELAY 25
 // 1Hz loop
 static void super_slow_loop()
 {
     if (g.log_bitmask != 0) {
         Log_Write_Data(DATA_AP_STATE, ap.value);
     }
-
-    // log battery info to the dataflash
-    if ((g.log_bitmask & MASK_LOG_CURRENT) && ap.armed)
-        Log_Write_Current();
-
 }
 
 // called at 50hz
@@ -1174,8 +1171,10 @@ void update_yaw_mode(void)
 // 100hz update rate
 void update_roll_pitch_mode(void)
 {
+    uint32_t _time = millis();
+
     if(labs(ahrs.pitch_sensor) > 4000){
-        balance_timer = millis();
+        balance_timer = _time;
         if(ap.armed){
             init_disarm_motors();
             current_speed       = 0;
@@ -1191,7 +1190,7 @@ void update_roll_pitch_mode(void)
         return;
     }
 
-    if((millis() - balance_timer) < 3000){
+    if((_time - balance_timer) < 3000){
         pitch_out = 0;
         yaw_out   = 0;
         return;

@@ -17,7 +17,6 @@
 #include <AP_Airspeed.h>
 #include <AP_GPS.h>
 #include <AP_InertialSensor.h>
-#include <AP_Baro.h>
 #include <AP_Param.h>
 
 #define AP_AHRS_TRIM_LIMIT 10.0f        // maximum trim angle in degrees
@@ -216,7 +215,6 @@ protected:
 	float _xhp; // x component high-pass filter
 	float _yhp; // y component high-pass filter
     Vector2f _lastGndVelADS; // previous HPF input
-		
 	};
 
 #include <AP_AHRS_DCM.h>
