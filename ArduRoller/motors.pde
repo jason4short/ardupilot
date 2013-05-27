@@ -3,12 +3,12 @@
 
 static void init_arm_motors()
 {
+	// dont arm twice
     if(ap.armed)
         return;
 
-    if(ap.home_is_set)
-        init_home();
-
+    ahrs.set_fast_gains(false);
+    init_home();
     set_armed(true);
 }
 
@@ -22,8 +22,10 @@ static void init_disarm_motors()
     reset_I_all();
 
     set_armed(false);
+    ahrs.set_fast_gains(true);
 
-    //compass.save_offsets();
+    // XXX find a good time to save these!
+	//compass.save_offsets();
 
 #if SECONDARY_DMP_ENABLED == ENABLED
     ahrs2.set_fast_gains(true);
