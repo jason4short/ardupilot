@@ -20,6 +20,8 @@ const AP_Param::GroupInfo AR_EncoderNav::var_info[] PROGMEM = {
 // init - initialise library
 void AR_EncoderNav::init()
 {
+	// init position
+	set_current_position(0,0);
     // recalculate the gains
     update_gains();
 }
@@ -124,6 +126,8 @@ void AR_EncoderNav::set_current_position(int32_t lon, int32_t lat)
 		_enabled = true;
 	}
 
+	//hal.console->printf_P(PSTR("en, %d\n"), _enabled);
+
     // set base location
     _home_lon = lon;
     _home_lat = lat;
@@ -131,6 +135,8 @@ void AR_EncoderNav::set_current_position(int32_t lon, int32_t lat)
     // set longitude->meters scaling
     // this is used to offset the shrinking longitude as we go towards the poles
     _lon_to_m_scaling = cosf((fabsf((float)lat)*1.0e-7f) * 0.0174532925f) * AP_ENCODERNAV_LATLON_TO_CM;
+
+	//hal.console->printf_P(PSTR("h %ld|%ld %1.4f\n"), _home_lon, _home_lat, _lon_to_m_scaling);
 
     // reset corrections to base position to zero
     _position_estimation.x = 0;
@@ -146,12 +152,18 @@ void AR_EncoderNav::set_current_position(int32_t lon, int32_t lat)
 // get accel based latitude
 int32_t AR_EncoderNav::get_latitude() const
 {
+	//int32_t temp = _home_lat + (int32_t)((_position_estimation.x + _position_correction.x)/AP_ENCODERNAV_LATLON_TO_CM);
+	//hal.console->printf_P(PSTR("lat> %ld\n"), temp);
+    //return temp;
     return _home_lat + (int32_t)((_position_estimation.x + _position_correction.x)/AP_ENCODERNAV_LATLON_TO_CM);
 }
 
 // get accel based longitude
 int32_t AR_EncoderNav::get_longitude() const
 {
+	//int32_t temp = _home_lon + (int32_t)((_position_estimation.y+_position_correction.y) / _lon_to_m_scaling);
+	//hal.console->printf_P(PSTR("lon> %ld\n"), temp);
+	//return temp;
     return _home_lon + (int32_t)((_position_estimation.y+_position_correction.y) / _lon_to_m_scaling);
 }
 
