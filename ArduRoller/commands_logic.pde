@@ -307,6 +307,7 @@ static bool verify_nav_wp()
     if( !_reached_destination ) {
         return false;
     }
+    //cliSerial->printf_P(PSTR("desitination  %1.4f, %1.4f\n"), _destination.y, _destination.x);
 
     // start timer if necessary
     if(loiter_time == 0) {

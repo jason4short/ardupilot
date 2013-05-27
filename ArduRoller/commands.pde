@@ -98,8 +98,14 @@ static void init_home()
     cliSerial->print_P(PSTR("init_home\n"));
     set_home_is_set(true);
     home.id         = MAV_CMD_NAV_WAYPOINT;
-    home.lng        = g_gps->longitude;     // Lon * 10**7
-    home.lat        = g_gps->latitude;      // Lat * 10**7
+    if(ap.gps_status){
+	    home.lng        = g_gps->longitude;     // Lon * 10**7
+    	home.lat        = g_gps->latitude;      // Lat * 10**7
+    }else{
+	    home.lng        = 0;
+    	home.lat        = 0;
+    }
+
     home.alt        = 0;					// Home is always 0
 
     // Save Home to EEPROM
@@ -120,7 +126,7 @@ static void init_home()
 	if (g.compass_enabled) {
 		// Set compass declination automatically
 		compass.set_initial_location(g_gps->latitude, g_gps->longitude);
-	}    
+	}
 }
 
 
