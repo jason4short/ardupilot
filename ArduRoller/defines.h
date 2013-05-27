@@ -206,11 +206,8 @@ enum gcs_severity {
 #define LOG_NAV_TUNING_MSG              0x05
 #define LOG_PERFORMANCE_MSG             0x06
 #define LOG_CMD_MSG                     0x08
-#define LOG_CURRENT_MSG                 0x09
 #define LOG_STARTUP_MSG                 0x0A
-#define LOG_MOTORS_MSG                  0x0B
 #define LOG_EVENT_MSG                   0x0D
-#define LOG_PID_MSG                     0x0E
 #define LOG_COMPASS_MSG                 0x0F
 #define LOG_DMP_MSG                     0x10
 #define LOG_INAV_MSG                    0x11
@@ -233,9 +230,6 @@ enum gcs_severity {
 #define MASK_LOG_MODE                   (1<<6)
 #define MASK_LOG_IMU                    (1<<7)
 #define MASK_LOG_CMD                    (1<<8)
-#define MASK_LOG_CURRENT                (1<<9)
-#define MASK_LOG_MOTORS                 (1<<10)
-#define MASK_LOG_PID                    (1<<12)
 #define MASK_LOG_COMPASS                (1<<13)
 #define MASK_LOG_INAV                   (1<<14)
 #define MASK_LOG_CAMERA                 (1<<15)
