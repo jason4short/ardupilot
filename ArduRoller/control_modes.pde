@@ -54,12 +54,10 @@ static void read_trim_switch()
     int8_t option;
 
     if(g.ch7_option == CH7_MULTI_MODE) {
-        if (g.rc_6.radio_in < CH6_PWM_TRIGGER_LOW) {
+        if (g.rc_6.radio_in < CH6_PWM_TRIGGER) {
             option = CH7_RTL;
-        }else if (g.rc_6.radio_in > CH6_PWM_TRIGGER_HIGH) {
+        }else if (g.rc_6.radio_in >= CH6_PWM_TRIGGER) {
             option = CH7_SAVE_WP;
-        }else{
-            option = CH7_RTL;
         }
     }else{
         option = g.ch7_option;
@@ -91,23 +89,6 @@ static void read_trim_switch()
                     g.command_total.set_and_save(1);
                     set_mode(RTL);
                     return;
-                }
-
-                if(CH7_wp_index == 0) {
-                    // this is our first WP, let's save WP 1 as a takeoff
-                    // increment index to WP index of 1 (home is stored at 0)
-                    CH7_wp_index = 1;
-
-                    Location temp   = home;
-                    // set our location ID to 16, MAV_CMD_NAV_WAYPOINT
-                    temp.id = MAV_CMD_NAV_TAKEOFF;
-                    temp.alt = current_loc.alt;
-
-                    // save command:
-                    // we use the current altitude to be the target for takeoff.
-                    // only altitude will matter to the AP mission script for takeoff.
-                    // If we are above the altitude, we will skip the command.
-                    set_cmd_with_index(temp, CH7_wp_index);
                 }
 
                 // increment index
