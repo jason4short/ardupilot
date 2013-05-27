@@ -62,6 +62,6 @@ float get_distance_to_loiter()
 {
     // get current location
     Vector3f curr = encoder_nav.get_position();
-    return (_destination.y - curr.y ) * cos_yaw /*North*/ + (_destination.x - curr.x) * sin_yaw; /*East*/
+    return (_destination.y - curr.y ) * sin_yaw /*North*/ + (_destination.x - curr.x) * cos_yaw; /*East*/
 }
 
