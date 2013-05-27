@@ -35,8 +35,9 @@
 
 // CH 7 control
 #define CH7_PWM_TRIGGER 1800    // pwm value above which the channel 7 option will be invoked
-#define CH6_PWM_TRIGGER_HIGH 1800
-#define CH6_PWM_TRIGGER_LOW 1200
+//#define CH6_PWM_TRIGGER_HIGH 1800
+//#define CH6_PWM_TRIGGER_LOW 1200
+#define CH6_PWM_TRIGGER 1500
 
 #define CH7_DO_NOTHING      0
 #define CH7_SET_HOVER       1       // deprecated
