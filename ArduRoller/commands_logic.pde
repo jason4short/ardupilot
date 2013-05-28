@@ -219,7 +219,8 @@ static void do_nav_wp()
     original_wp_bearing = wp_bearing;
 
     // this will be used to remember the time in millis after we reach or pass the WP.
-    loiter_time     = 0;
+    loiter_time = 0;
+
     // this is the delay, stored in seconds and expanded to millis
     loiter_time_max = command_nav_queue.p1;
 }

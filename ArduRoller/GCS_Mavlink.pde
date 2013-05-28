@@ -347,11 +347,11 @@ static void NOINLINE send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
         chan,
-        (float)g_gps->ground_speed / 100.0f,
-        (float)g_gps->ground_speed / 100.0f,
+        (float)ground_speed / 100.0f,
+        (float)ground_speed / 100.0f,
         (ahrs.yaw_sensor / 100) % 360,
-        g.rc_3.servo_out/10,
-        current_loc.alt / 100.0f,
+        g.rc_2.servo_out/10,
+        desired_speed / 100.0f, // was alt
         0); // was climb_rate
 }
 

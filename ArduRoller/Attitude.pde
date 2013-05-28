@@ -11,6 +11,42 @@
 //	return 0;
 //}
 
+static bool
+check_attitude()
+{
+    uint32_t _time = millis();
+
+    if(labs(ahrs.pitch_sensor) > 4000){
+    	//remember time of pitchover
+        balance_timer = _time;
+        if(ap.armed){
+            init_disarm_motors();
+            current_speed       = 0;
+            nav_yaw             = ahrs.yaw_sensor;
+            current_encoder_x   = 0;
+            current_encoder_y   = 0;
+            pitch_out           = 0;
+            yaw_out             = 0;
+            encoder_nav.set_current_position(g_gps->longitude, g_gps->latitude);
+        }
+        return false;
+    }
+
+	//no output until we have been upright for 3 seconds
+    if((_time - balance_timer) < 3000){
+        pitch_out = 0;
+        yaw_out   = 0;
+        // reset nav_yaw to be whatever
+        nav_yaw = ahrs.yaw_sensor;
+        return false;
+    }else{
+	    if(!ap.armed)
+	        init_arm_motors();
+    }
+    // we're OK to run motors
+    return true;
+}
+
 static int16_t
 get_stabilize_pitch(int32_t target_angle)
 {

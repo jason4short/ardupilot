@@ -575,7 +575,6 @@ static AR_EncoderNav encoder_nav(&g_gps);
 // Performance monitoring
 ////////////////////////////////////////////////////////////////////////////////
 // The number of GPS fixes we have had
-static uint8_t gps_fix_count;
 static int16_t pmTest1;
 
 
@@ -817,7 +816,6 @@ static void perf_update(void)
                             (unsigned long)perf_info_get_max_time());
     }
     perf_info_reset();
-    gps_fix_count = 0;
     pmTest1 = 0;
 }
 
@@ -872,8 +870,10 @@ static void fast_loop()
 
     // custom code/exceptions for flight modes
     // ---------------------------------------
-    update_yaw_mode();
-    update_roll_pitch_mode();
+    if(check_attitude()){
+        update_yaw_mode();
+        update_roll_pitch_mode();
+    }
 
     /*
     cliSerial->printf_P(PSTR("a:%d\tP: %d\tY: %d\n"),
@@ -1116,13 +1116,7 @@ static void update_GPS(void)
         if (g.log_bitmask & MASK_LOG_GPS && ap.armed) {
             DataFlash.Log_Write_GPS(g_gps, current_loc.alt);
         }
-
-        // for performance monitoring
-        gps_fix_count++;
     }
-
-    // check for loss of gps
-    //failsafe_gps_check();
 }
 
 // update_yaw_mode - run high level yaw controllers
@@ -1131,12 +1125,6 @@ void update_yaw_mode(void)
 {
     static bool yaw_flag = false;
 
-	if(labs(ahrs.pitch_sensor) > 4000 || labs(ahrs.roll_sensor) > 4000){
-        yaw_out = 0;
-        nav_yaw = ahrs.yaw_sensor;
-        return;
-    }
-//target_bearing
     switch(yaw_mode){
         case YAW_ACRO:
             yaw_out = g.rc_1.control_in;
@@ -1157,11 +1145,16 @@ void update_yaw_mode(void)
             break;
 
         case YAW_LOOK_AT_NEXT_WP:
-            if(g.avoid_obstacle){
+
+            if(g.sonar_enabled){
                 nav_yaw = avoid_obstacle(wp_bearing);
             }else{
                 nav_yaw = wp_bearing;
             }
+
+            // calc crosstrack
+            nav_yaw = get_crosstrack(nav_yaw);
+
             yaw_out = get_stabilize_yaw(nav_yaw);
             break;
     }
@@ -1171,33 +1164,6 @@ void update_yaw_mode(void)
 // 100hz update rate
 void update_roll_pitch_mode(void)
 {
-    uint32_t _time = millis();
-
-    if(labs(ahrs.pitch_sensor) > 4000){
-        balance_timer = _time;
-        if(ap.armed){
-            init_disarm_motors();
-            current_speed       = 0;
-            nav_yaw             = ahrs.yaw_sensor;
-            current_encoder_x   = 0;
-            current_encoder_y   = 0;
-            pitch_out           = 0;
-            yaw_out             = 0;
-            encoder_nav.set_current_position(g_gps->longitude, g_gps->latitude);
-        }
-
-        // halt here, don't output pitch or yaw
-        return;
-    }
-
-    if((_time - balance_timer) < 3000){
-        pitch_out = 0;
-        yaw_out   = 0;
-        return;
-    }else{
-        init_arm_motors();
-    }
-
     switch(roll_pitch_mode){
         case ROLL_PITCH_STABLE:
             // we always hold position
@@ -1229,6 +1195,9 @@ void update_roll_pitch_mode(void)
                 desired_speed = loiter_distance;
             }
 
+        	// limit speed
+    	    //desired_speed   = limit_acceleration(desired_speed, 120.0); // cm/s
+
             //cliSerial->printf("ds %1.1f\n", desired_speed);
 
             calc_pitch_out(desired_speed);
@@ -1238,9 +1207,13 @@ void update_roll_pitch_mode(void)
             // calc speed of bot
             if(nav_mode == NAV_WP){
                 desired_speed  = wp_distance;
+
             }else if (nav_mode == NAV_LOITER){
                 desired_speed = loiter_distance;
             }
+
+        	// limit speed
+    	    desired_speed   = limit_acceleration(desired_speed, 60.0); // cm/s
 
             calc_pitch_out(desired_speed);
             break;

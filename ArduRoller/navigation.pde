@@ -13,7 +13,6 @@ static void run_nav_updates(void)
     // calculate distance and bearing for reporting and autopilot decisions
 	wp_distance = get_distance_to_destination();
 	wp_bearing 	= get_bearing_to_destination();
-	//target_bearing 	= wp_bearing;
 
     loiter_distance = get_distance_to_loiter();
 
@@ -37,8 +36,8 @@ static void run_nav_updates(void)
 	}
 
     //cliSerial->printf("y:%d, lat %ld, lon %ld", (int16_t)(ahrs.yaw_sensor / 100), current_loc.lat, current_loc.lng);
-    cliSerial->printf("\tdis:%d, be %d\n", (int16_t)loiter_distance, (int16_t)(wp_bearing / 100));
-    cliSerial->printf_P(PSTR("desitination  %1.4f, %1.4f\n"), _destination.y, _destination.x);
+    //cliSerial->printf("\tdis:%d, be %d\n", (int16_t)loiter_distance, (int16_t)(wp_bearing / 100));
+    //cliSerial->printf_P(PSTR("desitination  %1.4f, %1.4f\n"), _destination.y, _destination.x);
 
     // run autopilot to make high level decisions about control modes
     switch( control_mode ) {
@@ -81,13 +80,6 @@ static void calc_pitch_out(float speed)
     int16_t nav_out = 0;
     int16_t wheel_speed_error, ff_out;
 
-    //cliSerial->printf("s %1.4f\t", speed);
-
-	// limit speed
-	speed   = limit_acceleration(speed, 90.0); // cm/s
-
-    //cliSerial->printf("speed %1.4f, ", speed);
-
 	// switch units to encoder ticks
 	desired_ticks   = convert_velocity_to_encoder_speed(speed);
 
@@ -97,7 +89,7 @@ static void calc_pitch_out(float speed)
 	// 4 components of stability and navigation
 	bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
 	vel_out         = get_velocity_pitch();                             // magic
-	ff_out          = (float)desired_ticks * g.throttle;                       // allows us to roll while vertical
+	ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical, Use LUT here?
 	nav_out      	= g.pid_nav.get_pid(wheel_speed_error, G_Dt);
 
 	// sum the output
@@ -116,11 +108,10 @@ int16_t limit_acceleration(float speed, float acc)
 		float temp_speed = speed_old - acc;
 		speed = max(temp_speed, speed);
 
-	}else if (speed > ground_speed){ // speed up
+	}else if (speed > speed_old){ // speed up
 		float temp_speed = speed_old + acc;
 		speed = min(temp_speed, speed);
 	}
-    //cliSerial->printf("ss %1.4f\n", speed);
 
 	speed_old = speed;
     int16_t speed_limit = g.waypoint_speed;
@@ -167,16 +158,55 @@ update_circle()
 }
 
 
-// ------------------------
-
-static int32_t avoid_obstacle(int32_t bearing)
+// Crosstrack Error
+// ----------------
+static int32_t
+get_crosstrack(int32_t _bearing)
 {
-	if(sonar_distance >= 220){
-		return bearing;
+	static int8_t _counter = 0;
+	static int32_t _crosstrack_fix = 0;
+	_counter++;
+
+	// called at 100hz, calc at 10hz
+	if(_counter >= 10){
+		_counter = 0;
+
+		// If we are too far off or too close we don't do track following
+		if (labs(wrap_180_cd(wp_bearing - original_wp_bearing)) < 4500){
+			// convert angle_cd error to radians
+			float temp = (wp_bearing - original_wp_bearing) * RADX100;
+			// Meters we are off track line
+			_crosstrack_fix = sin(temp) * wp_distance;
+			// scale to degrees
+			_crosstrack_fix = constrain(_crosstrack_fix * g.crosstrack_gain, -1000, 1000); // 10 deg change max
+		}
 	}
 
-	float scale = (float)(sonar_distance - 20) / 200.0;
-	bearing += 9000 * scale;
-	return wrap_360_cd(bearing);
+	// don't mess with crosstrack beyond 2 meters
+	if(wp_distance < 200)
+		_crosstrack_fix = 0;
+
+	return wrap_360_cd(_bearing + _crosstrack_fix);
+}
+
+static int32_t avoid_obstacle(int32_t _bearing)
+{
+	static int8_t _counter = 0;
+	static int32_t _avoid = 0;
+
+	_counter++;
+
+	if(_counter >= 10){
+		_counter = 0;
+
+		if(sonar_distance >= 220){
+			_avoid = 0;
+		}else{
+			float _scale = (float)(sonar_distance - 20) / 200.0;
+			_avoid = 9000.0 * _scale;
+		}
+	}
+
+	return wrap_360_cd(_bearing + _avoid);
 }
 

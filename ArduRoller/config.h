@@ -639,9 +639,6 @@
 #ifndef CROSSTRACK_GAIN
  # define CROSSTRACK_GAIN       .2
 #endif
-#ifndef CROSSTRACK_MIN_DISTANCE
- # define CROSSTRACK_MIN_DISTANCE       15
-#endif
 
 
 //////////////////////////////////////////////////////////////////////////////
