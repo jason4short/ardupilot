@@ -1189,14 +1189,13 @@ void update_roll_pitch_mode(void)
 
                 // calc speed of bot
                 desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
+				// limit speed
+				desired_speed   = limit_acceleration(desired_speed, 250.0); // cm/s
 
             } else{
                 // we are in position hold
-                desired_speed = loiter_distance;
+                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
             }
-
-        	// limit speed
-    	    //desired_speed   = limit_acceleration(desired_speed, 120.0); // cm/s
 
             //cliSerial->printf("ds %1.1f\n", desired_speed);
 
@@ -1206,15 +1205,12 @@ void update_roll_pitch_mode(void)
         case ROLL_PITCH_AUTO:
             // calc speed of bot
             if(nav_mode == NAV_WP){
-                desired_speed  = wp_distance;
+                desired_speed  = get_desired_wp_speed();
 
             }else if (nav_mode == NAV_LOITER){
-                desired_speed = loiter_distance;
+                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
             }
-
-        	// limit speed
-    	    desired_speed   = limit_acceleration(desired_speed, 60.0); // cm/s
-
+			
             calc_pitch_out(desired_speed);
             break;
     }

@@ -98,24 +98,51 @@ static void calc_pitch_out(float speed)
 
 // speed 0, s 81	acc 0, s 0
 
-int16_t limit_acceleration(float speed, float acc)
+float limit_acceleration(float _speed, float acc)
 {
-	static float speed_old = 0;
+	static float _speed_old = 0;
 	// scale speed by delta time
 	acc *= G_Dt;
 
-	if(speed < speed_old){ // slow down
-		float temp_speed = speed_old - acc;
-		speed = max(temp_speed, speed);
+	if(_speed < _speed_old){ // slow down
+		float temp_speed = _speed_old - acc;
+		_speed = max(temp_speed, _speed);
 
-	}else if (speed > speed_old){ // speed up
-		float temp_speed = speed_old + acc;
-		speed = min(temp_speed, speed);
+	}else if (_speed > _speed_old){ // speed up
+		float temp_speed = _speed_old + acc;
+		_speed = min(temp_speed, _speed);
 	}
 
-	speed_old = speed;
-    int16_t speed_limit = g.waypoint_speed;
-    return constrain(speed, -speed_limit, speed_limit);            // units = cm/s
+	_speed_old = _speed;
+	return _speed;
+}
+
+    //int16_t speed_limit = g.waypoint_speed;
+    //return constrain(_speed, -speed_limit, speed_limit);            // units = cm/s
+
+static float get_desired_wp_speed()
+{
+    /*
+    Based on Equation by Bill Premerlani & Robert Lefebvre
+    	(sq(V2)-sq(V1))/2 = A(X2-X1)
+        derives to:
+        V1 = sqrt(sq(V2) - 2*A*(X2-X1))
+     */
+	float _speed;
+	
+	if(wp_distance < 4000){ // limit the size of numbers we're dealing with to avoid overflow
+		// go slower
+		float temp 	= 200.0 * (float)(wp_distance - g.waypoint_radius);
+		temp += (WAYPOINT_SPEED_MIN * WAYPOINT_SPEED_MIN);
+		if( temp < 0 ) temp = 0;                // check to ensure we don't try to take the sqrt of a negative number
+		_speed = sqrt(temp);
+		// limit to max velocity
+		_speed = min(_speed, g.waypoint_speed);
+		_speed = max(_speed, WAYPOINT_SPEED_MIN); 	// don't go too slow
+	}else{
+		_speed = g.waypoint_speed;
+	}
+	return limit_acceleration(_speed, 60.0);
 }
 
 
