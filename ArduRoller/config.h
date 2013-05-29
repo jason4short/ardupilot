@@ -598,7 +598,7 @@
 
 
 #ifndef WAYPOINT_SPEED_MIN
- # define WAYPOINT_SPEED_MIN        10          // 1m/s
+ # define WAYPOINT_SPEED_MIN        20          // 20cm/s
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
