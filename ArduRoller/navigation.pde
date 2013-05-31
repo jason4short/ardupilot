@@ -85,6 +85,7 @@ static void calc_pitch_out(float speed)
 
 	// grab the wheel speed error
 	wheel_speed_error 	= wheel.speed - desired_ticks;
+	//                     1000       - 1500 		= -500 too low
 
 	// 4 components of stability and navigation
 	bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
