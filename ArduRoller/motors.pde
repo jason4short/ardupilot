@@ -8,6 +8,8 @@ static void init_arm_motors()
         return;
 
     ahrs.set_fast_gains(false);
+    ahrs.yaw_initialise();
+    
     init_home();
     set_armed(true);
 }

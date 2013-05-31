@@ -146,6 +146,11 @@ public:
         return _have_initial_yaw;
     }
 
+    // return true if yaw has been initialised
+    void yaw_initialise() {
+        _have_initial_yaw = false;
+    }
+
     // set the fast gains flag
     void set_fast_gains(bool setting) {
         _fast_ground_gains = setting;
