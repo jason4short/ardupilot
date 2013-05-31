@@ -545,11 +545,11 @@
 #endif
 
 #ifndef VELOCITY_P
- # define VELOCITY_P                .4
+ # define VELOCITY_P                .8
 #endif
 
 #ifndef P_THROTTLE
- # define P_THROTTLE                .45
+ # define P_THROTTLE                .6
 #endif
 
 #ifndef DEAD_ZONE
@@ -557,13 +557,13 @@
 #endif
 
 #ifndef YAW_P
- # define YAW_P                     .22
+ # define YAW_P                     .2
 #endif
 #ifndef YAW_I
- # define YAW_I                     0.0
+ # define YAW_I                     0.5
 #endif
 #ifndef YAW_D
- # define YAW_D                     0.1
+ # define YAW_D                     0.5
 #endif
 #ifndef YAW_IMAX
  # define YAW_IMAX                  8          // degrees
