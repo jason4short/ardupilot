@@ -9,8 +9,9 @@ static void init_arm_motors()
 
     ahrs.set_fast_gains(false);
     ahrs.yaw_initialise();
-    
+
     init_home();
+    encoder_nav.set_time_constant(g.time_constant);
     set_armed(true);
 }
 

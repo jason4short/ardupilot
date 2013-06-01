@@ -13,6 +13,7 @@ static int8_t   setup_flightmodes       (uint8_t argc, const Menu::arg *argv);
 static int8_t   setup_batt_monitor      (uint8_t argc, const Menu::arg *argv);
 static int8_t   setup_sonar             (uint8_t argc, const Menu::arg *argv);
 static int8_t   setup_compass           (uint8_t argc, const Menu::arg *argv);
+static int8_t   calibrate_compass       (uint8_t argc, const Menu::arg *argv);
 static int8_t   setup_compassmot        (uint8_t argc, const Menu::arg *argv);
 static int8_t   setup_tune              (uint8_t argc, const Menu::arg *argv);
 static int8_t   setup_range             (uint8_t argc, const Menu::arg *argv);
@@ -33,10 +34,11 @@ const struct Menu::command setup_menu_commands[] PROGMEM = {
     {"battery",                     setup_batt_monitor},
     {"sonar",                       setup_sonar},
     {"compass",                     setup_compass},
+    {"calib",                     	calibrate_compass},
     {"compassmot",                  setup_compassmot},
     {"tune",                        setup_tune},
     {"range",                       setup_range},
-    {"declination",         setup_declination},
+    {"declination",         		setup_declination},
     {"show",                        setup_show},
     {"set",                         setup_set}
 };
@@ -367,6 +369,33 @@ setup_compass(uint8_t argc, const Menu::arg *argv)
     return 0;
 }
 
+static int8_t
+calibrate_compass(uint8_t argc, const Menu::arg *argv)
+{
+    if (!strcmp_P(argv[1].str, PSTR("c"))) {
+    	clear_offsets();
+    }
+    print_hit_enter();
+
+    while(1) {
+        delay(20);
+		if(g.compass_enabled) {
+			if (compass.read()) {
+				compass.null_offsets();
+			}
+		    report_offsets();
+		}
+
+        if(cliSerial->available() > 0) {
+			compass.save_offsets();
+			report_offsets();
+			return (0);
+        }
+    }
+
+}
+
+
 // setup_compassmot - sets compass's motor interference parameters
 static int8_t
 setup_compassmot(uint8_t argc, const Menu::arg *argv)
@@ -624,6 +653,16 @@ static void clear_offsets()
     Vector3f _offsets(0.0,0.0,0.0);
     compass.set_offsets(_offsets);
     compass.save_offsets();
+}
+
+static void
+report_offsets()
+{
+    Vector3f offsets = compass.get_offsets();
+    cliSerial->printf_P(PSTR("Mag off: %4.4f, %4.4f, %4.4f\n"),
+                    offsets.x,
+                    offsets.y,
+                    offsets.z);
 }
 
 //Set a parameter to a specified value. It will cast the value to the current type of the

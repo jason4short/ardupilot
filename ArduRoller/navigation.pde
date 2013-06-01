@@ -91,7 +91,13 @@ static void calc_pitch_out(float speed)
 	bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
 	vel_out         = get_velocity_pitch();                             // magic
 	ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical, Use LUT here?
-	nav_out      	= g.pid_nav.get_pid(wheel_speed_error, G_Dt);
+
+	if(ap.position_hold){
+		g.pid_nav.reset_I();
+		nav_out = 0;
+	}else{
+		nav_out = g.pid_nav.get_pi(wheel_speed_error, G_Dt);
+	}
 
 	// sum the output
 	pitch_out = (bal_out + vel_out + nav_out - ff_out);
@@ -130,7 +136,7 @@ static float get_desired_wp_speed()
         V1 = sqrt(sq(V2) - 2*A*(X2-X1))
      */
 	float _speed;
-	
+
 	if(wp_distance < 4000){ // limit the size of numbers we're dealing with to avoid overflow
 		// go slower
 		float temp 	= 200.0 * (float)(wp_distance - g.waypoint_radius);

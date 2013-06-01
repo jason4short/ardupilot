@@ -107,8 +107,7 @@ public:
         k_param_auto_slew_rate,
         k_param_sonar_type,
         k_param_copter_leds_mode,
-        k_param_ahrs, // AHRS group
-        //k_param_avoid_obstacle,
+        k_param_ahrs,
 
         //
         // 160: Navigation parameters

@@ -318,6 +318,7 @@ static union {
         uint8_t rc_override_active : 1; // 12   // true if rc control are overwritten by ground station
         uint8_t compass_status     : 1; // 16
         uint8_t gps_status         : 1; // 17
+        uint8_t position_hold      : 1; // 17
     };
     uint16_t value;
 } ap;
@@ -1167,38 +1168,38 @@ void update_roll_pitch_mode(void)
     switch(roll_pitch_mode){
         case ROLL_PITCH_STABLE:
             // we always hold position
-            if(abs(g.rc_2.control_in) > 0){
-                // reset position
-                set_destination(encoder_nav.get_position());
-                _reached_destination = true;
-                g.pid_nav.reset_I();
+            if(g.rc_2.control_in == 0){
+                if(!ap.position_hold){
+                    ap.position_hold = true;
+                    set_destination(encoder_nav.get_position());
+                    _reached_destination = true;
+                }
+                // we are in position hold
+                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                calc_pitch_out(desired_speed);
+            }else{
+                // manual control
+                pitch_out   = (get_stabilize_pitch(g.rc_2.control_in) + get_velocity_pitch());
             }
-
-            // sum control
-            pitch_out   = (get_stabilize_pitch(g.rc_2.control_in) + get_velocity_pitch());
-
             break;
 
         case ROLL_PITCH_FBW:
             // hold position if we let go of sticks
-            if(g.rc_2.control_in != 0){
-                // we are in manual control
-                set_destination(encoder_nav.get_position());
-                _reached_destination = true;
-                g.pid_nav.reset_I();
-
+            if(g.rc_2.control_in == 0){
+                if(!ap.position_hold){
+                    ap.position_hold = true;
+                    set_destination(encoder_nav.get_position());
+                    _reached_destination = true;
+                }
+                // we are in position hold
+                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+            } else{
+                ap.position_hold = false;
                 // calc speed of bot
                 desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
 				// limit speed
-				desired_speed   = limit_acceleration(desired_speed, 250.0); // cm/s
-
-            } else{
-                // we are in position hold
-                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+				desired_speed   = limit_acceleration(desired_speed, 300.0); // cm/s
             }
-
-            //cliSerial->printf("ds %1.1f\n", desired_speed);
-
             calc_pitch_out(desired_speed);
             break;
 
@@ -1206,11 +1207,12 @@ void update_roll_pitch_mode(void)
             // calc speed of bot
             if(nav_mode == NAV_WP){
                 desired_speed  = get_desired_wp_speed();
-
+                ap.position_hold = false;
             }else if (nav_mode == NAV_LOITER){
                 desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                ap.position_hold = true;
             }
-			
+
             calc_pitch_out(desired_speed);
             break;
     }

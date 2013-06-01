@@ -237,7 +237,7 @@ static void NOINLINE send_nav_controller_output(mavlink_channel_t chan)
         nav_pitch / 1.0e2f,
         wp_bearing / 1.0e2f,
         wp_bearing / 1.0e2f,
-        wp_distance / 1.0e2f,
+        (float)wp_distance / 1.0e2f,
         0, //was altitude_error
         0,
         0);

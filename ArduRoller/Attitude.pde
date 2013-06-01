@@ -21,6 +21,7 @@ check_attitude()
         balance_timer = _time;
         if(ap.armed){
             init_disarm_motors();
+            reset_I_all();
             current_speed       = 0;
             nav_yaw             = ahrs.yaw_sensor;
             current_encoder_x   = 0;
@@ -28,6 +29,7 @@ check_attitude()
             pitch_out           = 0;
             yaw_out             = 0;
             encoder_nav.set_current_position(g_gps->longitude, g_gps->latitude);
+            set_destination(encoder_nav.get_position());
         }
         return false;
     }
@@ -40,8 +42,10 @@ check_attitude()
         nav_yaw = ahrs.yaw_sensor;
         return false;
     }else{
-	    if(!ap.armed)
+	    if(!ap.armed){
+	        set_destination(encoder_nav.get_position());
 	        init_arm_motors();
+	    }
     }
     // we're OK to run motors
     return true;
@@ -136,7 +140,6 @@ static void reset_I_all(void)
     g.pid_wheel_right_mixer.reset_I();
     g.pid_balance.reset_I();
     g.pid_yaw.reset_I();
-
     reset_nav_I();
 }
 
