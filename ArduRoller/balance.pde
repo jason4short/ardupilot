@@ -26,7 +26,7 @@ static void encoder_nav_update()
     encoder_nav.update(G_Dt + last_GDT); // 50 hz
     last_GDT = G_Dt;
 
-    if(g.log_bitmask & MASK_LOG_INAV) {
+    if(ap.armed && g.log_bitmask & MASK_LOG_INAV) {
         log_counter_inav++;
         if( log_counter_inav >= 10 ) {
             log_counter_inav = 0;
@@ -84,12 +84,12 @@ static bool update_wheel_encoders()
 
 static float convert_velocity_to_encoder_speed(float _velocity)
 {
-	return (_velocity * 1000.0 ) / WHEEL_DIAMETER_CM;
+	return (_velocity * 1000.0 ) / g.wheel_diameter;
 }
 
 static float convert_encoder_speed_to_velocity(float encoder_speed)
 {
-	return (encoder_speed * WHEEL_DIAMETER_CM) / 1000.0;
+	return (encoder_speed * g.wheel_diameter) / 1000.0;
 }
 
 // ------------------

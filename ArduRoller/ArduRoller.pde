@@ -423,6 +423,11 @@ static uint8_t command_cond_index;
 // NAV_LOCATION - have we reached the desired location?
 // NAV_DELAY    - have we waited at the waypoint the desired time?
 
+
+static int16_t _crosstrack_fix;
+static int16_t _avoid_obstacle;
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Orientation
 ////////////////////////////////////////////////////////////////////////////////
@@ -598,9 +603,7 @@ static int16_t pwm_LUT_L[] = {0, 249, 277, 311, 342, 369, 394, 420, 444, 468, 49
 static int16_t motor_out[2];    // This is the array of PWM values being sent to the motors
 static float balance_offset;
 
-//static int32_t nav_bearing;
 static float ground_speed;
-//static int32_t ground_position;
 
 static int16_t pitch_out;
 static int16_t yaw_out;
@@ -621,22 +624,10 @@ AP_HAL::Semaphore*  _i2c_sem;
 ////////////////////////////////////////////////////////////////////////////////
 // WP Nav
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t	_loiter_last_update;    // time of last update_loiter call
-uint32_t	_wpnav_last_update;     // time of last update_wpnav call
-
-Vector2f 	dist_error;                // distance error calculated by loiter controller
-Vector2f 	desired_vel;               // loiter controller desired velocity
-Vector2f 	desired_accel;             // the resulting desired acceleration
-
-int32_t     _desired_roll;          // fed to stabilize controllers at 50hz
-int32_t     _desired_pitch;         // fed to stabilize controllers at 50hz
-
-
 Vector3f    _origin;                // starting point of trip to next waypoint in cm from home (equivalent to next_WP)
 Vector3f    _destination;           // target destination in cm from home (equivalent to next_WP)
 float       _distance_to_target;    // distance to loiter target
 bool        _reached_destination;   // true if we have reached the destination
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wheels
@@ -940,9 +931,9 @@ static void medium_loop()
         if(ap.armed) {
             if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) {
                 Log_Write_Attitude();
-#if SECONDARY_DMP_ENABLED == ENABLED
+                #if SECONDARY_DMP_ENABLED == ENABLED
                 Log_Write_DMP();
-#endif
+                #endif
             }
         }
         break;

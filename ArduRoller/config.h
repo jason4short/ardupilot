@@ -519,11 +519,7 @@
 
 
 #ifndef WHEEL_ENCODER_SPEED
- # define WHEEL_ENCODER_SPEED       815
-#endif
-
-#ifndef WHEEL_DIAMETER
- # define WHEEL_DIAMETER       	    2827       // 90mm * PI * 10
+ # define WHEEL_ENCODER_SPEED       816
 #endif
 
 #ifndef WHEEL_DIAMETER_CM

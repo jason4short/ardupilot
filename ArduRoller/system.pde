@@ -157,7 +157,6 @@ static void init_ardupilot()
     mavlink_system.sysid = g.sysid_this_mav;
     mavlink_system.type = 2; //MAV_QUADROTOR;
 
-#if LOGGING_ENABLED == ENABLED
     DataFlash.Init();
     if (!DataFlash.CardInserted()) {
         gcs_send_text_P(SEVERITY_LOW, PSTR("No dataflash inserted"));
@@ -170,7 +169,6 @@ static void init_ardupilot()
     if (g.log_bitmask != 0) {
 		start_logging();
     }
-#endif
 
 
     init_rc_in();               // sets up rc channels from radio
@@ -227,9 +225,7 @@ static void init_ardupilot()
 
     startup_ground();
 
-#if LOGGING_ENABLED == ENABLED
     Log_Write_Startup();
-#endif
 
     cliSerial->print_P(PSTR("\nReady to ROLL\n"));
 }

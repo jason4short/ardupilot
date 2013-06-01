@@ -38,6 +38,9 @@ public:
     // set time constant - set timeconstant used by complementary filter
     void        set_time_constant( float time_constant_in_seconds );
 
+    // get_position - returns current position from home in cm
+    float    	get_time_constant() const { return _time_constant; }
+
     // check_gps - check if new gps readings have arrived and use them to correct position estimates
     void        check_gps();
 
@@ -73,7 +76,9 @@ public:
     static const struct AP_Param::GroupInfo var_info[];
 
     // public variables
-    //Vector3f                accel_correction_ef;        // earth frame accelerometer corrections. here for logging purposes only
+    Vector3f                _position_estimation;       // position estimate
+    Vector3f                _position_correction;       // sum of correction to _comp_h from delayed 1st order samples
+    Vector3f                _position_error;
 
 protected:
 
@@ -94,10 +99,7 @@ protected:
     float                   _lon_to_m_scaling;          // conversion of longitude to meters
 
     // general variables
-    Vector3f                _position_estimation;             // position estimate
-    Vector3f                _position_correction;       // sum of correction to _comp_h from delayed 1st order samples
     Vector3f                _velocity;                  // latest velocity estimate (integrated from accelerometer values)
-    Vector3f                _position_error;
 };
 
 #endif // __AR_ENCODERNAV_H__

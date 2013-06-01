@@ -6,10 +6,10 @@ extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
 const AP_Param::GroupInfo AR_EncoderNav::var_info[] PROGMEM = {
-    // start numbering at 1 because 0 was previous used for body frame accel offsets
+    // start numbering at 1
     // @Param: TC
     // @DisplayName: Horizontal Time Constant
-    // @Description: Time constant for GPS and accel mixing. Higher TC decreases GPS impact on position estimate
+    // @Description: Time constant for GPS and encoder mixing. Higher TC decreases GPS impact on position estimate
     // @Range: 0 10
     // @Increment: 0.1
     AP_GROUPINFO("TC",   1, AR_EncoderNav, _time_constant, AR_ENCODERNAV_TC),
@@ -79,7 +79,7 @@ void AR_EncoderNav::check_gps()
     }
 }
 
-// correct_with_gps - modifies accelerometer offsets using gps.  dt is time since last gps update
+// correct_with_gps - modifies  offsets using gps.  dt is time since last gps update
 void AR_EncoderNav::correct_with_gps(int32_t lon, int32_t lat, float dt)
 {
     float x,y;
@@ -149,7 +149,7 @@ void AR_EncoderNav::set_current_position(int32_t lon, int32_t lat)
     _hist_position_estimate_y.clear();
 }
 
-// get accel based latitude
+// get encoder based latitude
 int32_t AR_EncoderNav::get_latitude() const
 {
 	//int32_t temp = _home_lat + (int32_t)((_position_estimation.x + _position_correction.x)/AP_ENCODERNAV_LATLON_TO_CM);
@@ -158,7 +158,7 @@ int32_t AR_EncoderNav::get_latitude() const
     return _home_lat + (int32_t)((_position_estimation.x + _position_correction.x)/AP_ENCODERNAV_LATLON_TO_CM);
 }
 
-// get accel based longitude
+// get encoder based longitude
 int32_t AR_EncoderNav::get_longitude() const
 {
 	//int32_t temp = _home_lon + (int32_t)((_position_estimation.y+_position_correction.y) / _lon_to_m_scaling);
@@ -167,13 +167,13 @@ int32_t AR_EncoderNav::get_longitude() const
     return _home_lon + (int32_t)((_position_estimation.y+_position_correction.y) / _lon_to_m_scaling);
 }
 
-// get accel based latitude
+// get encoder based latitude
 float AR_EncoderNav::get_latitude_diff() const
 {
     return ((_position_estimation.x + _position_correction.x) / AP_ENCODERNAV_LATLON_TO_CM);
 }
 
-// get accel based longitude
+// get encoder based longitude
 float AR_EncoderNav::get_longitude_diff() const
 {
     return (_position_estimation.y + _position_correction.y) / _lon_to_m_scaling;

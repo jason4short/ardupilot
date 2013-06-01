@@ -62,6 +62,8 @@ static void run_nav_updates(void)
         case CIRCLE:
             break;
     }
+
+    Log_Write_NTUN();
 }
 
 
@@ -198,7 +200,6 @@ static int32_t
 get_crosstrack(int32_t _bearing)
 {
 	static int8_t _counter = 0;
-	static int32_t _crosstrack_fix = 0;
 	_counter++;
 
 	// called at 100hz, calc at 10hz
@@ -210,7 +211,7 @@ get_crosstrack(int32_t _bearing)
 			// convert angle_cd error to radians
 			float temp = (wp_bearing - original_wp_bearing) * RADX100;
 			// Meters we are off track line
-			_crosstrack_fix = sin(temp) * wp_distance;
+			_crosstrack_fix = (sin(temp) * (float)wp_distance) * g.crosstrack_gain;
 			// scale to degrees
 			_crosstrack_fix = constrain(_crosstrack_fix * g.crosstrack_gain, -1000, 1000); // 10 deg change max
 		}
@@ -226,7 +227,6 @@ get_crosstrack(int32_t _bearing)
 static int32_t avoid_obstacle(int32_t _bearing)
 {
 	static int8_t _counter = 0;
-	static int32_t _avoid = 0;
 
 	_counter++;
 
@@ -234,13 +234,14 @@ static int32_t avoid_obstacle(int32_t _bearing)
 		_counter = 0;
 
 		if(sonar_distance >= 220){
-			_avoid = 0;
+			_avoid_obstacle = 0;
 		}else{
+			sonar_distance = max(20, sonar_distance);
 			float _scale = (float)(sonar_distance - 20) / 200.0;
-			_avoid = 9000.0 * _scale;
+			_avoid_obstacle = 9000.0 * _scale;
 		}
 	}
 
-	return wrap_360_cd(_bearing + _avoid);
+	return wrap_360_cd(_bearing + _avoid_obstacle);
 }
 

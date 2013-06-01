@@ -71,6 +71,7 @@ public:
         k_param_rssi_pin,
         k_param_sonar_gain,             // 30
         k_param_wheel_encoder_speed,
+        k_param_wheel_diameter,
 
         //
         // 90: Motors
@@ -217,7 +218,7 @@ public:
     AP_Int8         battery_volt_pin;
     AP_Int8         battery_curr_pin;
     AP_Int8         rssi_pin;
-
+	AP_Float		wheel_diameter;
 
 
     // Waypoints

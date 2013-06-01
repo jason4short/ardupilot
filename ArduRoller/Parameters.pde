@@ -55,6 +55,7 @@ const AP_Param::Info var_info[] PROGMEM = {
     GSCALAR(telem_delay,            "TELEM_DELAY",     0),
 
     GSCALAR(wheel_encoder_speed, 	"WHEEL_ENC",  WHEEL_ENCODER_SPEED),
+    GSCALAR(wheel_diameter, 		"WHEEL_DIA",  WHEEL_DIAMETER_CM),
 
 
     // @Param: SONAR_ENABLE

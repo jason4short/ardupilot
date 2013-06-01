@@ -11,7 +11,7 @@ static void init_arm_motors()
     ahrs.yaw_initialise();
 
     init_home();
-    encoder_nav.set_time_constant(g.time_constant);
+    encoder_nav.set_time_constant(encoder_nav.get_time_constant());
     set_armed(true);
 }
 

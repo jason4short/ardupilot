@@ -1,7 +1,5 @@
 // -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-//#if LOGGING_ENABLED == ENABLED
-
 // Code to Write and Read packets from DataFlash log memory
 // Code to interact with the user to dump or erase logs
 
@@ -31,7 +29,7 @@ print_log_menu(void)
 {
     cliSerial->printf_P(PSTR("logs enabled: "));
 
-    if (0 == g.log_bitmask) {
+    if(0 == g.log_bitmask){
         cliSerial->printf_P(PSTR("none"));
     }else{
         if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST) cliSerial->printf_P(PSTR(" ATTITUDE_FAST"));
@@ -149,35 +147,6 @@ process_logs(uint8_t argc, const Menu::arg *argv)
 }
 
 
-struct PACKED log_Nav_Tuning {
-    LOG_PACKET_HEADER;
-    uint32_t wp_distance;
-    int16_t  wp_bearing;
-    float    lat_error;
-    float    lon_error;
-    int16_t  nav_pitch;
-    int16_t  nav_roll;
-    int16_t  lat_speed;
-    int16_t  lon_speed;
-};
-
-// Write an Nav Tuning packet
-static void Log_Write_Nav_Tuning()
-{
-    struct log_Nav_Tuning pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_NAV_TUNING_MSG),
-        wp_distance : wp_distance,
-        wp_bearing  : (int16_t) (wp_bearing/100),
-        lat_error   : 0,
-        lon_error   : 0,
-        nav_pitch   : (int16_t) nav_pitch,
-        nav_roll    : (int16_t) nav_roll,
-        lat_speed   : (int16_t) encoder_nav.get_latitude_velocity(),
-        lon_speed   : (int16_t) encoder_nav.get_longitude_velocity()
-    };
-    DataFlash.WriteBlock(&pkt, sizeof(pkt));
-}
-
 struct PACKED log_Compass {
     LOG_PACKET_HEADER;
     int16_t mag_x;
@@ -240,6 +209,7 @@ static void Log_Write_Performance()
 
 struct PACKED log_Cmd {
     LOG_PACKET_HEADER;
+
     uint8_t command_total;
     uint8_t command_number;
     uint8_t waypoint_id;
@@ -292,23 +262,27 @@ static void Log_Write_Attitude()
 
 struct PACKED log_INAV {
     LOG_PACKET_HEADER;
-    int32_t gps_lat_from_home;
-    int32_t gps_lon_from_home;
-    float   encoder_lat_from_home;
-    float   encoder_lon_from_home;
+	float _pos_est_y;
+	float _pos_cor_y;
+	float _pos_err_y;
+	float _pos_est_x;
+	float _pos_cor_x;
+	float _pos_err_x;
 };
+
+
 
 // Write an INAV packet
 static void Log_Write_INAV()
 {
-    //Vector3f accel_corr = encoder_nav.accel_correction_ef;
-
     struct log_INAV pkt = {
         LOG_PACKET_HEADER_INIT(LOG_INAV_MSG),
-        gps_lat_from_home   : g_gps->latitude-home.lat,                 // 7 lat from home
-        gps_lon_from_home   : g_gps->longitude-home.lng,                // 8 lon from home
-        encoder_lat_from_home  : encoder_nav.get_latitude_diff(),         // 9 accel based lat from home
-        encoder_lon_from_home  : encoder_nav.get_longitude_diff()        // 10 accel based lon from home
+		_pos_est_y: encoder_nav._position_estimation.y,
+		_pos_cor_y: encoder_nav._position_correction.y,
+		_pos_err_y: encoder_nav._position_error.y,
+		_pos_est_x: encoder_nav._position_estimation.x,
+		_pos_cor_x: encoder_nav._position_correction.x,
+		_pos_err_x: encoder_nav._position_error.x,
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
@@ -492,6 +466,7 @@ struct PACKED log_Camera {
     uint16_t yaw;
 };
 
+
 // Write a Camera packet
 static void Log_Write_Camera()
 {
@@ -527,45 +502,35 @@ static void Log_Write_Error(uint8_t sub_system, uint8_t error_code)
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
-struct PACKED log_WPNAV {
+struct PACKED log_Nav_Tuning {
     LOG_PACKET_HEADER;
-    float   pos_error_x;
-    float   pos_error_y;
-    float   desired_velocity_x;
-    float   desired_velocity_y;
-    float   velocity_x;
-    float   velocity_y;
-    float   desired_accel_x;
-    float   desired_accel_y;
-    int32_t desired_roll;
-    int32_t desired_pitch;
+    int16_t		wp_dist;
+    int32_t		wp_bear;
+	int16_t		x_track;
+	int16_t		avoid;
+	int16_t 	speed;
 };
 
 // Write an WPNAV packet
-static void Log_Write_WPNAV()
+static void Log_Write_NTUN()
 {
     Vector3f velocity = encoder_nav.get_velocity();
 
-    struct log_WPNAV pkt = {
-        LOG_PACKET_HEADER_INIT(LOG_WPNAV_MSG),
-        pos_error_x         : dist_error.x,
-        pos_error_y         : dist_error.y,
-        desired_velocity_x  : desired_vel.x,
-        desired_velocity_y  : desired_vel.y,
-        velocity_x          : velocity.x,
-        velocity_y          : velocity.y,
-        desired_accel_x     : desired_accel.x,
-        desired_accel_y     : desired_accel.y,
-        desired_roll        : _desired_roll,
-        desired_pitch       : _desired_pitch
+    struct log_Nav_Tuning pkt = {
+        LOG_PACKET_HEADER_INIT(LOG_NAV_TUNING_MSG),
+        wp_dist         : (int16_t)wp_distance,
+        wp_bear         : wp_bearing,
+        x_track 		: _crosstrack_fix,
+        avoid			: _avoid_obstacle,
+        speed	      	: (int16_t)ground_speed,
     };
     DataFlash.WriteBlock(&pkt, sizeof(pkt));
 }
 
 static const struct LogStructure log_structure[] PROGMEM = {
     LOG_COMMON_STRUCTURES,
-    { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
-      "NTUN", "Ecffcccc",    "WPDist,TargBrg,LatErr,LngErr,NavPtch,NavRll,LatSpd,LngSpd" },
+    //{ LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
+    //  "NTUN", "Ecffcccc",    "WPDist,TargBrg,LatErr,LngErr,NavPtch,NavRll,LatSpd,LngSpd" },
     { LOG_COMPASS_MSG, sizeof(log_Compass),
       "MAG", "hhhhhhhhh",    "MagX,MagY,MagZ,OfsX,OfsY,OfsZ,MOfsX,MOfsY,MOfsZ" },
     { LOG_PERFORMANCE_MSG, sizeof(log_Performance),
@@ -574,8 +539,6 @@ static const struct LogStructure log_structure[] PROGMEM = {
       "CMD", "BBBBBeLL",     "CTot,CNum,CId,COpt,Prm1,Alt,Lat,Lng" },
     { LOG_ATTITUDE_MSG, sizeof(log_Attitude),
       "ATT", "cccccCC",      "RollIn,Roll,PitchIn,Pitch,YawIn,Yaw,NavYaw" },
-    { LOG_INAV_MSG, sizeof(log_INAV),
-      "INAV", "iiff",  "GLat,GLng,ILat,ILng" },
     { LOG_MODE_MSG, sizeof(log_Mode),
       "MODE", "M",          "Mode" },
     { LOG_STARTUP_MSG, sizeof(log_Startup),
@@ -598,8 +561,10 @@ static const struct LogStructure log_structure[] PROGMEM = {
       "CAM",   "ILLeccC",    "GPSTime,Lat,Lng,Alt,Roll,Pitch,Yaw" },
     { LOG_ERROR_MSG, sizeof(log_Error),
       "ERR",   "BB",         "Subsys,ECode" },
-    { LOG_WPNAV_MSG, sizeof(log_WPNAV),
-      "WNAV",  "ffffffffee", "PErrX,PErrY,DVelX,DVelY,VelX,VelY,DAccX,DAccY,DRoll,DPtch" },
+    { LOG_INAV_MSG, sizeof(log_INAV),
+      "INAV", "ffffff",  	  "est_y,cor_y,err_y,est_x,cor_x,err_x" },
+    { LOG_NAV_TUNING_MSG, sizeof(log_Nav_Tuning),
+      "NTUN",  "hihhh", "WPDist,TargBrg,Xtrack,Avoid,Speed" },
 };
 
 // Read the DataFlash log memory
@@ -627,35 +592,3 @@ static void start_logging()
 {
     DataFlash.StartNewLog(sizeof(log_structure)/sizeof(log_structure[0]), log_structure);
 }
-
-/*
-#else // LOGGING_ENABLED
-
-static void Log_Write_Startup() {}
-static void Log_Write_Cmd(uint8_t num, const struct Location *wp) {}
-static void Log_Write_Mode(uint8_t mode) {}
-static void Log_Write_IMU() {}
-static void Log_Write_GPS() {}
-static void Log_Write_Compass() {}
-static void Log_Write_Attitude() {}
-static void Log_Write_INAV() {}
-static void Log_Write_Data(uint8_t id, int16_t value){}
-static void Log_Write_Data(uint8_t id, uint16_t value){}
-static void Log_Write_Data(uint8_t id, int32_t value){}
-static void Log_Write_Data(uint8_t id, uint32_t value){}
-static void Log_Write_Data(uint8_t id, float value){}
-static void Log_Write_Event(uint8_t id){}
-static void Log_Write_Nav_Tuning() {}
-static void Log_Write_Control_Tuning() {}
-static void Log_Write_Performance() {}
-#if SECONDARY_DMP_ENABLED == ENABLED
-static void Log_Write_DMP() {}
-#endif
-static void Log_Write_Camera() {}
-static void Log_Write_Error(uint8_t sub_system, uint8_t error_code) {}
-static int8_t process_logs(uint8_t argc, const Menu::arg *argv) {
-    return 0;
-}
-
-#endif // LOGGING_DISABLED
-*/
