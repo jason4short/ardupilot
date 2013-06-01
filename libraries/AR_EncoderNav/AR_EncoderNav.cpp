@@ -6,6 +6,7 @@ extern const AP_HAL::HAL& hal;
 
 // table of user settable parameters
 const AP_Param::GroupInfo AR_EncoderNav::var_info[] PROGMEM = {
+    // start numbering at 1 because 0 was previous used for body frame accel offsets
     // @Param: TC
     // @DisplayName: Horizontal Time Constant
     // @Description: Time constant for GPS and accel mixing. Higher TC decreases GPS impact on position estimate
@@ -44,7 +45,6 @@ void AR_EncoderNav::update(float dt)
 	_position_estimation += _velocity * dt;
 	//hal.console->printf_P(PSTR("pos, %1.4f, %1.4f\n"), (_position_estimation.y + _position_correction.y), (_position_estimation.x + _position_correction.x));
 }
-
 
 // check_gps - check if new gps readings have arrived and use them to correct position estimates
 void AR_EncoderNav::check_gps()
@@ -198,7 +198,7 @@ void AR_EncoderNav::set_velocity(float y, float x)
 }
 
 // set time constant - set timeconstant used by complementary filter
-void AR_EncoderNav::set_time_constant(float time_constant_in_seconds)
+void AR_EncoderNav::set_time_constant( float time_constant_in_seconds )
 {
     // ensure it's a reasonable value
     if( time_constant_in_seconds > 0 && time_constant_in_seconds < 30 ) {
