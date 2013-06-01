@@ -63,7 +63,8 @@ static void run_nav_updates(void)
             break;
     }
 
-    Log_Write_NTUN();
+	if(ap.armed)
+	    Log_Write_NTUN();
 }
 
 

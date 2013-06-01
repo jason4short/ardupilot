@@ -930,7 +930,7 @@ static void medium_loop()
 
         if(ap.armed) {
             if (g.log_bitmask & MASK_LOG_ATTITUDE_MED) {
-                Log_Write_Attitude();
+                //Log_Write_Attitude();
                 #if SECONDARY_DMP_ENABLED == ENABLED
                 Log_Write_DMP();
                 #endif
@@ -988,20 +988,20 @@ static void fifty_hz_loop()
     camera_mount.update_mount_position();
 #endif
 
-#if MOUNT2 == ENABLED
+    #if MOUNT2 == ENABLED
     // update camera mount's position
     camera_mount2.update_mount_position();
-#endif
+    #endif
 
-#if CAMERA == ENABLED
+    #if CAMERA == ENABLED
     camera.trigger_pic_cleanup();
-#endif
+    #endif
 
     if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST && ap.armed) {
-        Log_Write_Attitude();
-#if SECONDARY_DMP_ENABLED == ENABLED
+        //Log_Write_Attitude();
+        #if SECONDARY_DMP_ENABLED == ENABLED
         Log_Write_DMP();
-#endif
+        #endif
     }
 
     if (g.log_bitmask & MASK_LOG_IMU && ap.armed)

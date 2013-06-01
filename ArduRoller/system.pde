@@ -289,6 +289,8 @@ static void set_mode(uint8_t mode)
             yaw_mode = YAW_HOLD;
             roll_pitch_mode = ROLL_PITCH_STABLE;
 			nav_mode = NAV_NONE;
+			// reset AP
+			init_commands();
 			break;
 
         case FBW:
@@ -300,7 +302,6 @@ static void set_mode(uint8_t mode)
 		case AUTO:
 			yaw_mode = YAW_LOOK_AT_NEXT_WP;
 			roll_pitch_mode = ROLL_PITCH_AUTO;
-			init_commands();
 			break;
 
 		case GUIDED:
