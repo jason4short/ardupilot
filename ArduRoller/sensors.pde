@@ -18,6 +18,7 @@ static int16_t read_sonar(void)
 #if CONFIG_SONAR == ENABLED
     // exit immediately if sonar is disabled
     if( !g.sonar_enabled ) {
+		ap.obstacle = false;
         sonar_health = 0;
         return 0;
     }
@@ -31,9 +32,10 @@ static int16_t read_sonar(void)
     }else{
         sonar_health = 0;
     }
-
+	ap.obstacle = (temp < 200);
     return temp;
 #else
+	ap.obstacle = false;
     return 0;
 #endif
 }

@@ -633,7 +633,7 @@
 // Crosstrack compensation
 //
 #ifndef CROSSTRACK_GAIN
- # define CROSSTRACK_GAIN       .2
+ # define CROSSTRACK_GAIN       3
 #endif
 
 

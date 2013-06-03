@@ -363,10 +363,9 @@ enum gcs_severity {
 #define LEFT_MOT_CH 0
 #define RIGHT_MOT_CH 1
 
-#define LEFT_DIR  54  // resistor, vdiv use, divider 1 closest to relay
-#define RIGHT_DIR  55  // resistor, vdiv use, divider 2
-
-
+//AN0 = sonar
+#define LEFT_DIR  AN1  // resistor, vdiv use, divider 1 closest to relay
+#define RIGHT_DIR  AN2  // resistor, vdiv use, divider 2
 
 #endif // _DEFINES_H
 

@@ -78,6 +78,10 @@ void set_destination(const Vector3f& destination)
 // calc_pitch_out
 static void calc_pitch_out(float speed)
 {
+	// slow down in front of obstacles
+	if(ap.obstacle)
+		speed = speed/2;
+
     int16_t bal_out = 0;
     int16_t vel_out = 0;
     int16_t nav_out = 0;
@@ -225,6 +229,8 @@ get_crosstrack(int32_t _bearing)
 	return wrap_360_cd(_bearing + _crosstrack_fix);
 }
 
+#define MIN_DIST 40
+#define MAX_DIST 80
 static int32_t avoid_obstacle(int32_t _bearing)
 {
 	static int8_t _counter = 0;
@@ -234,15 +240,14 @@ static int32_t avoid_obstacle(int32_t _bearing)
 	if(_counter >= 10){
 		_counter = 0;
 
-		if(sonar_distance >= 220){
+		if(sonar_distance >= MAX_DIST){
 			_avoid_obstacle = 0;
 		}else{
-			sonar_distance = max(20, sonar_distance);
-			float _scale = (float)(sonar_distance - 20) / 200.0;
-			_avoid_obstacle = 9000.0 * _scale;
+			sonar_distance = max(MIN_DIST, sonar_distance);
+			float _scale = (float)(sonar_distance - MIN_DIST) / (float)(MAX_DIST - MIN_DIST);
+			_avoid_obstacle = 9000.0 * (1.0 - _scale);
 		}
 	}
 
 	return wrap_360_cd(_bearing + _avoid_obstacle);
 }
-

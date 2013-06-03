@@ -319,6 +319,7 @@ static union {
         uint8_t compass_status     : 1; // 16
         uint8_t gps_status         : 1; // 17
         uint8_t position_hold      : 1; // 17
+        uint8_t obstacle           : 1; // 17
     };
     uint16_t value;
 } ap;
@@ -1131,6 +1132,7 @@ void update_yaw_mode(void)
                     yaw_flag    = false;
                     nav_yaw     = ahrs.yaw_sensor;
                 }else{
+                    //yaw_out   = get_stabilize_yaw(avoid_obstacle(nav_yaw));
                     yaw_out   = get_stabilize_yaw(nav_yaw);
                 }
             }

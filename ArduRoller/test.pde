@@ -402,17 +402,17 @@ static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
 		hal.rcout->write(CH_1, speed); // left motor
 
 		if (!strcmp_P(argv[2].str, PSTR("f"))) {
-			hal.gpio->write(AN0, HIGH);
+			hal.gpio->write(LEFT_DIR, HIGH);
 		}else{
-			hal.gpio->write(AN0, LOW);
+			hal.gpio->write(LEFT_DIR, LOW);
 		}
 
 	}else{
 		hal.rcout->write(CH_2, speed); // right motor
 		if (!strcmp_P(argv[2].str, PSTR("f"))) {
-			hal.gpio->write(AN1, LOW);
+			hal.gpio->write(RIGHT_DIR, LOW);
 		}else{
-			hal.gpio->write(AN1, HIGH);
+			hal.gpio->write(RIGHT_DIR	, HIGH);
 		}
 	}
 
