@@ -618,6 +618,8 @@ static float current_encoder_y;
 static float current_encoder_x;
 static uint32_t balance_timer;
 
+static uint16_t obstacle_counter = 0;
+
 //static bool gps_available;
 
 AP_HAL::Semaphore*  _i2c_sem;
@@ -1139,18 +1141,22 @@ void update_yaw_mode(void)
             break;
 
         case YAW_LOOK_AT_NEXT_WP:
-
-            if(g.sonar_enabled){
-                nav_yaw = avoid_obstacle(wp_bearing);
+            if(nav_mode == NAV_AVOID_TURN){
+                // set hold to 90° to
+                nav_yaw = wrap_360_cd(wp_bearing + 9000);
             }else{
-                nav_yaw = wp_bearing;
+                if(g.sonar_enabled){
+                    nav_yaw = avoid_obstacle(wp_bearing);
+                }else{
+                    nav_yaw = wp_bearing;
+                }
+
+                // calc crosstrack
+                nav_yaw = get_crosstrack(nav_yaw);
+
+                yaw_out = get_stabilize_yaw(nav_yaw);
+                break;
             }
-
-            // calc crosstrack
-            nav_yaw = get_crosstrack(nav_yaw);
-
-            yaw_out = get_stabilize_yaw(nav_yaw);
-            break;
     }
 }
 
@@ -1158,6 +1164,8 @@ void update_yaw_mode(void)
 // 100hz update rate
 void update_roll_pitch_mode(void)
 {
+    static int16_t avoid_timer = 0;
+
     switch(roll_pitch_mode){
         case ROLL_PITCH_STABLE:
             // we always hold position
@@ -1201,9 +1209,34 @@ void update_roll_pitch_mode(void)
             if(nav_mode == NAV_WP){
                 desired_speed  = get_desired_wp_speed();
                 ap.position_hold = false;
+                //are we stuck?
+                avoid_timer = 0;
+                check_obstacle();
+
             }else if (nav_mode == NAV_LOITER){
                 desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
                 ap.position_hold = true;
+                avoid_timer = 0;
+                obstacle_counter = 0;
+
+            }else if (nav_mode == NAV_AVOID_BACK){
+                // clear obstacle counter
+                obstacle_counter = 0;
+                desired_speed = -40;
+                avoid_timer++;
+                if(avoid_timer > 300){ // 3 sec
+                    avoid_timer = 0;
+                    nav_mode = NAV_AVOID_TURN;
+                }
+
+            }else if (nav_mode == NAV_AVOID_TURN){
+                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                avoid_timer++;
+                obstacle_counter = 0;
+                if(avoid_timer > 300){
+                    avoid_timer = 0;
+                    nav_mode = NAV_WP;
+                }
             }
 
             calc_pitch_out(desired_speed);

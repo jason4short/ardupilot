@@ -283,6 +283,11 @@ static void set_mode(uint8_t mode)
 	// position hold
 	set_destination(encoder_nav.get_position());
 
+	// obstacle avoidance
+	obstacle_counter = 0;
+	avoid_timer = 0;
+
+
     switch(control_mode)
     {
 		case STABILIZE:

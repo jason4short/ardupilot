@@ -160,6 +160,19 @@ static float get_desired_wp_speed()
 }
 
 
+static void
+check_obstacle()
+{
+	if(wheel.speed < 10){
+		obstacle_counter++;
+	}
+
+	if(obstacle_counter > 8000){
+		obstacle_counter = 0;
+		nav_mode = NAV_AVOID_BACK;
+	}
+}
+
 
 // Keeps old data out of our calculation / logs
 static void reset_nav_params(void)

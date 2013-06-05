@@ -8,6 +8,9 @@ static void init_commands()
     prev_nav_index          = NO_COMMAND;
     command_cond_queue.id   = NO_COMMAND;
     command_nav_queue.id    = NO_COMMAND;
+
+    // avoidance
+    obstacle_counter = 0;
 }
 
 // Getters
