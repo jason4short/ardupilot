@@ -588,25 +588,15 @@ static int16_t pmTest1;
 ////////////////////////////////////////////////////////////////////////////////
 // Balance specific
 ////////////////////////////////////////////////////////////////////////////////
-//static int16_t desired_nav_speed;
-//static int16_t desired_balance_speed;
-#define PWM_LUT_SIZE 40
-
 int16_t I2Cfail;
-
-#if USE_WHEEL_LUT == ENABLED
-//                          0  1    2    3    4    5    6    7    8    9    10   11   12   13   14   15   16   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32   33   34   35   36    37    38   39
-static int16_t pwm_LUT_R[] = {0, 214, 235, 252, 267, 281, 295, 308, 320, 333, 346, 357, 370, 381, 393, 407, 423, 437, 452, 468, 483, 501, 520, 540, 561, 584, 609, 634, 663, 693, 719, 757, 797, 850, 892, 947, 1014, 1097, 1172, 1271};
-static int16_t pwm_LUT_L[] = {0, 249, 277, 311, 342, 369, 394, 420, 444, 468, 490, 513, 532, 548, 568, 585, 606, 625, 643, 663, 642, 661, 687, 714, 739, 774, 808, 840, 876, 918, 984, 1021, 1111, 1171, 1192, 1251, 1351, 1578, 1671, 1824};
-//
-#endif
 
 static int16_t motor_out[2];    // This is the array of PWM values being sent to the motors
 static float balance_offset;
 
 static float ground_speed;
 
-static int16_t pitch_out;
+static int16_t pitch_out_right;
+static int16_t pitch_out_left;
 static int16_t yaw_out;
 
 static float desired_speed;
@@ -1164,7 +1154,7 @@ void update_yaw_mode(void)
 // 100hz update rate
 void update_roll_pitch_mode(void)
 {
-    static int16_t avoid_timer = 0;
+    static int16_t stall_timer = 0;
 
     switch(roll_pitch_mode){
         case ROLL_PITCH_STABLE:
@@ -1176,11 +1166,13 @@ void update_roll_pitch_mode(void)
                     _reached_destination = true;
                 }
                 // we are in position hold
-                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                //desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                desired_speed = limit_acceleration(get_loiter_speed(), 60.0); // cm/s;
                 calc_pitch_out(desired_speed);
             }else{
                 // manual control
-                pitch_out   = (get_stabilize_pitch(g.rc_2.control_in) + get_velocity_pitch());
+                pitch_out_left  = (get_stabilize_pitch(g.rc_2.control_in) + get_velocity_pitch());
+                pitch_out_right = pitch_out_left;
             }
             break;
 
@@ -1193,14 +1185,15 @@ void update_roll_pitch_mode(void)
                     _reached_destination = true;
                 }
                 // we are in position hold
-                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                desired_speed = limit_acceleration(get_loiter_speed(), 60.0); // cm/s;
             } else{
                 ap.position_hold = false;
                 // calc speed of bot
                 desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
 				// limit speed
-				desired_speed   = limit_acceleration(desired_speed, 300.0); // cm/s
+				desired_speed   = limit_acceleration(desired_speed, 200.0); // cm/s
             }
+            //cliSerial->printf("%1.4f\n", desired_speed);
             calc_pitch_out(desired_speed);
             break;
 
@@ -1210,31 +1203,31 @@ void update_roll_pitch_mode(void)
                 desired_speed  = get_desired_wp_speed();
                 ap.position_hold = false;
                 //are we stuck?
-                avoid_timer = 0;
-                check_obstacle();
+                stall_timer = 0;
+                //check_stall();
 
             }else if (nav_mode == NAV_LOITER){
-                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
+                desired_speed = limit_acceleration(get_loiter_speed(), 60.0); // cm/s;
                 ap.position_hold = true;
-                avoid_timer = 0;
+                stall_timer = 0;
                 obstacle_counter = 0;
 
             }else if (nav_mode == NAV_AVOID_BACK){
                 // clear obstacle counter
                 obstacle_counter = 0;
                 desired_speed = -40;
-                avoid_timer++;
-                if(avoid_timer > 300){ // 3 sec
-                    avoid_timer = 0;
+                stall_timer++;
+                if(stall_timer > 300){ // 3 sec
+                    stall_timer = 0;
                     nav_mode = NAV_AVOID_TURN;
                 }
 
             }else if (nav_mode == NAV_AVOID_TURN){
                 desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
-                avoid_timer++;
+                stall_timer++;
                 obstacle_counter = 0;
-                if(avoid_timer > 300){
-                    avoid_timer = 0;
+                if(stall_timer > 300){
+                    stall_timer = 0;
                     nav_mode = NAV_WP;
                 }
             }

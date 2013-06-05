@@ -12,6 +12,7 @@ static void init_arm_motors()
 
     init_home();
     encoder_nav.set_time_constant(encoder_nav.get_time_constant());
+    set_destination(encoder_nav.get_position());
     set_armed(true);
 }
 
@@ -53,23 +54,8 @@ update_servos()
 
     uint8_t dir_left, dir_right;
 
-//#if USE_WHEEL_LUT == ENABLED
-	/*
-    motor_out[LEFT_MOT_CH]  = get_pwm_from_speed_wheel_mixer_left(); // left motor
-    motor_out[RIGHT_MOT_CH] = get_pwm_from_speed_wheel_mixer_right(); // righ motor
-
-    motor_out[LEFT_MOT_CH]  = constrain(motor_out[LEFT_MOT_CH],  -2000, 2000);
-    motor_out[RIGHT_MOT_CH] = constrain(motor_out[RIGHT_MOT_CH], -2000, 2000);
-
-    dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? LOW : HIGH;
-    dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? LOW : HIGH;
-
-	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])); // left motor
-	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
-	*/
-//#else
-    motor_out[LEFT_MOT_CH]  = (float)(pitch_out + yaw_out) * g.pid_wheel_left_mixer.kP(); // left motor
-    motor_out[RIGHT_MOT_CH] = (float)(pitch_out - yaw_out) * g.pid_wheel_right_mixer.kP(); // righ motor
+    motor_out[LEFT_MOT_CH]  = (float)(pitch_out_left + yaw_out)  * g.pid_nav_left.kP(); // left motor
+    motor_out[RIGHT_MOT_CH] = (float)(pitch_out_right - yaw_out) * g.pid_nav_right.kP(); // righ motor
 
     motor_out[LEFT_MOT_CH]  = constrain(motor_out[LEFT_MOT_CH],  -2000, 2000);
     motor_out[RIGHT_MOT_CH] = constrain(motor_out[RIGHT_MOT_CH], -2000, 2000);
@@ -86,9 +72,6 @@ update_servos()
 	}else{
 		hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
 	}
-
-//#endif
-
 
 	hal.rcout->write(CH_3, 1500); // balance servo
 
@@ -114,14 +97,8 @@ set_servos_direct(int16_t pwm)
 {
     uint8_t dir_left, dir_right;
 
-#if USE_WHEEL_LUT == ENABLED
-    motor_out[0] = get_pwm_from_speed_wheel_mixer_left();
-    motor_out[1] = get_pwm_from_speed_wheel_mixer_right();
-#else
     motor_out[0] = pwm;
     motor_out[1] = pwm;
-#endif
-
 
 	hal.rcout->write(CH_1, abs(motor_out[LEFT_MOT_CH])); // left motor
 	hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor

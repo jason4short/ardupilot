@@ -285,8 +285,6 @@ static void set_mode(uint8_t mode)
 
 	// obstacle avoidance
 	obstacle_counter = 0;
-	avoid_timer = 0;
-
 
     switch(control_mode)
     {

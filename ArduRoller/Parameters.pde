@@ -166,10 +166,12 @@ const AP_Param::Info var_info[] PROGMEM = {
     GSCALAR(rssi_pin,            "RSSI_PIN",         -1),
 
 
-    GSCALAR(fbw_speed,   	"FBW_SPEED",   12),			// 500 / 12 = 42
+    GSCALAR(fbw_speed,   	"FBW_SPEED",   9),			// 500 / 12 = 42
     GSCALAR(throttle,   	"P_THROT",     P_THROTTLE), 	// ~3 second time constant
     GSCALAR(dead_zone,   	"P_DEAD_Z",    DEAD_ZONE), 		//
     GSCALAR(p_vel,    	 	"P_VEL",       VELOCITY_P),
+    GSCALAR(loiter_gain,    "P_LOIT",      LOITER_P),
+
 
 	// @Param: XTRK_GAIN_SC
     // @DisplayName: Cross-Track Gain
@@ -351,9 +353,9 @@ const AP_Param::Info var_info[] PROGMEM = {
     //---------------
     GGROUP(pid_balance,    			"PID_BAL", 	AC_PID),
     GGROUP(pid_yaw,   				"PID_YAW_", AC_PID),
-    GGROUP(pid_wheel_left_mixer,	"PID_LW_",  AC_PID),
-    GGROUP(pid_wheel_right_mixer,   "PID_RW_",  AC_PID),
-    GGROUP(pid_nav,     			"PID_NAV_", AC_PID),
+    GGROUP(pid_nav_left,			"PID_LW_",  AC_PID),
+    GGROUP(pid_nav_right,   		"PID_RW_",  AC_PID),
+    //GGROUP(pid_nav,     			"PID_NAV_", AC_PID),
 
     // variables not in the g class which contain EEPROM saved variables
 

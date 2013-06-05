@@ -21,5 +21,3 @@
  *  CH7_CAMERA_TRIGGER
  */
 
-
-#define USE_WHEEL_LUT DISABLED

@@ -179,9 +179,9 @@ public:
         k_param_p_vel = 220,
         k_param_pid_balance,
         k_param_pid_yaw,
-        k_param_pid_wheel_left_mixer,
-        k_param_pid_wheel_right_mixer,
-        k_param_pid_nav,
+        k_param_pid_nav_left = 225,
+        k_param_pid_nav_right,
+        k_param_loiter_gain
         // 254,255: reserved
     };
 
@@ -283,9 +283,9 @@ public:
     // PI/D controllers
     AC_PID                  pid_balance;
     AC_PID                  pid_yaw;
-    AC_PID                  pid_wheel_left_mixer;
-    AC_PID                  pid_wheel_right_mixer;
-    AC_PID                  pid_nav;
+    AC_PID                  pid_nav_left;
+    AC_PID                  pid_nav_right;
+    AP_Float				loiter_gain;
 
 
     // Note: keep initializers here in the same order as they are declared
@@ -312,11 +312,10 @@ public:
     // 220
     // PID controller       initial P           initial I       initial D           initial imax
     //-----------------------------------------------------------------------------------------------------
-    pid_balance             (BALANCE_P,     BALANCE_I,          BALANCE_D,          BALANCE_IMAX    * 100),
-    pid_yaw                 (YAW_P,         YAW_I,              YAW_D,              YAW_IMAX        * 100),
-    pid_wheel_left_mixer    (WHEEL_P,       WHEEL_I,            WHEEL_D,            WHEEL_IMAX      * 100),
-    pid_wheel_right_mixer   (WHEEL_P,       WHEEL_I,            WHEEL_D,            WHEEL_IMAX      * 100),
-    pid_nav                 (NAV_P,         NAV_I,              NAV_D,              NAV_IMAX        * 100)
+    pid_balance             (BALANCE_P,     BALANCE_I,          BALANCE_D,          BALANCE_IMAX),
+    pid_yaw                 (YAW_P,         YAW_I,              YAW_D,              YAW_IMAX),
+    pid_nav_left  	  		(WHEEL_P,       WHEEL_I,            WHEEL_D,            WHEEL_IMAX),
+    pid_nav_right   		(WHEEL_P,       WHEEL_I,            WHEEL_D,            WHEEL_IMAX)
     {
     }
 };

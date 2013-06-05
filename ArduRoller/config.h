@@ -484,37 +484,7 @@
  # define MAX_INPUT_PITCH_ANGLE     1000
 #endif
 #ifndef MAX_INPUT_YAW_ANGLE
- # define MAX_INPUT_YAW_ANGLE       500
-#endif
-
-
-//#ifndef STABILIZE_PITCH_P
-// # define STABILIZE_PITCH_P         5.5
-//#endif
-
-#ifndef  STABILIZE_YAW_P
- # define STABILIZE_YAW_P           0.1            // increase for more aggressive Yaw Hold, decrease if it's bouncy
-#endif
-#ifndef  STABILIZE_YAW_I
- # define STABILIZE_YAW_I           0.0
-#endif
-#ifndef  STABILIZE_YAW_IMAX
- # define STABILIZE_YAW_IMAX        8.0        // degrees * 100
-#endif
-
-
-
-#ifndef SPEED_P
- # define SPEED_P       	        0.75
-#endif
-#ifndef SPEED_I
- # define SPEED_I       	        7
-#endif
-#ifndef SPEED_D
- # define SPEED_D       	        0.075
-#endif
-#ifndef SPEED_IMAX
- # define SPEED_IMAX               15.0        // degrees
+ # define MAX_INPUT_YAW_ANGLE       1500
 #endif
 
 
@@ -523,7 +493,17 @@
 #endif
 
 #ifndef WHEEL_DIAMETER_CM
- # define WHEEL_DIAMETER_CM       	28.27       // 90mm * PI * 10
+ # define WHEEL_DIAMETER_CM       	31.11 // 28.27
+#endif
+
+#ifndef VELOCITY_P
+ # define VELOCITY_P                1.0
+#endif
+#ifndef P_THROTTLE
+ # define P_THROTTLE                1.0
+#endif
+#ifndef DEAD_ZONE
+ # define DEAD_ZONE                50
 #endif
 
 
@@ -531,39 +511,41 @@
  # define BALANCE_P       	        2.8
 #endif
 #ifndef BALANCE_I
- # define BALANCE_I       	        .01
+ # define BALANCE_I       	        1.5
 #endif
 #ifndef BALANCE_D
- # define BALANCE_D       	        0.16 // 0.24
+ # define BALANCE_D       	        0.25
 #endif
 #ifndef BALANCE_IMAX
- # define BALANCE_IMAX              3.0      // degrees
-#endif
-
-#ifndef VELOCITY_P
- # define VELOCITY_P                .8
-#endif
-
-#ifndef P_THROTTLE
- # define P_THROTTLE                .6
-#endif
-
-#ifndef DEAD_ZONE
- # define DEAD_ZONE                50
+ # define BALANCE_IMAX              200
 #endif
 
 #ifndef YAW_P
- # define YAW_P                     .2
+ # define YAW_P                     .3
 #endif
 #ifndef YAW_I
- # define YAW_I                     0.5
+ # define YAW_I                     0.3
 #endif
 #ifndef YAW_D
- # define YAW_D                     0.5
+ # define YAW_D                     0.03
 #endif
 #ifndef YAW_IMAX
- # define YAW_IMAX                  8          // degrees
+ # define YAW_IMAX                  400
 #endif
+
+#ifndef WHEEL_P
+ # define WHEEL_P                     1
+#endif
+#ifndef WHEEL_I
+ # define WHEEL_I                     0
+#endif
+#ifndef WHEEL_D
+ # define WHEEL_D                     0.000
+#endif
+#ifndef WHEEL_IMAX
+ # define WHEEL_IMAX                  0
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////////
 // WP Navigation control gains
@@ -575,23 +557,9 @@
  # define WAYPOINT_SPEED           80         //cm
 #endif
 
-#ifndef NAV_P
- # define NAV_P                     .2         //
+#ifndef LOITER_P
+ # define LOITER_P           		.3         //gain
 #endif
-#ifndef NAV_I
- # define NAV_I                     0.0        //
-#endif
-#ifndef NAV_D
- # define NAV_D                     0.0        // .95
-#endif
-#ifndef NAV_IMAX
- # define NAV_IMAX                  18          // degrees
-#endif
-
-#ifndef AUTO_YAW_SLEW_RATE
- # define AUTO_YAW_SLEW_RATE        60          // degrees/sec
-#endif
-
 
 #ifndef WAYPOINT_SPEED_MIN
  # define WAYPOINT_SPEED_MIN        20          // 20cm/s
@@ -615,25 +583,11 @@
 #endif
 
 
-#ifndef WHEEL_P
- # define WHEEL_P                     .05
-#endif
-#ifndef WHEEL_I
- # define WHEEL_I                     4
-#endif
-#ifndef WHEEL_D
- # define WHEEL_D                     0.006
-#endif
-#ifndef WHEEL_IMAX
- # define WHEEL_IMAX                  12    // degrees
-#endif
-
-
 //////////////////////////////////////////////////////////////////////////////
 // Crosstrack compensation
 //
 #ifndef CROSSTRACK_GAIN
- # define CROSSTRACK_GAIN       3
+ # define CROSSTRACK_GAIN       2
 #endif
 
 

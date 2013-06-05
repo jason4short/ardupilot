@@ -284,7 +284,7 @@ static void NOINLINE send_gps_raw(mavlink_channel_t chan)
         g_gps->altitude * 10, // in mm
         g_gps->hdop,
         65535,
-        g_gps->ground_speed,  // cm/s
+        ground_speed,  // cm/s
         g_gps->ground_course, // 1/100 degrees,
         g_gps->num_sats);
 
@@ -347,7 +347,7 @@ static void NOINLINE send_vfr_hud(mavlink_channel_t chan)
 {
     mavlink_msg_vfr_hud_send(
         chan,
-        (float)ground_speed / 100.0f,
+        desired_speed / 100.0f,
         (float)ground_speed / 100.0f,
         (ahrs.yaw_sensor / 100) % 360,
         g.rc_2.servo_out/10,

@@ -26,7 +26,8 @@ check_attitude()
             nav_yaw             = ahrs.yaw_sensor;
             current_encoder_x   = 0;
             current_encoder_y   = 0;
-            pitch_out           = 0;
+            pitch_out_right     = 0;
+            pitch_out_left      = 0;
             yaw_out             = 0;
             encoder_nav.set_current_position(g_gps->longitude, g_gps->latitude);
             set_destination(encoder_nav.get_position());
@@ -36,7 +37,8 @@ check_attitude()
 
 	//no output until we have been upright for 3 seconds
     if((_time - balance_timer) < 3000){
-        pitch_out = 0;
+        pitch_out_right = 0;
+        pitch_out_left = 0;
         yaw_out   = 0;
         // reset nav_yaw to be whatever
         nav_yaw = ahrs.yaw_sensor;
@@ -92,9 +94,9 @@ get_stabilize_yaw(int32_t target_angle)
     angle_error         = wrap_180_cd(target_angle - ahrs.yaw_sensor);
 
     // limit the error we're feeding to the PID
-    angle_error         = constrain(angle_error, -1000, 1000);
+    angle_error         = constrain(angle_error, -1500, 1500);
     //int16_t output      = (float)g.pid_yaw.get_pid(angle_error, G_Dt) / wheel_ratio;
-    int16_t output      = (float)g.pid_yaw.get_p(angle_error) / wheel_ratio;
+    int16_t output      = (float)g.pid_yaw.get_pid(angle_error, G_Dt) / wheel_ratio;
     return output;
 }
 
@@ -136,8 +138,6 @@ static void get_circle_yaw()
 static void reset_I_all(void)
 {
     balance_offset = 0;
-    g.pid_wheel_left_mixer.reset_I();
-    g.pid_wheel_right_mixer.reset_I();
     g.pid_balance.reset_I();
     g.pid_yaw.reset_I();
     reset_nav_I();
@@ -145,6 +145,7 @@ static void reset_I_all(void)
 
 static void reset_nav_I()
 {
-    g.pid_nav.reset_I();
+    g.pid_nav_right.reset_I();
+    g.pid_nav_left.reset_I();
 }
 

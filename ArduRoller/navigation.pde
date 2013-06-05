@@ -84,7 +84,8 @@ static void calc_pitch_out(float speed)
 
     int16_t bal_out = 0;
     int16_t vel_out = 0;
-    int16_t nav_out = 0;
+    int16_t nav_right_out = 0;
+    int16_t nav_left_out = 0;
     int16_t wheel_speed_error, ff_out;
 
 	// switch units to encoder ticks
@@ -100,14 +101,18 @@ static void calc_pitch_out(float speed)
 	ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical, Use LUT here?
 
 	if(ap.position_hold){
-		g.pid_nav.reset_I();
-		nav_out = 0;
+		g.pid_nav_right.reset_I();
+		g.pid_nav_left.reset_I();
+		nav_right_out = 0;
+		nav_left_out = 0;
 	}else{
-		nav_out = g.pid_nav.get_pi(wheel_speed_error, G_Dt);
+		nav_right_out = g.pid_nav_right.get_i(wheel_speed_error, G_Dt);
+		nav_left_out  = g.pid_nav_left.get_i(wheel_speed_error, G_Dt);
 	}
 
 	// sum the output
-	pitch_out = (bal_out + vel_out + nav_out - ff_out);
+	pitch_out_right = (bal_out + vel_out + nav_right_out - ff_out);
+	pitch_out_left  = (bal_out + vel_out + nav_left_out  - ff_out);
 }
 
 // speed 0, s 81	acc 0, s 0
@@ -134,7 +139,8 @@ float limit_acceleration(float _speed, float acc)
     //int16_t speed_limit = g.waypoint_speed;
     //return constrain(_speed, -speed_limit, speed_limit);            // units = cm/s
 
-static float get_desired_wp_speed()
+static float
+get_desired_wp_speed()
 {
     /*
     Based on Equation by Bill Premerlani & Robert Lefebvre
@@ -156,23 +162,18 @@ static float get_desired_wp_speed()
 	}else{
 		_speed = g.waypoint_speed;
 	}
-	return limit_acceleration(_speed, 60.0);
+	return limit_acceleration(_speed, 100.0);
 }
 
-
-static void
-check_obstacle()
+static float
+get_loiter_speed()
 {
-	if(wheel.speed < 10){
-		obstacle_counter++;
-	}
-
-	if(obstacle_counter > 8000){
-		obstacle_counter = 0;
-		nav_mode = NAV_AVOID_BACK;
-	}
+	//loiter_distance
+	float temp = loiter_distance * g.loiter_gain;
+	temp = max(temp, -30);
+	temp = min(temp, 30);
+	return temp;
 }
-
 
 // Keeps old data out of our calculation / logs
 static void reset_nav_params(void)
@@ -264,3 +265,25 @@ static int32_t avoid_obstacle(int32_t _bearing)
 
 	return wrap_360_cd(_bearing + _avoid_obstacle);
 }
+
+
+
+
+static void
+check_stall()
+{
+	if(abs(wheel.speed) < 10){
+		obstacle_counter++;
+	}
+
+	if(abs(wheel.speed) > 500){ // 1 rev every 2 seconds
+		//clear counter
+		obstacle_counter = 0;
+	}
+
+	if(obstacle_counter > 800){
+		obstacle_counter = 0;
+		nav_mode = NAV_AVOID_BACK;
+	}
+}
+
