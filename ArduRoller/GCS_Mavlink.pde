@@ -301,12 +301,12 @@ static void NOINLINE send_servo_out(mavlink_channel_t chan)
         0,         // port 0
         g.rc_1.servo_out,
         g.rc_2.servo_out,
-        g.rc_3.radio_out,
-        g.rc_4.servo_out,
-        10000 * g.rc_1.norm_output(),
-        10000 * g.rc_2.norm_output(),
-        10000 * g.rc_3.norm_output(),
-        10000 * g.rc_4.norm_output(),
+        ground_speed/100.0f,
+        desired_speed/100.0f,
+        0,
+        0,
+        0,
+        0,
         receiver_rssi);
 }
 
@@ -348,9 +348,9 @@ static void NOINLINE send_vfr_hud(mavlink_channel_t chan)
     mavlink_msg_vfr_hud_send(
         chan,
         desired_speed / 100.0f,
-        (float)ground_speed / 100.0f,
+        ground_speed,
         (ahrs.yaw_sensor / 100) % 360,
-        g.rc_2.servo_out/10,
+        ground_speed / 100.0f,
         desired_speed / 100.0f, // was alt
         0); // was climb_rate
 }
