@@ -1204,7 +1204,7 @@ void update_roll_pitch_mode(void)
                 ap.position_hold = false;
                 //are we stuck?
                 stall_timer = 0;
-                //check_stall();
+                check_stall();
 
             }else if (nav_mode == NAV_LOITER){
                 desired_speed = limit_acceleration(get_loiter_speed(), 60.0); // cm/s;
@@ -1217,7 +1217,7 @@ void update_roll_pitch_mode(void)
                 obstacle_counter = 0;
                 desired_speed = -40;
                 stall_timer++;
-                if(stall_timer > 300){ // 3 sec
+                if(stall_timer > 400){ // 3 sec
                     stall_timer = 0;
                     nav_mode = NAV_AVOID_TURN;
                 }

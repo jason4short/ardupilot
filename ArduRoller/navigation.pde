@@ -32,7 +32,8 @@ static void run_nav_updates(void)
 
 	// only check if we have not reached so we don't "un-reach"
 	if(_reached_destination == false){
-		_reached_destination = (wp_distance < g.waypoint_radius);
+		//_reached_destination = (wp_distance < g.waypoint_radius);
+		_reached_destination = (wp_distance < 20); // hardcoded 20 cm because I don't trust the planner not to ruin this
 	}
 
     //cliSerial->printf("y:%d, lat %ld, lon %ld", (int16_t)(ahrs.yaw_sensor / 100), current_loc.lat, current_loc.lng);

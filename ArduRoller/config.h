@@ -484,7 +484,7 @@
  # define MAX_INPUT_PITCH_ANGLE     1000
 #endif
 #ifndef MAX_INPUT_YAW_ANGLE
- # define MAX_INPUT_YAW_ANGLE       1500
+ # define MAX_INPUT_YAW_ANGLE       1000
 #endif
 
 
@@ -521,7 +521,7 @@
 #endif
 
 #ifndef YAW_P
- # define YAW_P                     .3
+ # define YAW_P                     .25
 #endif
 #ifndef YAW_I
  # define YAW_I                     0.3
