@@ -163,7 +163,7 @@ get_desired_wp_speed()
 	}else{
 		_speed = g.waypoint_speed;
 	}
-	return limit_acceleration(_speed, 100.0);
+	return limit_acceleration(_speed, 60.0);
 }
 
 static float
