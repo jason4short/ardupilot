@@ -115,6 +115,8 @@ enum mode {
 #define MASK_LOG_COMPASS   		(1<<11)
 #define MASK_LOG_CAMERA   		(1<<12)
 #define MASK_LOG_STEERING  		(1<<13)
+#define MASK_LOG_RC     		(1<<14)
+#define MASK_LOG_WHEN_DISARMED  (1<<30)
 
 // Waypoint Modes
 // ----------------

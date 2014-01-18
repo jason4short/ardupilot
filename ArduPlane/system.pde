@@ -84,7 +84,7 @@ static void init_ardupilot()
 
     cliSerial->printf_P(PSTR("\n\nInit " FIRMWARE_STRING
                          "\n\nFree RAM: %u\n"),
-                    memcheck_available_memory());
+                        hal.util->available_memory());
 
 
     //
@@ -109,9 +109,6 @@ static void init_ardupilot()
 
     // init the GCS
     gcs[0].init(hal.uartA);
-    // Register mavlink_delay_cb, which will run anytime you have
-    // more than 5ms remaining in your call to hal.scheduler->delay
-    hal.scheduler->register_delay_callback(mavlink_delay_cb, 5);
 
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.    
@@ -145,10 +142,11 @@ static void init_ardupilot()
             gcs[i].reset_cli_timeout();
         }
     }
-    if (g.log_bitmask != 0) {
-        start_logging();
-    }
 #endif
+
+    // Register mavlink_delay_cb, which will run anytime you have
+    // more than 5ms remaining in your call to hal.scheduler->delay
+    hal.scheduler->register_delay_callback(mavlink_delay_cb, 5);
 
 #if CONFIG_INS_TYPE == CONFIG_INS_OILPAN || CONFIG_HAL_BOARD == HAL_BOARD_APM1
     apm1_adc.Init();      // APM ADC library initialization
@@ -204,7 +202,7 @@ static void init_ardupilot()
     }
 
     startup_ground();
-    if (g.log_bitmask & MASK_LOG_CMD)
+    if (should_log(MASK_LOG_CMD))
         Log_Write_Startup(TYPE_GROUNDSTART_MSG);
 
     // choose the nav controller
@@ -358,7 +356,7 @@ static void set_mode(enum FlightMode mode)
         throttle_suppressed = false;
     }
 
-    if (g.log_bitmask & MASK_LOG_MODE)
+    if (should_log(MASK_LOG_MODE))
         Log_Write_Mode(control_mode);
 
     // reset attitude integrators on mode change
@@ -377,11 +375,15 @@ static void check_long_failsafe()
             failsafe_long_on_event(FAILSAFE_LONG);
         } else if (!failsafe.rc_override_active && 
                    failsafe.state == FAILSAFE_SHORT && 
-           (tnow - failsafe.ch3_timer_ms) > g.long_fs_timeout*1000) {
+                   (tnow - failsafe.ch3_timer_ms) > g.long_fs_timeout*1000) {
             failsafe_long_on_event(FAILSAFE_LONG);
-        } else if (g.gcs_heartbeat_fs_enabled && 
-            failsafe.last_heartbeat_ms != 0 &&
-            (tnow - failsafe.last_heartbeat_ms) > g.long_fs_timeout*1000) {
+        } else if (g.gcs_heartbeat_fs_enabled != GCS_FAILSAFE_OFF && 
+                   failsafe.last_heartbeat_ms != 0 &&
+                   (tnow - failsafe.last_heartbeat_ms) > g.long_fs_timeout*1000) {
+            failsafe_long_on_event(FAILSAFE_GCS);
+        } else if (g.gcs_heartbeat_fs_enabled == GCS_FAILSAFE_HB_RSSI && 
+                   failsafe.last_radio_status_remrssi_ms != 0 &&
+                   (tnow - failsafe.last_radio_status_remrssi_ms) > g.long_fs_timeout*1000) {
             failsafe_long_on_event(FAILSAFE_GCS);
         }
     } else {
@@ -601,4 +603,31 @@ static void servo_write(uint8_t ch, uint16_t pwm)
 #endif
     hal.rcout->enable_ch(ch);
     hal.rcout->write(ch, pwm);
+}
+
+/*
+  should we log a message type now?
+ */
+static bool should_log(uint32_t mask)
+{
+    if (!(mask & g.log_bitmask) || in_mavlink_delay) {
+        return false;
+    }
+    bool armed;
+    if (arming.arming_required() == AP_Arming::NO) {
+        // for logging purposes consider us armed if we either don't
+        // have a safety switch, or we have one and it is disarmed
+        armed = (hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_DISARMED);
+    } else {
+        armed = arming.is_armed();
+    }
+    bool ret = armed || (g.log_bitmask & MASK_LOG_WHEN_DISARMED) != 0;
+    if (ret && !DataFlash.logging_started() && !in_log_download) {
+        // we have to set in_mavlink_delay to prevent logging while
+        // writing headers
+        in_mavlink_delay = true;
+        start_logging();
+        in_mavlink_delay = false;
+    }
+    return ret;
 }

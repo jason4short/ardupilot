@@ -2,6 +2,7 @@
 *.bin
 *.d
 *.dll
+*.elf
 *.exe
 *.lst
 *.o
@@ -15,10 +16,12 @@
 .*.swp
 .built
 .context
+.cproject
 .depend
 .directory
 .DS_Store
 .metadata/
+.project
 .settings/
 .vagrant
 /tmp/*

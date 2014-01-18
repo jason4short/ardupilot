@@ -242,14 +242,6 @@ static NOINLINE void send_extended_status1(mavlink_channel_t chan)
 
 }
 
-static void NOINLINE send_meminfo(mavlink_channel_t chan)
-{
-#if CONFIG_HAL_BOARD == HAL_BOARD_APM1 || CONFIG_HAL_BOARD == HAL_BOARD_APM2
-    extern unsigned __brkval;
-    mavlink_msg_meminfo_send(chan, __brkval, memcheck_available_memory());
-#endif
-}
-
 static void NOINLINE send_location(mavlink_channel_t chan)
 {
     uint32_t fix_time;
@@ -631,7 +623,7 @@ static bool mavlink_try_send_message(mavlink_channel_t chan, enum ap_message id)
 
     case MSG_EXTENDED_STATUS2:
         CHECK_PAYLOAD_SIZE(MEMINFO);
-        send_meminfo(chan);
+        gcs[chan-MAVLINK_COMM_0].send_meminfo();
         break;
 
     case MSG_ATTITUDE:
@@ -1259,6 +1251,7 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
                     // run pre_arm_checks and arm_checks and display failures
                     if (arming.arm(AP_Arming::MAVLINK)) {
                         //only log if arming was successful
+                        channel_throttle->enable_out();                        
                         Log_Arm_Disarm();
                         result = MAV_RESULT_ACCEPTED;
                     } else {
@@ -1266,6 +1259,11 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
                     }
                 } else if (packet.param1 == 0.0f)  {
                     if (arming.disarm()) {
+                        if (arming.arming_required() != AP_Arming::YES_ZERO_PWM) {
+                            channel_throttle->disable_out();  
+                        }
+                        // reset the mission on disarm
+                        change_command(0);
                         //only log if disarming was successful
                         Log_Arm_Disarm();
                         result = MAV_RESULT_ACCEPTED;
@@ -1520,6 +1518,10 @@ void GCS_MAVLINK::handleMessage(mavlink_message_t* msg)
 
         // mark the firmware version in the tlog
         send_text_P(SEVERITY_LOW, PSTR(FIRMWARE_STRING));
+
+#if defined(PX4_GIT_VERSION) && defined(NUTTX_GIT_VERSION)
+        send_text_P(SEVERITY_LOW, PSTR("PX4: " PX4_GIT_VERSION " NuttX: " NUTTX_GIT_VERSION));
+#endif
 
         // send system ID if we can
         char sysid[40];
@@ -2158,6 +2160,13 @@ mission_failed:
     {
         mavlink_radio_t packet;
         mavlink_msg_radio_decode(msg, &packet);
+
+        // record if the GCS has been receiving radio messages from
+        // the aircraft
+        if (packet.remrssi != 0) {
+            failsafe.last_radio_status_remrssi_ms = hal.scheduler->millis();
+        }
+
         // use the state of the transmit buffer in the radio to
         // control the stream rate, giving us adaptive software
         // flow control
@@ -2177,7 +2186,17 @@ mission_failed:
         break;
     }
 
-    case MAVLINK_MSG_ID_LOG_REQUEST_LIST ... MAVLINK_MSG_ID_LOG_REQUEST_END:
+    case MAVLINK_MSG_ID_LOG_REQUEST_DATA:
+    case MAVLINK_MSG_ID_LOG_ERASE:
+        in_log_download = true;
+        // fallthru
+    case MAVLINK_MSG_ID_LOG_REQUEST_LIST:
+        if (!in_mavlink_delay) {
+            handle_log_message(msg, DataFlash);
+        }
+        break;
+    case MAVLINK_MSG_ID_LOG_REQUEST_END:
+        in_log_download = false;
         if (!in_mavlink_delay) {
             handle_log_message(msg, DataFlash);
         }
@@ -2208,7 +2227,7 @@ mission_failed:
 static void mavlink_delay_cb()
 {
     static uint32_t last_1hz, last_50hz, last_5s;
-    if (!gcs[0].initialised) return;
+    if (!gcs[0].initialised || in_mavlink_delay) return;
 
     in_mavlink_delay = true;
 

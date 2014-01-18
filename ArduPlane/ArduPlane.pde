@@ -51,7 +51,6 @@
 #include <AP_Relay.h>       // APM relay
 #include <AP_Camera.h>          // Photo or video camera
 #include <AP_Airspeed.h>
-#include <memcheck.h>
 
 #include <APM_OBC.h>
 #include <APM_Control.h>
@@ -153,10 +152,10 @@ static DataFlash_APM1 DataFlash;
 #elif CONFIG_HAL_BOARD == HAL_BOARD_APM2
 static DataFlash_APM2 DataFlash;
 #elif CONFIG_HAL_BOARD == HAL_BOARD_AVR_SITL
-//static DataFlash_File DataFlash("logs");
-static DataFlash_SITL DataFlash;
+static DataFlash_File DataFlash("logs");
+//static DataFlash_SITL DataFlash;
 #elif CONFIG_HAL_BOARD == HAL_BOARD_PX4
-static DataFlash_File DataFlash("/fs/microsd/APM/logs");
+static DataFlash_File DataFlash("/fs/microsd/APM/LOGS");
 #elif CONFIG_HAL_BOARD == HAL_BOARD_LINUX
 static DataFlash_File DataFlash("logs");
 #else
@@ -164,6 +163,9 @@ static DataFlash_File DataFlash("logs");
 DataFlash_Empty DataFlash;
 #endif
 #endif
+
+// has a log download started?
+static bool in_log_download;
 
 // scaled roll limit based on pitch
 static int32_t roll_limit_cd;
@@ -408,6 +410,11 @@ static struct {
 
     // A timer used to track how long we have been in a "short failsafe" condition due to loss of RC signal
     uint32_t ch3_timer_ms;
+
+    uint32_t last_valid_rc_ms;
+
+    // last RADIO status packet
+    uint32_t last_radio_status_remrssi_ms;
 } failsafe;
 
 
@@ -725,8 +732,9 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { set_servos,             1,   1600 },
     { read_control_switch,    7,   1000 },
     { gcs_retry_deferred,     1,   1000 },
-    { update_GPS,             5,   3700 },
-    { navigate,               5,   3000 }, // 10
+    { update_GPS_50Hz,        1,   2500 },
+    { update_GPS_10Hz,        5,   2500 }, // 10
+    { navigate,               5,   3000 },
     { update_compass,         5,   1200 },
     { read_airspeed,          5,   1200 },
     { update_alt,             5,   3400 },
@@ -735,8 +743,8 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { obc_fs_check,           5,   1000 },
     { gcs_update,             1,   1700 },
     { gcs_data_stream_send,   1,   3000 },
-    { update_events,		 15,   1500 },
-    { check_usb_mux,          5,    300 }, // 20
+    { update_events,		 15,   1500 }, // 20
+    { check_usb_mux,          5,    300 },
     { read_battery,           5,   1000 },
     { compass_accumulate,     1,   1500 },
     { barometer_accumulate,   1,    900 },
@@ -745,21 +753,18 @@ static const AP_Scheduler::Task scheduler_tasks[] PROGMEM = {
     { one_second_loop,       50,   1000 },
     { check_long_failsafe,   15,   1000 },
     { read_receiver_rssi,     5,   1000 },
-    { airspeed_ratio_update, 50,   1000 },
-    { update_mount,           1,   1500 }, // 30
+    { airspeed_ratio_update, 50,   1000 }, // 30
+    { update_mount,           1,   1500 },
     { log_perf_info,        500,   1000 },
     { compass_save,        3000,   2500 },
-    { update_logging,         5,   1200 },
+    { update_logging1,        5,   1700 },
+    { update_logging2,        5,   1700 },
 };
 
 // setup the var_info table
 AP_Param param_loader(var_info, WP_START_BYTE);
 
 void setup() {
-    // this needs to be the first call, as it fills memory with
-    // sentinel values
-    memcheck_init();
-
     cliSerial = hal.console;
 
     // load the default values of variables listed in var_info[]
@@ -823,10 +828,10 @@ static void ahrs_update()
 
     ahrs.update();
 
-    if (g.log_bitmask & MASK_LOG_ATTITUDE_FAST)
+    if (should_log(MASK_LOG_ATTITUDE_FAST))
         Log_Write_Attitude();
 
-    if (g.log_bitmask & MASK_LOG_IMU)
+    if (should_log(MASK_LOG_IMU))
         Log_Write_IMU();
 
     // calculate a scaled roll limit based on current pitch
@@ -874,7 +879,7 @@ static void update_compass(void)
     if (g.compass_enabled && compass.read()) {
         ahrs.set_compass(&compass);
         compass.null_offsets();
-        if (g.log_bitmask & MASK_LOG_COMPASS) {
+        if (should_log(MASK_LOG_COMPASS)) {
             Log_Write_Compass();
         }
     } else {
@@ -903,21 +908,27 @@ static void barometer_accumulate(void)
 /*
   do 10Hz logging
  */
-static void update_logging(void)
+static void update_logging1(void)
 {
-    if ((g.log_bitmask & MASK_LOG_ATTITUDE_MED) && !(g.log_bitmask & MASK_LOG_ATTITUDE_FAST))
+    if (should_log(MASK_LOG_ATTITUDE_MED) && !should_log(MASK_LOG_ATTITUDE_FAST))
         Log_Write_Attitude();
 
-    if ((g.log_bitmask & MASK_LOG_ATTITUDE_MED) && !(g.log_bitmask & MASK_LOG_IMU))
+    if (should_log(MASK_LOG_ATTITUDE_MED) && !should_log(MASK_LOG_IMU))
         Log_Write_IMU();
-    
-    if (g.log_bitmask & MASK_LOG_CTUN)
+}
+
+/*
+  do 10Hz logging - part2
+ */
+static void update_logging2(void)
+{
+    if (should_log(MASK_LOG_CTUN))
         Log_Write_Control_Tuning();
     
-    if (g.log_bitmask & MASK_LOG_NTUN)
+    if (should_log(MASK_LOG_NTUN))
         Log_Write_Nav_Tuning();
 
-    if (g.log_bitmask & MASK_LOG_RC)
+    if (should_log(MASK_LOG_RC))
         Log_Write_RC();
 }
 
@@ -960,7 +971,7 @@ static void update_aux(void)
 
 static void one_second_loop()
 {
-    if (g.log_bitmask & MASK_LOG_CURRENT)
+    if (should_log(MASK_LOG_CURRENT))
         Log_Write_Current();
 
     // send a heartbeat
@@ -983,7 +994,7 @@ static void log_perf_info()
     if (scheduler.debug() != 0) {
         hal.console->printf_P(PSTR("G_Dt_max=%lu\n"), (unsigned long)G_Dt_max);
     }
-    if (g.log_bitmask & MASK_LOG_PM)
+    if (should_log(MASK_LOG_PM))
         Log_Write_Performance();
     G_Dt_max = 0;
     resetPerfData();
@@ -1003,9 +1014,16 @@ static void airspeed_ratio_update(void)
 {
     if (!airspeed.enabled() ||
         g_gps->status() < GPS::GPS_OK_FIX_3D ||
-        g_gps->ground_speed_cm < 400 ||
-        airspeed.get_airspeed() < aparm.airspeed_min) {
+        g_gps->ground_speed_cm < 400) {
         // don't calibrate when not moving
+        return;        
+    }
+    if (airspeed.get_airspeed() < aparm.airspeed_min && 
+        g_gps->ground_speed_cm < (uint32_t)aparm.airspeed_min*100) {
+        // don't calibrate when flying below the minimum airspeed. We
+        // check both airspeed and ground speed to catch cases where
+        // the airspeed ratio is way too low, which could lead to it
+        // never coming up again
         return;
     }
     if (abs(ahrs.roll_sensor) > roll_limit_cd ||
@@ -1023,18 +1041,23 @@ static void airspeed_ratio_update(void)
 /*
   read the GPS and update position
  */
-static void update_GPS(void)
+static void update_GPS_50Hz(void)
 {
     static uint32_t last_gps_reading;
     g_gps->update();
-
     if (g_gps->last_message_time_ms() != last_gps_reading) {
         last_gps_reading = g_gps->last_message_time_ms();
-        if (g.log_bitmask & MASK_LOG_GPS) {
+        if (should_log(MASK_LOG_GPS)) {
             Log_Write_GPS();
         }
     }
+}
 
+/*
+  read update GPS position - 10Hz update
+ */
+static void update_GPS_10Hz(void)
+{
     // get position from AHRS
     have_position = ahrs.get_projected_position(current_loc);
 
@@ -1389,7 +1412,7 @@ static void update_alt()
                                                  takeoff_pitch_cd,
                                                  throttle_nudge,
                                                  relative_altitude());
-        if (g.log_bitmask & MASK_LOG_TECS) {
+        if (should_log(MASK_LOG_TECS)) {
             Log_Write_TECS_Tuning();
         }
     }

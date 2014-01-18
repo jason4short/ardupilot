@@ -26,6 +26,16 @@ enum failsafe_state {
 };
 
 
+// GCS failsafe types for FS_GCS_ENABL parameter
+enum gcs_failsafe {
+    GCS_FAILSAFE_OFF        = 0, // no GCS failsafe
+    GCS_FAILSAFE_HEARTBEAT  = 1, // failsafe if we stop receiving heartbeat
+    GCS_FAILSAFE_HB_RSSI    = 2  // failsafe if we stop receiving
+                                 // heartbeat or if RADIO.remrssi
+                                 // drops to 0
+};
+
+
 // active altitude sensor
 // ----------------------
 #define SONAR 0
@@ -152,6 +162,7 @@ enum log_messages {
 #define MASK_LOG_RC                     (1<<13)
 #define MASK_LOG_SONAR                  (1<<14)
 #define MASK_LOG_ARM_DISARM             (1<<15)
+#define MASK_LOG_WHEN_DISARMED          (1UL<<30)
 
 // Waypoint Modes
 // ----------------

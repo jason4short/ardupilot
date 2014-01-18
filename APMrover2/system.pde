@@ -96,7 +96,7 @@ static void init_ardupilot()
 
 	cliSerial->printf_P(PSTR("\n\nInit " FIRMWARE_STRING
 						 "\n\nFree RAM: %u\n"),
-                    memcheck_available_memory());
+                        hal.util->available_memory());
                     
 	//
 	// Check the EEPROM format version before loading any parameters from EEPROM.
@@ -115,10 +115,6 @@ static void init_ardupilot()
 
 	// init the GCS
 	gcs[0].init(hal.uartA);
-
-    // Register mavlink_delay_cb, which will run anytime you have
-    // more than 5ms remaining in your call to hal.scheduler->delay
-    hal.scheduler->register_delay_callback(mavlink_delay_cb, 5);
 
     // we start by assuming USB connected, as we initialed the serial
     // port with SERIAL0_BAUD. check_usb_mux() fixes this if need be.    
@@ -153,6 +149,10 @@ static void init_ardupilot()
 	}
 #endif
 
+    // Register mavlink_delay_cb, which will run anytime you have
+    // more than 5ms remaining in your call to hal.scheduler->delay
+    hal.scheduler->register_delay_callback(mavlink_delay_cb, 5);
+
 #if CONFIG_HAL_BOARD == HAL_BOARD_APM1
     adc.Init();      // APM ADC library initialization
 #endif
@@ -173,7 +173,7 @@ static void init_ardupilot()
 	// Do GPS init
 	g_gps = &g_gps_driver;
     // GPS initialisation
-	g_gps->init(hal.uartB, GPS::GPS_ENGINE_AUTOMOTIVE);
+	g_gps->init(hal.uartB, GPS::GPS_ENGINE_AIRBORNE_4G);
 
 	//mavlink_system.sysid = MAV_SYSTEM_ID;				// Using g.sysid_this_mav
 	mavlink_system.compid = 1;	//MAV_COMP_ID_IMU;   // We do not check for comp id
@@ -512,4 +512,26 @@ static void servo_write(uint8_t ch, uint16_t pwm)
     hal.rcout->enable_ch(ch);
     hal.rcout->write(ch, pwm);
 #endif
+}
+
+/*
+  should we log a message type now?
+ */
+static bool should_log(uint32_t mask)
+{
+    if (!(mask & g.log_bitmask) || in_mavlink_delay) {
+        return false;
+    }
+    bool armed;
+    armed = (hal.util->safety_switch_state() != AP_HAL::Util::SAFETY_DISARMED);
+
+    bool ret = armed || (g.log_bitmask & MASK_LOG_WHEN_DISARMED) != 0;
+    if (ret && !DataFlash.logging_started() && !in_log_download) {
+        // we have to set in_mavlink_delay to prevent logging while
+        // writing headers
+        in_mavlink_delay = true;
+        start_logging();
+        in_mavlink_delay = false;
+    }
+    return ret;
 }
