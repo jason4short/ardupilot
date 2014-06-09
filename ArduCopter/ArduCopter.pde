@@ -1036,6 +1036,11 @@ static void update_mount()
 #if CAMERA == ENABLED
     camera.trigger_pic_cleanup();
 #endif
+
+#if GIMBAL == ENABLED
+    update_gimbal_control();
+#endif
+
 }
 
 // update_batt_compass - read battery and compass
