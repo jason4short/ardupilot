@@ -213,6 +213,10 @@ static void exit_mode(uint8_t old_control_mode, uint8_t new_control_mode)
         if (mission.state() == AP_Mission::MISSION_RUNNING) {
             mission.stop();
         }
+        set_auto_yaw_mode(get_default_auto_yaw_mode(false));
+        #if MOUNT == ENABLED
+        camera_mount.set_mode_to_default();
+        #endif  // MOUNT == ENABLED
     }
 
     // smooth throttle transition when switching from manual to automatic flight modes
