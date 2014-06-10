@@ -32,8 +32,8 @@ output_gimbal_pwm()
     float deltaY = position.y - roi_WP.y;
     float deltaZ = position.z - roi_WP.z;
     
-	float wp_distance = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
-	float angle_out = fast_atan2(wp_distance, deltaZ);
+	float wp_distance   = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
+	float angle_out     = fast_atan2(wp_distance, deltaZ);
 	
 	angle_out = constrain_float(angle_out, .01, 1.571); // 0 to 90
     RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, RadiansToCentiDegrees(angle_out), 0, 9000);
