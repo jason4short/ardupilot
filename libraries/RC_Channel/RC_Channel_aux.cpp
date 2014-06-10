@@ -86,6 +86,10 @@ void RC_Channel_aux::update_aux_servo_function(void)
 		case RC_Channel_aux::k_egg_drop:
 			_aux_channels[i]->set_range(0,100);
 			break;
+		case RC_Channel_aux::k_gimbal_tilt:
+			_aux_channels[i]->set_range(0,9000);
+			//_aux_channels[i]->set_angle(9000);
+		    break;
 		case RC_Channel_aux::k_aileron:
 		case RC_Channel_aux::k_aileron_with_input:
 		case RC_Channel_aux::k_elevator:

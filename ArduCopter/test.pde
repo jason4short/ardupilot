@@ -11,6 +11,9 @@ static int8_t   test_compass(uint8_t argc,              const Menu::arg *argv);
 static int8_t   test_ins(uint8_t argc,                  const Menu::arg *argv);
 static int8_t   test_optflow(uint8_t argc,              const Menu::arg *argv);
 static int8_t   test_relay(uint8_t argc,                const Menu::arg *argv);
+#if GIMBAL == ENABLED
+static int8_t   test_gimbal(uint8_t argc,                const Menu::arg *argv);
+#endif
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
 #endif
@@ -30,6 +33,9 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"ins",                 test_ins},
     {"optflow",             test_optflow},
     {"relay",               test_relay},
+#if GIMBAL == ENABLED
+    {"gimbal",              test_gimbal},
+#endif
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     {"shell", 				test_shell},
 #endif
@@ -245,6 +251,22 @@ static int8_t test_relay(uint8_t argc, const Menu::arg *argv)
         }
     }
 }
+
+#if GIMBAL == ENABLED
+static int8_t test_gimbal(uint8_t argc, const Menu::arg *argv)
+{
+
+    int16_t angle_out = argv[1].i;
+       
+    RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, angle_out, 0, 9000);
+    //RC_Channel_aux::set_servo_out(RC_Channel_aux::k_gimbal_tilt, angle_out);
+
+    cliSerial->printf_P(PSTR("\nGimbal!, %d\n"), angle_out);
+    return (0);
+}
+#endif
+
+
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 /*
