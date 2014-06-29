@@ -1,15 +1,21 @@
 static void init_balance()
 {
+    // wheel ratio is used to convert ticks into 1000 t/s for 1 wheel rotation
 	wheel_ratio 		= 1000.0 / (float)g.wheel_encoder_speed;
+    
+    // for use without GPS unit.
     g_gps->longitude 	= 0;
     g_gps->latitude 	= 0;
     I2Cfail 			= 0;
 	_i2c_sem = hal.i2c->get_semaphore();
+	
     if (!_i2c_sem->take(HAL_SEMAPHORE_BLOCK_FOREVER)) {
         hal.scheduler->panic(PSTR("Failed to get Encoder semaphore"));
     }
+    
    _i2c_sem->give();
 
+    // we will not spin the wheels
 	set_armed(false);
 
     // init Yaw hold
@@ -64,33 +70,47 @@ static bool update_wheel_encoders()
 	memcpy(bytes_union.bytes, &buff[7], 2);
 	wheel.right_speed = bytes_union.int_value * WHEEL_ENCODER_DIR_RIGHT;
 
-	// convert wheel.speed to 1rps = 1000
-	int16_t tmp 	= ((float)(wheel.left_speed + wheel.right_speed) * wheel_ratio);
+	// convert wheel.speed to 1 rotation per second = 1000 ticks
+	float tmp 	= ((float)(wheel.left_speed + wheel.right_speed) * wheel_ratio);
 
 	// divide tmp speeds by number of wheels
-	tmp 		 	= tmp >> 1;
+	tmp /= 2;
 
 	// small averaging
-	wheel.speed 	= (wheel.speed + tmp) >> 1;
+	// Wheel speed is in 1000 ticks per rotation
+	wheel.speed 	= (wheel.speed + tmp) /2;
+	//cliSerial->printf_P("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left_distance, wheel.right_distance, wheel.left_speed, wheel.right_speed);
 
 	// convert to CM/s
 	ground_speed 	= convert_encoder_speed_to_velocity(wheel.speed);
 	encoder_nav.set_velocity(sin_yaw * ground_speed, cos_yaw * ground_speed);
+	
+	// sum distnace traveled
+	// can be reset by nav code, used for obstacle avoidance
+	distance += fabs(ground_speed) * .02;
+	
+	
 	return true;
-	//cliSerial->printf_P("left: %ld, right: %ld, lsp: %d, rsp: %d\n", wheel.left, wheel.right, wheel.left_speed, wheel.right_speed);
 }
 
 // ------------------
 
-static float convert_velocity_to_encoder_speed(float _velocity)
+
+static float convert_velocity_to_encoder_speed(float _wheel_velocity)
 {
-	return (_velocity * 1000.0 ) / g.wheel_diameter;
+	return (_wheel_velocity * 1000.0 ) / g.wheel_diameter;
 }
 
 static float convert_encoder_speed_to_velocity(float encoder_speed)
 {
 	return (encoder_speed * g.wheel_diameter) / 1000.0;
+	//1 RPS = 307.87
+	
+	//return (1000 * 31.11) / 1000.0;
+
 }
+
+//
 
 // ------------------
 
