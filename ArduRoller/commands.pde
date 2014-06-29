@@ -10,7 +10,7 @@ static void init_commands()
     command_nav_queue.id    = NO_COMMAND;
 
     // avoidance
-    obstacle_counter = 0;
+    reset_stall_checker();
 }
 
 // Getters
