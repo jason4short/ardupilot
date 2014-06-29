@@ -32,8 +32,8 @@ static void run_nav_updates(void)
 
 	// only check if we have not reached so we don't "un-reach"
 	if(_reached_destination == false){
-		//_reached_destination = (wp_distance < g.waypoint_radius);
-		_reached_destination = (wp_distance < 20); // hardcoded 20 cm because I don't trust the planner not to ruin this
+	    // check we're not orbiting    
+		_reached_destination = (wp_distance < g.waypoint_radius) || check_missed_wp();
 	}
 
     //cliSerial->printf("y:%d, lat %ld, lon %ld", (int16_t)(ahrs.yaw_sensor / 100), current_loc.lat, current_loc.lng);
@@ -87,7 +87,8 @@ static void calc_pitch_out(float speed)
     int16_t vel_out = 0;
     int16_t nav_right_out = 0;
     int16_t nav_left_out = 0;
-    int16_t wheel_speed_error, ff_out;
+    float wheel_speed_error;
+    int16_t ff_out;
 
 	// switch units to encoder ticks
 	desired_ticks   = convert_velocity_to_encoder_speed(speed);
@@ -97,23 +98,24 @@ static void calc_pitch_out(float speed)
 	//                     1000       - 1500 		= -500 too low
 
 	// 4 components of stability and navigation
-	bal_out         = get_stabilize_pitch(0);                           // hold as vertical as possible
-	vel_out         = get_velocity_pitch();                             // magic
-	ff_out          = (float)desired_ticks * g.throttle;                // allows us to roll while vertical, Use LUT here?
+	bal_out  = get_stabilize_pitch(0);           // hold as vertical as possible
+	vel_out  = get_velocity_pitch();             // wheel.speed * 1.0
+	ff_out   = (-desired_ticks) * g.throttle;    // desired_ticks * 1.0 
 
 	if(ap.position_hold){
 		g.pid_nav_right.reset_I();
 		g.pid_nav_left.reset_I();
 		nav_right_out = 0;
 		nav_left_out = 0;
+		
 	}else{
 		nav_right_out = g.pid_nav_right.get_i(wheel_speed_error, G_Dt);
 		nav_left_out  = g.pid_nav_left.get_i(wheel_speed_error, G_Dt);
 	}
 
 	// sum the output
-	pitch_out_right = (bal_out + vel_out + nav_right_out - ff_out);
-	pitch_out_left  = (bal_out + vel_out + nav_left_out  - ff_out);
+	pitch_out_right = bal_out + vel_out + nav_right_out + ff_out;
+	pitch_out_left  = bal_out + vel_out + nav_left_out  + ff_out;
 }
 
 // speed 0, s 81	acc 0, s 0
@@ -121,6 +123,7 @@ static void calc_pitch_out(float speed)
 float limit_acceleration(float _speed, float acc)
 {
 	static float _speed_old = 0;
+	
 	// scale speed by delta time
 	acc *= G_Dt;
 
@@ -140,6 +143,17 @@ float limit_acceleration(float _speed, float acc)
     //int16_t speed_limit = g.waypoint_speed;
     //return constrain(_speed, -speed_limit, speed_limit);            // units = cm/s
 
+
+
+static bool check_missed_wp()
+{
+    int32_t temp;
+    temp = wp_bearing - original_wp_bearing;
+    temp = wrap_180_cd(temp);
+    return (labs(temp) > 7500);         // we passed the waypoint by a certain angle in deg * 100
+}
+
+
 static float
 get_desired_wp_speed()
 {
@@ -149,13 +163,14 @@ get_desired_wp_speed()
         derives to:
         V1 = sqrt(sq(V2) - 2*A*(X2-X1))
      */
+     
 	float _speed;
 
 	if(wp_distance < 4000){ // limit the size of numbers we're dealing with to avoid overflow
 		// go slower
 		float temp 	= 200.0 * (float)(wp_distance - g.waypoint_radius);
 		temp += (WAYPOINT_SPEED_MIN * WAYPOINT_SPEED_MIN);
-		if( temp < 0 ) temp = 0;                // check to ensure we don't try to take the sqrt of a negative number
+		if( temp < 0    ) temp = 0;                // check to ensure we don't try to take the sqrt of a negative number
 		_speed = sqrt(temp);
 		// limit to max velocity
 		_speed = min(_speed, g.waypoint_speed);
@@ -163,6 +178,7 @@ get_desired_wp_speed()
 	}else{
 		_speed = g.waypoint_speed;
 	}
+
 	return limit_acceleration(_speed, 60.0);
 }
 
@@ -269,11 +285,16 @@ static int32_t avoid_obstacle(int32_t _bearing)
 
 
 
+static void
+reset_stall_checker()
+{
+    obstacle_counter = 0;
+}
 
 static void
 check_stall()
 {
-	if(abs(wheel.speed) < 10){
+	if(abs(wheel.speed) < 40){
 		obstacle_counter++;
 	}
 
@@ -282,7 +303,8 @@ check_stall()
 		obstacle_counter = 0;
 	}
 
-	if(obstacle_counter > 800){
+	if(obstacle_counter > 300){ // 3 seconds
+	    distance = 0;
 		obstacle_counter = 0;
 		nav_mode = NAV_AVOID_BACK;
 	}
