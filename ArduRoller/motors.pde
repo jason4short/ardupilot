@@ -73,8 +73,6 @@ update_servos()
 		hal.rcout->write(CH_2, abs(motor_out[RIGHT_MOT_CH])); // right motor
 	}
 
-	hal.rcout->write(CH_3, 1500); // balance servo
-
     dir_left 	= (motor_out[LEFT_MOT_CH]  < 0) ? LOW : HIGH;	// reverse : forward
     dir_right 	= (motor_out[RIGHT_MOT_CH] < 0) ? HIGH : LOW;	// reverse : forward
     hal.gpio->write(LEFT_DIR, dir_left);
