@@ -600,7 +600,7 @@ static int16_t pitch_out_left;
 static int16_t yaw_out;
 
 static float desired_speed;
-static int16_t desired_ticks;
+static float desired_ticks;
 
 static float wheel_ratio;
 static float current_speed;
@@ -609,6 +609,9 @@ static float current_encoder_x;
 static uint32_t balance_timer;
 
 static uint16_t obstacle_counter = 0;
+
+// used for simple distance calcs
+static float distance;
 
 //static bool gps_available;
 
@@ -636,7 +639,7 @@ static struct {
 	int16_t right_speed;
     int16_t left_speed_output;
     int16_t right_speed_output;
-	int16_t speed;
+	float speed;
 } wheel;
 
 // I2C Receive buffer
@@ -827,6 +830,7 @@ void loop()
 
         // tell the scheduler one tick has passed
         scheduler.tick();
+        
     } else {
         uint16_t dt = timer - fast_loopTimer;
         if (dt < 10000) {
@@ -976,10 +980,10 @@ static void fifty_hz_loop()
         encoder_nav_update();
     }
 
-#if MOUNT == ENABLED
+    #if MOUNT == ENABLED
     // update camera mount's position
     camera_mount.update_mount_position();
-#endif
+    #endif
 
     #if MOUNT2 == ENABLED
     // update camera mount's position
@@ -1033,20 +1037,20 @@ static void slow_loop()
     case 1:
         slow_loopCounter++;
 
-#if CONFIG_HAL_BOARD == HAL_BOARD_PX4
+        #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
         update_aux_servo_function(&g.rc_5, &g.rc_6, &g.rc_7, &g.rc_8, &g.rc_9, &g.rc_10, &g.rc_11, &g.rc_12);
-#elif MOUNT == ENABLED
+        #elif MOUNT == ENABLED
         update_aux_servo_function(&g.rc_5, &g.rc_6, &g.rc_7, &g.rc_8, &g.rc_10, &g.rc_11);
-#endif
+        #endif
         enable_aux_servos();
 
-#if MOUNT == ENABLED
+        #if MOUNT == ENABLED
         camera_mount.update_mount_type();
-#endif
+        #endif
 
-#if MOUNT2 == ENABLED
+        #if MOUNT2 == ENABLED
         camera_mount2.update_mount_type();
-#endif
+        #endif
 
         break;
 
@@ -1060,9 +1064,9 @@ static void slow_loop()
         if(g.radio_tuning > 0)
             tuning();
 
-#if USB_MUX_PIN > 0
+        #if USB_MUX_PIN > 0
         check_usb_mux();
-#endif
+        #endif
         break;
 
     default:
@@ -1108,21 +1112,33 @@ static void update_GPS(void)
 // 100hz update rate
 void update_yaw_mode(void)
 {
-    static bool yaw_flag = false;
+    static int8_t yaw_counter = 0;
+    static int32_t target_yaw = 0;
 
     switch(yaw_mode){
         case YAW_ACRO:
-            yaw_out = g.rc_1.control_in;
+            yaw_out = g.rc_1.control_in / 2;
+            target_yaw = ahrs.yaw_sensor;
             break;
 
         case YAW_HOLD:
+            target_yaw = ahrs.yaw_sensor;
             if(g.rc_1.control_in != 0){
+                // manual control
                 yaw_out   = g.rc_1.control_in;
-                yaw_flag    = true;
+                yaw_counter    = 100; // one second
             }else{
-                if(yaw_flag){
-                    yaw_flag    = false;
-                    nav_yaw     = ahrs.yaw_sensor;
+                // Hold Yaw
+                if(yaw_counter > 0){
+                    // timer is used to decelerate yaw.
+                    yaw_counter--;
+                    
+                    // Reset Yaw to current angle
+                    if(yaw_counter == 0){
+                        nav_yaw     = ahrs.yaw_sensor;
+                    }
+                    yaw_out   = 0;
+                    
                 }else{
                     //yaw_out   = get_stabilize_yaw(avoid_obstacle(nav_yaw));
                     yaw_out   = get_stabilize_yaw(nav_yaw);
@@ -1130,21 +1146,24 @@ void update_yaw_mode(void)
             }
             break;
 
-        case YAW_LOOK_AT_NEXT_WP:
+        case YAW_LOOK_AT_NEXT_WP:            
             if(nav_mode == NAV_AVOID_TURN){
                 // set hold to 90° to
                 nav_yaw = wrap_360_cd(wp_bearing + 9000);
+                target_yaw = get_yaw_slew(target_yaw, nav_yaw, AUTO_YAW_SLEW_RATE+80);
+                yaw_out = get_stabilize_yaw(target_yaw);
             }else{
                 if(g.sonar_enabled){
                     nav_yaw = avoid_obstacle(wp_bearing);
                 }else{
                     nav_yaw = wp_bearing;
+        
+                    // calc crosstrack
+                    nav_yaw = get_crosstrack(nav_yaw);
                 }
 
-                // calc crosstrack
-                nav_yaw = get_crosstrack(nav_yaw);
-
-                yaw_out = get_stabilize_yaw(nav_yaw);
+                target_yaw = get_yaw_slew(target_yaw, nav_yaw, AUTO_YAW_SLEW_RATE);
+                yaw_out = get_stabilize_yaw(target_yaw);
                 break;
             }
     }
@@ -1154,8 +1173,6 @@ void update_yaw_mode(void)
 // 100hz update rate
 void update_roll_pitch_mode(void)
 {
-    static int16_t stall_timer = 0;
-
     switch(roll_pitch_mode){
         case ROLL_PITCH_STABLE:
             // we always hold position
@@ -1188,12 +1205,11 @@ void update_roll_pitch_mode(void)
                 desired_speed = limit_acceleration(get_loiter_speed(), 60.0); // cm/s;
             } else{
                 ap.position_hold = false;
-                // calc speed of bot
-                desired_speed   = -g.rc_2.control_in / g.fbw_speed;             // units = cm/s
+                // calc speed of bot                
+                desired_speed = ((float)g.rc_2.control_in / (float)MAX_INPUT_PITCH_ANGLE) * -g.waypoint_speed;
 				// limit speed
 				desired_speed   = limit_acceleration(desired_speed, 200.0); // cm/s
             }
-            //cliSerial->printf("%1.4f\n", desired_speed);
             calc_pitch_out(desired_speed);
             break;
 
@@ -1201,33 +1217,29 @@ void update_roll_pitch_mode(void)
             // calc speed of bot
             if(nav_mode == NAV_WP){
                 desired_speed  = get_desired_wp_speed();
+				desired_speed   = limit_acceleration(desired_speed, 200.0); // cm/s
                 ap.position_hold = false;
                 //are we stuck?
-                stall_timer = 0;
                 check_stall();
 
             }else if (nav_mode == NAV_LOITER){
                 desired_speed = limit_acceleration(get_loiter_speed(), 60.0); // cm/s;
                 ap.position_hold = true;
-                stall_timer = 0;
-                obstacle_counter = 0;
+                reset_stall_checker();
 
             }else if (nav_mode == NAV_AVOID_BACK){
+                desired_speed = limit_acceleration(-100, 200.0); // cm/s;
                 // clear obstacle counter
-                obstacle_counter = 0;
-                desired_speed = -40;
-                stall_timer++;
-                if(stall_timer > 400){ // 3 sec
-                    stall_timer = 0;
+                reset_stall_checker();
+                if(distance > 100){ //roll back 1 meter
                     nav_mode = NAV_AVOID_TURN;
+                    distance = 0;
                 }
 
             }else if (nav_mode == NAV_AVOID_TURN){
-                desired_speed = limit_acceleration(loiter_distance, 60.0); // cm/s;
-                stall_timer++;
-                obstacle_counter = 0;
-                if(stall_timer > 300){
-                    stall_timer = 0;
+                desired_speed = limit_acceleration(100, 200.0); // cm/s;
+                reset_stall_checker();
+                if(distance > 100){
                     nav_mode = NAV_WP;
                 }
             }
