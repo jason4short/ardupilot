@@ -1,16 +1,5 @@
 /// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: nil -*-
 
-#define K1 .32
-#define K2 2.5
-#define K3 .5
-#define K4 1.1
-
-//static int16_t
-//get_stabilize_roll(int32_t target_angle)
-//{
-//	return 0;
-//}
-
 static bool
 check_attitude()
 {
@@ -35,14 +24,15 @@ check_attitude()
         return false;
     }
 
-	//no output until we have been upright for 3 seconds
-    if((_time - balance_timer) < 3000){
+	//no output until we have been upright for 2 seconds
+    if((_time - balance_timer) < 2000){
         pitch_out_right = 0;
-        pitch_out_left = 0;
-        yaw_out   = 0;
+        pitch_out_left  = 0;
+        yaw_out         = 0;
         // reset nav_yaw to be whatever
         nav_yaw = ahrs.yaw_sensor;
         return false;
+
     }else{
 	    if(!ap.armed){
 	        set_destination(encoder_nav.get_position());
@@ -56,33 +46,29 @@ check_attitude()
 static int16_t
 get_stabilize_pitch(int32_t target_angle)
 {
-    int16_t torque;
     int32_t angle_error = wrap_180_cd(target_angle - (ahrs.pitch_sensor + balance_offset));  //balance_offset
 
     // dynamically adjust the CG when we are supposed to be at vertical
     if(target_angle == 0){
         balance_offset = g.pid_balance.get_i(angle_error, G_Dt);
     }
+    
     int32_t rate_error  = 0 - (omega.y * DEGX100);
 
     int16_t bal_P = g.pid_balance.kP() * (float)angle_error;
-    //int16_t bal_P = g.pid_balance.get_p(angle_error);
     int16_t bal_D = g.pid_balance.kD() * (float)rate_error;
-    //int16_t bal_D = g.pid_balance.get_d(angle_error, G_Dt);
-
-    torque = bal_P + bal_D;
 
     //cliSerial->printf_P(PSTR("a:%d, P:%d, D:%d\n"), (int16_t)ahrs.pitch_sensor, bal_P, bal_D);
    // cliSerial->printf_P(PSTR("a:%d\te:%d\n"), (int16_t)ahrs.pitch_sensor, angle_error);
 
-    return torque;
+    return bal_P + bal_D;
 }
 
 static int16_t
 get_velocity_pitch()
 {
     //cliSerial->printf_P(PSTR("ws:%d, se:%d\n"), wheel.speed, speed_error);
-    return g.p_vel * (float)wheel.speed; /// 1.8
+    return g.p_vel * wheel.speed; /// 1.0 * 1000;
 }
 
 static int16_t
@@ -95,7 +81,6 @@ get_stabilize_yaw(int32_t target_angle)
 
     // limit the error we're feeding to the PID
     angle_error         = constrain(angle_error, -1500, 1500);
-    //int16_t output      = (float)g.pid_yaw.get_pid(angle_error, G_Dt) / wheel_ratio;
     int16_t output      = (float)g.pid_yaw.get_pid(angle_error, G_Dt) / wheel_ratio;
     return output;
 }
