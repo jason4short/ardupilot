@@ -562,7 +562,7 @@
 #endif
 
 #ifndef WAYPOINT_SPEED_MIN
- # define WAYPOINT_SPEED_MIN        20          // 20cm/s
+ # define WAYPOINT_SPEED_MIN        80          // 20cm/s
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -599,7 +599,7 @@
 #endif
 
 #ifndef AUTO_YAW_SLEW_RATE
- # define AUTO_YAW_SLEW_RATE        60                     // degrees/sec
+ # define AUTO_YAW_SLEW_RATE        80                     // degrees/sec
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
