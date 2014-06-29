@@ -284,7 +284,7 @@ static void set_mode(uint8_t mode)
 	set_destination(encoder_nav.get_position());
 
 	// obstacle avoidance
-	obstacle_counter = 0;
+	reset_stall_checker();
 
     switch(control_mode)
     {
