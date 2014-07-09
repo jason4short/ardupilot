@@ -168,7 +168,7 @@ get_desired_wp_speed()
 
 	if(wp_distance < 4000){ // limit the size of numbers we're dealing with to avoid overflow
 		// go slower
-		float temp 	= 200.0 * (float)(wp_distance - g.waypoint_radius);
+		float temp 	= 2 * 100.0 * (wp_distance - g.waypoint_radius);
 		temp += (WAYPOINT_SPEED_MIN * WAYPOINT_SPEED_MIN);
 		if( temp < 0    ) temp = 0;                // check to ensure we don't try to take the sqrt of a negative number
 		_speed = sqrt(temp);
