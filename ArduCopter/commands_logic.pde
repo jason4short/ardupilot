@@ -818,6 +818,7 @@ static void do_roi(const AP_Mission::Mission_Command& cmd)
     if (auto_yaw_mode == AUTO_YAW_ROI && (cmd.content.location.alt == 0 && cmd.content.location.lat == 0 && cmd.content.location.lng == 0)) {
         // set auto yaw mode back to default assuming the active command is a waypoint command.  A more sophisticated method is required to ensure we return to the proper yaw control for the active command
         set_auto_yaw_mode(get_default_auto_yaw_mode(false));
+        gimbal_mode = GIMBAL_MANUAL;
 #if MOUNT == ENABLED
         // switch off the camera tracking if enabled
         if (camera_mount.get_mode() == MAV_MOUNT_MODE_GPS_POINT) {
@@ -841,6 +842,7 @@ static void do_roi(const AP_Mission::Mission_Command& cmd)
         //		3: point at a location given by alt, lon, lat parameters
         //		4: point at a target given a target id (can't be implemented)
 #else
+        gimbal_mode = GIMBAL_TILT_ROI;
         // if we have no camera mount aim the quad at the location
         roi_WP = pv_location_to_vector(cmd.content.location);
         set_auto_yaw_mode(AUTO_YAW_ROI);

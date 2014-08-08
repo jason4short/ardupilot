@@ -707,6 +707,11 @@ static AP_Mount camera_mount(&current_loc, ahrs, 0);
 static AP_Mount camera_mount2(&current_loc, ahrs, 1);
 #endif
 
+int8_t gimbal_mode = GIMBAL_MANUAL;
+#if GIMBAL == ENABLED
+    float gimbal_angle;
+#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 // AC_Fence library to reduce fly-aways
 ////////////////////////////////////////////////////////////////////////////////

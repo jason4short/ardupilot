@@ -64,6 +64,10 @@
 #define AUX_SWITCH_MIDDLE           1       // indicates auxiliar switch is in the middle position (pwm >1200, <1800)
 #define AUX_SWITCH_HIGH             2       // indicates auxiliar switch is in the high position (pwm >1800)
 
+#define GIMBAL_MANUAL 0
+#define GIMBAL_TILT_ROI 1
+
+
 // Frame types
 #define UNDEFINED_FRAME 0
 #define QUAD_FRAME 1

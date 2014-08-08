@@ -3,22 +3,16 @@
 static void
 update_gimbal_control()
 {
-    if (manual_flight_mode(control_mode)) {
-        // we're in manual
-        if(g.radio_tuning == 0){
-            int16_t angle_out = g.rc_6.control_in * 9 ;
-            angle_out = constrain_int16(angle_out, 20, 9000);
-            
-            RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, angle_out, 0, 9000);
-            //RC_Channel_aux::set_servo_out(RC_Channel_aux::k_gimbal_tilt, angle_out);            
-        }else{
-            // do nothing
-        }
+    if(gimbal_mode == GIMBAL_TILT_ROI){
+        output_gimbal_pwm();
         
     }else{
-        // we're in an AP mode
-        if(auto_yaw_mode == AUTO_YAW_ROI){
-            output_gimbal_pwm();
+        //gimbal_mode == GIMBAL_MANUAL 
+        if(g.radio_tuning == 0){
+            gimbal_angle = constrain_int16((g.rc_6.control_in * 9), 20, 9000);
+            RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, gimbal_angle, 0, 9000);
+            //RC_Channel_aux::set_servo_out(RC_Channel_aux::k_gimbal_tilt, angle_out);            
+            //cliSerial->printf_P(PSTR("IN: 6: %d\t    PWMOut 9: %d\t RadioOut 9: %d\t   angle out: %1.1f\n"), g.rc_6.radio_in, g.rc_9.pwm_out, g.rc_9.radio_out, gimbal_angle);
         }
     }
 }
@@ -33,11 +27,36 @@ output_gimbal_pwm()
     float deltaZ = position.z - roi_WP.z;
     
 	float wp_distance   = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
-	float angle_out     = fast_atan2(wp_distance, deltaZ);
+	gimbal_angle        = fast_atan2(wp_distance, deltaZ);
 	
-	angle_out = constrain_float(angle_out, .01, 1.571); // 0 to 90
-    RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, RadiansToCentiDegrees(angle_out), 0, 9000);
-    //RC_Channel_aux::set_servo_out(RC_Channel_aux::k_gimbal_tilt, RadiansToCentiDegrees(angle_out));
+	gimbal_angle = constrain_float(gimbal_angle, .01, 1.571); // 0 to 90
+    RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, RadiansToCentiDegrees(gimbal_angle), 0, 9000);
+    //RC_Channel_aux::set_servo_out(RC_Channel_aux::k_gimbal_tilt, RadiansToCentiDegrees(gimbal_angle));
 }
+
+
+
+static void calc_roi_from_gimbal()
+{
+    
+	Vector3f position = inertial_nav.get_position();
+	float _gimbal_angle = constrain_float(gimbal_angle, 500, 8000);
+
+    // calc distance
+    float distance = 1/ tan(_gimbal_angle) * position.z;
+    
+    // rotate distance to world frame
+    //Lat N/S:
+    roi_WP.x = position.x + (ahrs.cos_yaw() * distance);
+    //lon E/W
+    roi_WP.y = position.y + (ahrs.sin_yaw() * distance);
+    
+    // defaulting to 2m heigh (a person's face)
+    roi_WP.z = 0;
+    
+    //cliSerial->printf_P(PSTR("ROI: an:%1.3f, yaw:%1.2f, sin:%1.3f, cos:%1.3f, dis:%1.3f, x:%1.3f, y:%1.3f\n"), _gimbal_angle, (float)ahrs.yaw_sensor, ahrs.sin_yaw(), ahrs.cos_yaw(), distance, roi_WP.x, roi_WP.y);
+}
+//ROI: an:9000.000, yaw:35932.00, sin:-0.011, cos:0.999, dis:-1.281, x:0.015, y:-1.281
+
 
 #endif

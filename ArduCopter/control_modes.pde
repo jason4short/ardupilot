@@ -167,6 +167,27 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
             set_simple_mode(ch_flag == AUX_SWITCH_HIGH || ch_flag == AUX_SWITCH_MIDDLE);
             break;
 
+
+        case AUX_SWITCH_ROI_MODE:
+            if (ch_flag == AUX_SWITCH_HIGH) {
+                // calculate ROI distance
+                calc_roi_from_gimbal();
+                set_auto_yaw_mode(AUTO_YAW_ROI);
+                gimbal_mode = GIMBAL_TILT_ROI;
+                
+            }else{
+                set_auto_yaw_mode(AUTO_YAW_HOLD);
+                gimbal_mode = GIMBAL_MANUAL;
+                
+                #if MOUNT == ENABLED
+                // switch off the camera tracking if enabled
+                if (camera_mount.get_mode() == MAV_MOUNT_MODE_GPS_POINT) {
+                    camera_mount.set_mode_to_default();
+                }
+                #endif  // MOUNT == ENABLED
+            }
+            break;
+
         case AUX_SWITCH_SUPERSIMPLE_MODE:
             // low = simple mode off, middle = simple mode, high = super simple mode
             set_simple_mode(ch_flag);
