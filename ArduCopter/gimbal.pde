@@ -43,7 +43,7 @@ static void calc_roi_from_gimbal()
 	float _gimbal_angle = constrain_float(gimbal_angle, 500, 8000);
 
     // calc distance
-    float distance = 1/ tan(_gimbal_angle) * position.z;
+    float distance = (1/tan(_gimbal_angle * .000174533f)) * position.z;
     
     // rotate distance to world frame
     //Lat N/S:
