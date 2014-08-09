@@ -130,7 +130,7 @@
 #include <AP_Relay.h>           // APM relay
 #include <AP_ServoRelayEvents.h>
 #include <AP_Camera.h>          // Photo or video camera
-#include <AP_Mount.h>           // Camera/Antenna mount
+#include <AP_Gimbal.h>           // Camera/Antenna mount
 #include <AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
@@ -697,12 +697,7 @@ static AP_HAL::AnalogSource* rssi_analog_source;
 // --------------------------------------
 #if MOUNT == ENABLED
 // current_loc uses the baro/gps soloution for altitude rather than gps only.
-static AP_Mount camera_mount(&current_loc, ahrs, 0);
-#endif
-
-#if MOUNT2 == ENABLED
-// current_loc uses the baro/gps soloution for altitude rather than gps only.
-static AP_Mount camera_mount2(&current_loc, ahrs, 1);
+static AP_Gimbal camera_mount(&current_loc, ahrs, 0);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1063,11 +1058,6 @@ static void update_mount()
     camera_mount.update_mount_position();
 #endif
 
-#if MOUNT2 == ENABLED
-    // update camera mount's position
-    camera_mount2.update_mount_position();
-#endif
-
 #if CAMERA == ENABLED
     camera.trigger_pic_cleanup();
 #endif
@@ -1190,14 +1180,6 @@ static void one_hz_loop()
 
     // update assigned functions and enable auxiliar servos
     RC_Channel_aux::enable_aux_servos();
-
-#if MOUNT == ENABLED
-    camera_mount.update_mount_type();
-#endif
-
-#if MOUNT2 == ENABLED
-    camera_mount2.update_mount_type();
-#endif
 
     check_usb_mux();
 
