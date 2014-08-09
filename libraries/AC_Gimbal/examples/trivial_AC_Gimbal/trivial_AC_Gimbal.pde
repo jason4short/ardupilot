@@ -25,13 +25,13 @@
 #include <DataFlash.h>
 #include <AP_Notify.h>
 
-#include <AP_Gimbal.h>
+#include <AC_Gimbal.h>
 
 #include <AP_HAL_AVR.h>
 const AP_HAL::HAL& hal = AP_HAL_BOARD_DRIVER;
 
 void setup () {
-    hal.console->println_P(PSTR("Unit test for AP_Gimbal. This sketch"
+    hal.console->println_P(PSTR("Unit test for AC_Gimbal. This sketch"
                 "has no functionality, it only tests build."));
 }
 void loop () {}

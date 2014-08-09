@@ -970,8 +970,8 @@ const AP_Param::Info var_info[] PROGMEM = {
 
 #if MOUNT == ENABLED
     // @Group: MNT_
-    // @Path: ../libraries/AP_Gimbal/AP_Gimbal.cpp
-    GOBJECT(camera_mount,           "MNT_", AP_Gimbal),
+    // @Path: ../libraries/AC_Gimbal/AC_Gimbal.cpp
+    GOBJECT(camera_mount,           "MNT_", AC_Gimbal),
 #endif
 
     // @Group: BATT_

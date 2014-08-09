@@ -29,7 +29,7 @@
 #include <AP_Buffer.h>          // APM FIFO Buffer
 #include <AP_Relay.h>           // APM relay
 #include <AP_Camera.h>          // Photo or video camera
-#include <AP_Gimbal.h>           // Camera/Antenna mount
+#include <AC_Gimbal.h>           // Camera/Antenna mount
 #include <AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle.h>         // needed for AHRS build
 #include <AP_Notify.h>

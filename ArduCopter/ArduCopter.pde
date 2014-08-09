@@ -130,7 +130,7 @@
 #include <AP_Relay.h>           // APM relay
 #include <AP_ServoRelayEvents.h>
 #include <AP_Camera.h>          // Photo or video camera
-#include <AP_Gimbal.h>           // Camera/Antenna mount
+#include <AC_Gimbal.h>           // Camera/Antenna mount
 #include <AP_Airspeed.h>        // needed for AHRS build
 #include <AP_Vehicle.h>         // needed for AHRS build
 #include <AP_InertialNav.h>     // ArduPilot Mega inertial navigation library
@@ -697,7 +697,7 @@ static AP_HAL::AnalogSource* rssi_analog_source;
 // --------------------------------------
 #if MOUNT == ENABLED
 // current_loc uses the baro/gps soloution for altitude rather than gps only.
-static AP_Gimbal camera_mount(&current_loc, ahrs, 0);
+static AC_Gimbal camera_mount(inertial_nav, ahrs, 0);
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1055,7 +1055,7 @@ static void update_mount()
 {
 #if MOUNT == ENABLED
     // update camera mount's position
-    camera_mount.update_mount_position();
+    camera_mount.update_gimbal();
 #endif
 
 #if CAMERA == ENABLED
