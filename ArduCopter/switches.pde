@@ -431,18 +431,25 @@ static void do_aux_switch_function(int8_t ch_function, uint8_t ch_flag)
         break;
         
 #if MOUNT == ENABLE
-    case AUX_SWITCH_RETRACT_MOUNT:
-        switch (ch_flag) {
-            case AUX_SWITCH_HIGH:
-                camera_mount.set_mode(MAV_MOUNT_MODE_RETRACT);
-                break;
-            case AUX_SWITCH_LOW:
+        case AUX_SWITCH_ROI_MODE:
+            if (ch_flag == AUX_SWITCH_HIGH) {
+                // get new ROI
+                roi_WP = camera_mount.get_ROI_from_gimbal();
+                // get new ROI
+                camera_mount.set_mode(MAV_MOUNT_MODE_GPS_POINT);
+                loiter_points_at_ROI = true;
+                
+            }else{
                 camera_mount.set_mode_to_default();
-                break;
-        }
-        break;
+                loiter_points_at_ROI = false;
+            }
+            break;
+        
 #endif
-
+    case AUX_SWITCH_THR_ASSIST:
+        throttle_assist_enabled = (ch_flag == AUX_SWITCH_HIGH);
+        break;
+    
     case AUX_SWITCH_RELAY:
         ServoRelayEvents.do_set_relay(0, ch_flag == AUX_SWITCH_HIGH);
         break;

@@ -49,5 +49,5 @@ static void stabilize_run()
     const Vector3f& vel = inertial_nav.get_velocity();
 
     // output pilot's throttle
-    attitude_control.set_throttle_out(throttle_assist(vel.z, 1.0), true);
+    attitude_control.set_throttle_out(throttle_assist(vel.z), true);
 }

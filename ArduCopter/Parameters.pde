@@ -586,6 +586,14 @@ const AP_Param::Info var_info[] PROGMEM = {
     // @User: Advanced
     GSCALAR(acro_trainer,   "ACRO_TRAINER",     ACRO_TRAINER_LIMITED),
 
+    // @Param: THR_ASSIST
+    // @DisplayName: Throttle assist
+    // @Description: Uses inertial Z to dampen the climb rate acceleration; based on stick position
+    // @Range 0, 2
+    // @User: Standard
+    GSCALAR(throttle_assist_gain, "THR_ASSIST",  THR_ASSIST_GAIN),
+
+
     // PID controller
     //---------------
 

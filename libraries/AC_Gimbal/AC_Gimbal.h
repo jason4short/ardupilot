@@ -34,7 +34,7 @@ public:
 
     // set_mode_to_default - restores the mode to it's default held in the MNT_MODE parameter
     //      this operation requires 2ms on an APM2, 0.7ms on a Pixhawk/PX4
-    void                            set_mode_to_default() { _mount_mode; }
+    void                            set_mode_to_default() { _mount_mode = MAV_MOUNT_MODE_RC_TARGETING; }
 
     // MAVLink methods
     void                            configure_msg(mavlink_message_t* msg);
@@ -56,8 +56,11 @@ public:
 
     void                            set_mode(enum MAV_MOUNT_MODE mode);
 
-private:
+// move to private after testing
     void                            calc_gimbal_ROI();
+    float                           _tilt_angle; ///< radians
+
+private:
 
     // pointers to other objects we depend upon
     const AP_InertialNav&           _inav;
@@ -71,7 +74,6 @@ private:
     Vector3f                        _roi_WP; ///< GCS controlled position for mount, vector.x = roll vector.y = tilt, vector.z=pan
 
     uint8_t                         _tilt_idx; ///< RC_Channel_aux mount tilt function index
-    float                           _tilt_angle; ///< radians
 
     int8_t                          _mount_mode;
     // RC_Channel for providing direct angular input from pilot

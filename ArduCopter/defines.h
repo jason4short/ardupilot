@@ -57,6 +57,8 @@
 #define AUX_SWITCH_ATTCON_ACCEL_LIM 26      // enable/disable the roll, pitch and yaw accel limiting
 #define AUX_SWITCH_RETRACT_MOUNT    27      // Retract Mount
 #define AUX_SWITCH_RELAY            28      // Relay pin on/off (only supports first relay)
+#define AUX_SWITCH_ROI_MODE         29      // gives yaw and camera control to the AP
+#define AUX_SWITCH_THR_ASSIST       30      // turn on or off assist
 
 // values used by the ap.ch7_opt and ap.ch8_opt flags
 #define AUX_SWITCH_LOW              0       // indicates auxiliar switch is in the low position (pwm <1200)

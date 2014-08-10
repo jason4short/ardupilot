@@ -81,7 +81,13 @@ static void loiter_run()
         wp_nav.update_loiter();
 
         // call attitude controller
-        attitude_control.angle_ef_roll_pitch_rate_ef_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
+        if (loiter_points_at_ROI) {
+            // roll, pitch from waypoint controller, yaw heading from roi
+            attitude_control.angle_ef_roll_pitch_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), get_roi_yaw(), true);
+        }else{
+            // roll & pitch from waypoint controller, yaw rate from pilot
+            attitude_control.angle_ef_roll_pitch_rate_ef_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
+        }
 
         // body-frame rate controller is run directly from 100hz loop
 
