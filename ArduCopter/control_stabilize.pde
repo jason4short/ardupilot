@@ -21,7 +21,6 @@ static void stabilize_run()
 {
     int16_t target_roll, target_pitch;
     float target_yaw_rate;
-    int16_t pilot_throttle_scaled;
 
     // if not armed or throttle at zero, set throttle to zero and exit immediately
     if(!motors.armed() || g.rc_3.control_in <= 0) {
@@ -41,14 +40,14 @@ static void stabilize_run()
     // get pilot's desired yaw rate
     target_yaw_rate = get_pilot_desired_yaw_rate(g.rc_4.control_in);
 
-    // get pilot's desired throttle
-    pilot_throttle_scaled = get_pilot_desired_throttle(g.rc_3.control_in);
-
     // call attitude controller
     attitude_control.angle_ef_roll_pitch_rate_ef_yaw_smooth(target_roll, target_pitch, target_yaw_rate, get_smoothing_gain());
 
     // body-frame rate controller is run directly from 100hz loop
 
+    // Grab inertial velocity
+    const Vector3f& vel = inertial_nav.get_velocity();
+
     // output pilot's throttle
-    attitude_control.set_throttle_out(pilot_throttle_scaled, true);
+    attitude_control.set_throttle_out(throttle_assist(vel.z, 1.0), true);
 }
