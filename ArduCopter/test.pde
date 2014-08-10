@@ -239,13 +239,22 @@ test_optflow(uint8_t argc, const Menu::arg *argv)
 static int8_t test_gimbal(uint8_t argc, const Menu::arg *argv)
 {
     // update assigned functions and enable auxiliar servos
-    RC_Channel_aux::enable_aux_servos();
+    /*RC_Channel_aux::enable_aux_servos();
 
     int16_t angle_out = argv[1].i;
        
     RC_Channel_aux::move_servo(RC_Channel_aux::k_mount_tilt, angle_out, 0, 9000);
     cliSerial->printf_P(PSTR("\nGimbal!, %d\n"), angle_out);
     return (0);
+    */
+    
+    camera_mount.set_ROI(Vector3f(1000,0,0)); //1m high North
+    camera_mount.calc_gimbal_ROI();
+    cliSerial->printf_P(PSTR("\nGimbal!, %1.2f\n"), camera_mount._tilt_angle);
+    camera_mount.get_ROI_from_gimbal();
+    
+    camera_mount.set_mode(MAV_MOUNT_MODE_RC_TARGETING);
+    camera_mount.update_gimbal();
     
     /*
     while(1) {
