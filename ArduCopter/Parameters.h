@@ -119,6 +119,7 @@ public:
         k_param_sonar, // sonar object
         k_param_ekfcheck_thresh,        // 54
         k_param_terrain,
+        k_param_throttle_assist_gain,         // 56
 
         // 65: AP_Limits Library
         k_param_limits = 65,            // deprecated - remove
@@ -344,6 +345,7 @@ public:
     AP_Float        rssi_range;                 // allows to set max voltage for rssi pin such as 5.0, 3.3 etc. 
     AP_Int8         wp_yaw_behavior;            // controls how the autopilot controls yaw during missions
     AP_Int8         rc_feel_rp;                 // controls vehicle response to user input with 0 being extremely soft and 100 begin extremely crisp
+    AP_Int8         throttle_assist_gain;		// does Manual throttle get assistance
 
     AP_Int16        poshold_brake_rate;         // PosHold flight mode's rotation rate during braking in deg/sec
     AP_Int16        poshold_brake_angle_max;    // PosHold flight mode's max lean angle during braking in centi-degrees

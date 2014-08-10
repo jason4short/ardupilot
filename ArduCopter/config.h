@@ -448,6 +448,10 @@
  # define LAND_WITH_DELAY_MS        4000    // default delay (in milliseconds) when a land-with-delay is triggered during a failsafe event
 #endif
 
+#ifndef THR_ASSIST_GAIN
+ # define THR_ASSIST_GAIN 	1.8f    // gain controlling amount of throttle assistance
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 // CAMERA TRIGGER AND CONTROL
 //

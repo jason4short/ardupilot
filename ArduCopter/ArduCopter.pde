@@ -532,7 +532,7 @@ static int32_t initial_armed_bearing;
 ////////////////////////////////////////////////////////////////////////////////
 static float throttle_avg;                  // g.throttle_cruise as a float
 static int16_t desired_climb_rate;          // pilot desired climb rate - for logging purposes only
-
+static bool throttle_assist_enabled;        // triggered by aux switch
 
 ////////////////////////////////////////////////////////////////////////////////
 // ACRO Mode
@@ -1131,6 +1131,9 @@ static void three_hz_loop()
 {
     // check if we've lost contact with the ground station
     failsafe_gcs_check();
+
+    // check to see if inertial Z can be trusted for throttle assist
+    check_altitude_v_baro();
 
 #if AC_FENCE == ENABLED
     // check if we have breached a fence
