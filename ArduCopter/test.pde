@@ -10,7 +10,12 @@ static int8_t   test_baro(uint8_t argc,                 const Menu::arg *argv);
 static int8_t   test_compass(uint8_t argc,              const Menu::arg *argv);
 static int8_t   test_ins(uint8_t argc,                  const Menu::arg *argv);
 static int8_t   test_optflow(uint8_t argc,              const Menu::arg *argv);
+static int8_t   test_radio_pwm(uint8_t argc,            const Menu::arg *argv);
+static int8_t   test_radio(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_relay(uint8_t argc,                const Menu::arg *argv);
+#if MOUNT == ENABLED
+static int8_t   test_gimbal(uint8_t argc,                const Menu::arg *argv);
+#endif
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
 #endif
@@ -29,7 +34,12 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"compass",             test_compass},
     {"ins",                 test_ins},
     {"optflow",             test_optflow},
+    {"pwm",                 test_radio_pwm},
+    {"radio",               test_radio},
     {"relay",               test_relay},
+#if MOUNT == ENABLED
+    {"gimbal",              test_gimbal},
+#endif
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     {"shell", 				test_shell},
 #endif
@@ -224,6 +234,110 @@ test_optflow(uint8_t argc, const Menu::arg *argv)
 #endif      // OPTFLOW == ENABLED
 }
 
+
+#if MOUNT == ENABLED
+static int8_t test_gimbal(uint8_t argc, const Menu::arg *argv)
+{
+    // update assigned functions and enable auxiliar servos
+    RC_Channel_aux::enable_aux_servos();
+
+    int16_t angle_out = argv[1].i;
+       
+    RC_Channel_aux::move_servo(RC_Channel_aux::k_mount_tilt, angle_out, 0, 9000);
+    cliSerial->printf_P(PSTR("\nGimbal!, %d\n"), angle_out);
+    return (0);
+    
+    /*
+    while(1) {
+        delay(20);
+
+        // Filters radio input - adjust filters in the radio.pde file
+        // ----------------------------------------------------------
+        read_radio();
+        update_gimbal_control();
+        //cliSerial->printf_P(PSTR("IN: 6: %d\t    Out 9: %d\t   angle out: %1.1f\n"), g.rc_6.radio_in, hal.rcout->read(9), gimbal_angle);
+
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+    }
+    */
+    
+}
+#endif
+
+static int8_t
+test_radio_pwm(uint8_t argc, const Menu::arg *argv)
+{
+    print_hit_enter();
+    delay(1000);
+
+    while(1) {
+        delay(20);
+
+        // Filters radio input - adjust filters in the radio.pde file
+        // ----------------------------------------------------------
+        read_radio();
+
+        // servo Yaw
+        //APM_RC.OutputCh(CH_7, g.rc_4.radio_out);
+
+        cliSerial->printf_P(PSTR("IN: 1: %d\t2: %d\t3: %d\t4: %d\t5: %d\t6: %d\t7: %d\t8: %d\n"),
+                        g.rc_1.radio_in,
+                        g.rc_2.radio_in,
+                        g.rc_3.radio_in,
+                        g.rc_4.radio_in,
+                        g.rc_5.radio_in,
+                        g.rc_6.radio_in,
+                        g.rc_7.radio_in,
+                        g.rc_8.radio_in);
+
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+    }
+}
+
+static int8_t
+test_radio(uint8_t argc, const Menu::arg *argv)
+{
+    print_hit_enter();
+    delay(1000);
+
+    while(1) {
+        delay(20);
+        read_radio();
+
+
+        cliSerial->printf_P(PSTR("IN  1: %d\t2: %d\t3: %d\t4: %d\t5: %d\t6: %d\t7: %d\n"),
+                        g.rc_1.control_in,
+                        g.rc_2.control_in,
+                        g.rc_3.control_in,
+                        g.rc_4.control_in,
+                        g.rc_5.control_in,
+                        g.rc_6.control_in,
+                        g.rc_7.control_in);
+
+        //cliSerial->printf_P(PSTR("OUT 1: %d\t2: %d\t3: %d\t4: %d\n"), (g.rc_1.servo_out / 100), (g.rc_2.servo_out / 100), g.rc_3.servo_out, (g.rc_4.servo_out / 100));
+
+        /*cliSerial->printf_P(PSTR(	"min: %d"
+         *                                               "\t in: %d"
+         *                                               "\t pwm_in: %d"
+         *                                               "\t sout: %d"
+         *                                               "\t pwm_out %d\n"),
+         *                                               g.rc_3.radio_min,
+         *                                               g.rc_3.control_in,
+         *                                               g.rc_3.radio_in,
+         *                                               g.rc_3.servo_out,
+         *                                               g.rc_3.pwm_out
+         *                                               );
+         */
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+    }
+}
+
 static int8_t test_relay(uint8_t argc, const Menu::arg *argv)
 {
     print_hit_enter();
@@ -245,6 +359,7 @@ static int8_t test_relay(uint8_t argc, const Menu::arg *argv)
         }
     }
 }
+
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 /*
