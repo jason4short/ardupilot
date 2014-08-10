@@ -616,7 +616,9 @@ static int32_t yaw_look_at_heading;
 static int16_t yaw_look_at_heading_slew;
 // heading when in yaw_look_ahead_bearing
 static float yaw_look_ahead_bearing;
-
+// used to trigger ROI mode in Loiter
+// takes over Yaw control from user
+static bool loiter_points_at_ROI;
 
 
 ////////////////////////////////////////////////////////////////////////////////
