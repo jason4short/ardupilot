@@ -32,8 +32,6 @@ public:
     // get_mode - return current mount mode
     enum MAV_MOUNT_MODE             get_mode() const { return (enum MAV_MOUNT_MODE)_mount_mode; }
 
-    // set_mode_to_default - restores the mode to it's default held in the MNT_MODE parameter
-    //      this operation requires 2ms on an APM2, 0.7ms on a Pixhawk/PX4
     void                            set_mode_to_default() { _mount_mode = MAV_MOUNT_MODE_RC_TARGETING; }
 
     // MAVLink methods
@@ -43,6 +41,7 @@ public:
     
     void                            set_ROI(Vector3f roi_WP);
     Vector3f                        get_ROI_from_gimbal();
+    float                           get_tilt_angle() {return _tilt_angle;}
     
     void                            configure_cmd();
     void                            control_cmd();
@@ -56,9 +55,8 @@ public:
 
     void                            set_mode(enum MAV_MOUNT_MODE mode);
 
-// move to private after testing
+    // move to private after testing
     void                            calc_gimbal_ROI();
-    float                           _tilt_angle; ///< radians
 
 private:
 
@@ -78,6 +76,7 @@ private:
     int8_t                          _mount_mode;
     // RC_Channel for providing direct angular input from pilot
     AP_Int8                         _tilt_rc_in;
+    float                           _tilt_angle; ///< radians
 
     AP_Int16                        _tilt_angle_min; ///< min angle limit of actuated surface in 0.01 degree units
     AP_Int16                        _tilt_angle_max; ///< max angle limit of actuated surface in 0.01 degree units

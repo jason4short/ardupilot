@@ -70,6 +70,7 @@ void AC_Gimbal::update_gimbal()
             // allow pilot position input to come directly from an RC_Channel
             if (_tilt_rc_in && (rc_ch(_tilt_rc_in))) {
                 _tilt_angle = angle_input(rc_ch(_tilt_rc_in), _tilt_angle_min, _tilt_angle_max);
+                //hal.console->printf_P(PSTR("\n GIM: 6in: %d \ttilt: _mount_mode:%1.1f\n"), rc_ch(_tilt_rc_in)->radio_in, _tilt_angle);
                 //_tilt_angle = angle_input(rc_ch(_tilt_rc_in), -9000, 0); // for testing
                 
             }else{
@@ -94,8 +95,9 @@ void AC_Gimbal::update_gimbal()
     }
 
     // output servo commands
-    RC_Channel_aux::move_servo(RC_Channel_aux::k_mount_tilt, _tilt_angle, 0, 9000);
+    RC_Channel_aux::move_servo(RC_Channel_aux::k_mount_tilt, _tilt_angle, _tilt_angle_min, _tilt_angle_max);
 }
+	//RC_Channel_aux::move_servo((RC_Channel_aux::Aux_servo_function_t)function_idx, servo_out, angle_min, angle_max);
 
 void AC_Gimbal::set_mode(enum MAV_MOUNT_MODE mode)
 {
@@ -181,7 +183,8 @@ AC_Gimbal::calc_gimbal_ROI()
     //hal.console->printf_P(PSTR("\nwp_distance %1.0f, tilt_rad:%1.6f\n"), wp_distance, _tilt_angle);
 	
 	_tilt_angle = constrain_float(_tilt_angle, .01, 1.571); // 0 to 90
-	_tilt_angle = RadiansToCentiDegrees(_tilt_angle);
+	// make it negative
+	_tilt_angle = -(RadiansToCentiDegrees(_tilt_angle));
     //hal.console->printf_P(PSTR("\n_tilt_angle deg %1.2f\n"),_tilt_angle);
 }
 
@@ -196,7 +199,7 @@ AC_Gimbal::get_ROI_from_gimbal()
 
 	Vector3f position   = _inav.get_position();
 	
-	float _gimbal_angle = constrain_float(_tilt_angle, 500, 8000);
+	float _gimbal_angle = constrain_float(_tilt_angle, -8000, -500);
     float _distance      = position.z / tan(_gimbal_angle * .000174533f);
     //hal.console->printf_P(PSTR("\n_gimbal_angle: %1.4f, _distance:%1.4f\n"), _gimbal_angle, _distance);
     
