@@ -70,7 +70,6 @@ void AC_Gimbal::update_gimbal()
             // allow pilot position input to come directly from an RC_Channel
             if (_tilt_rc_in && (rc_ch(_tilt_rc_in))) {
                 _tilt_angle = angle_input(rc_ch(_tilt_rc_in), _tilt_angle_min, _tilt_angle_max);
-                //hal.console->printf_P(PSTR("\n GIM: 6in: %d \ttilt: _mount_mode:%1.1f\n"), rc_ch(_tilt_rc_in)->radio_in, _tilt_angle);
                 //_tilt_angle = angle_input(rc_ch(_tilt_rc_in), -9000, 0); // for testing
                 
             }else{
@@ -97,7 +96,6 @@ void AC_Gimbal::update_gimbal()
     // output servo commands
     RC_Channel_aux::move_servo(RC_Channel_aux::k_mount_tilt, _tilt_angle, _tilt_angle_min, _tilt_angle_max);
 }
-	//RC_Channel_aux::move_servo((RC_Channel_aux::Aux_servo_function_t)function_idx, servo_out, angle_min, angle_max);
 
 void AC_Gimbal::set_mode(enum MAV_MOUNT_MODE mode)
 {
