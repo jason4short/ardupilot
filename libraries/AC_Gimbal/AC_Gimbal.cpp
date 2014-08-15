@@ -6,8 +6,8 @@
 #include <AC_Gimbal.h>
 
 // uncomment for debuging
-//#include <AP_HAL.h>
-//extern const AP_HAL::HAL& hal;
+#include <AP_HAL.h>
+extern const AP_HAL::HAL& hal;
 
 // Just so that it's completely clear...
 #define ENABLED                 1
@@ -82,9 +82,9 @@ void AC_Gimbal::update_gimbal()
         case MAV_MOUNT_MODE_GPS_POINT:
         {
             //hal.console->printf_P(PSTR("\n MAV_MOUNT_MODE_GPS_POINT\n"));
-            if(_ahrs.get_gps().status() >= AP_GPS::GPS_OK_FIX_2D) {
+            //if(_ahrs.get_gps().status() >= AP_GPS::GPS_OK_FIX_2D) {
                 calc_gimbal_ROI();
-            }
+            //}
             break;
         }
 
@@ -139,10 +139,17 @@ int32_t
 AC_Gimbal::angle_input(RC_Channel* rc, int16_t angle_min, int16_t angle_max)
 {
     float temp;
+    //hal.console->printf_P(PSTR("in %d,   mm %d, %d\n"), rc->radio_in, rc->radio_min, rc->radio_max);
     temp = (float)(rc->radio_in - rc->radio_min) / (float)(rc->radio_max - rc->radio_min) ;    
+    //hal.console->printf_P(PSTR("tmp %1.4f\n"), temp);
     temp *= (float)(angle_max - angle_min);
+    //hal.console->printf_P(PSTR("tmp2 %1.4f\n"), temp);
+    
     if(rc->get_reverse()) temp = -temp;
     temp += (rc->get_reverse() ? angle_max : angle_min);
+    //hal.console->printf_P(PSTR("tmp3 %1.4f\n"), temp);
+    
+    //hal.console->printf_P(PSTR("rc %1.4f,   %d, %d\n"), _roi_WP.x, angle_min, angle_max);
     return temp;
 }
 
@@ -165,25 +172,31 @@ AC_Gimbal::calc_gimbal_ROI()
 {
     //hal.console->printf_P(PSTR("\ncalc_gimbal_ROI\n"));
 	Vector3f position = _inav.get_position();
+	
+	//XXX
+	//position.x = 0;
+	//position.y = 0;
+	//position.z = 1000;
 
     float deltaX = position.x - _roi_WP.x;
     float deltaY = position.y - _roi_WP.y;
     float deltaZ = position.z - _roi_WP.z;
 
-    //hal.console->printf_P(PSTR("\ndelta %1.0f, %1.0f, %1.0f\n"), deltaX, deltaY, deltaZ);
+    //hal.console->printf_P(PSTR("\nposition %1.0f, %1.0f, %1.0f\n"), position.x, position.y, position.z);
     
 	float wp_distance   = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
     #if defined( __AVR_ATmega1280__ )
-	_tilt_angle         = fast_atan2(wp_distance, deltaZ); // not so accurate
+	_tilt_angle         = fast_atan2(deltaZ, wp_distance); // not so accurate
     #else
-	_tilt_angle         = atan2(wp_distance, deltaZ);   // way more accurate
+	_tilt_angle         = atan2f(deltaZ, wp_distance);   // way more accurate
     #endif
-    //hal.console->printf_P(PSTR("\nwp_distance %1.0f, tilt_rad:%1.6f\n"), wp_distance, _tilt_angle);
+    
+    //hal.console->printf_P(PSTR("\nwp_distance %1.0f, tilt_rad: %1.6f\n"), wp_distance, _tilt_angle);
 	
 	_tilt_angle = constrain_float(_tilt_angle, .01, 1.571); // 0 to 90
 	// make it negative
 	_tilt_angle = -(RadiansToCentiDegrees(_tilt_angle));
-    //hal.console->printf_P(PSTR("\n_tilt_angle deg %1.2f\n"),_tilt_angle);
+    //hal.console->printf_P(PSTR("calc_gimbal_ROI _tilt_angle deg %1.2f\n"),_tilt_angle);
 }
 
 
@@ -196,9 +209,14 @@ AC_Gimbal::get_ROI_from_gimbal()
     //hal.console->printf_P(PSTR("\ncos_yaw: %1.4f, sin_yaw:%1.4f\n"), _ahrs.cos_yaw(), _ahrs.sin_yaw());
 
 	Vector3f position   = _inav.get_position();
+	//XXX
+	//position.x = 0;
+	//position.y = 0;
+	//position.z = 1000;
 	
 	float _gimbal_angle = constrain_float(_tilt_angle, -8000, -500);
-    float _distance      = position.z / tan(_gimbal_angle * .000174533f);
+    float _distance     = position.z / tan(-_gimbal_angle * .000174533f);
+
     //hal.console->printf_P(PSTR("\n_gimbal_angle: %1.4f, _distance:%1.4f\n"), _gimbal_angle, _distance);
     
     // rotate _distance to world frame

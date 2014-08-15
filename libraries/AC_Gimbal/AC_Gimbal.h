@@ -57,6 +57,9 @@ public:
 
     // move to private after testing
     void                            calc_gimbal_ROI();
+    AP_Int16                        _tilt_angle_min; ///< min angle limit of actuated surface in 0.01 degree units
+    AP_Int16                        _tilt_angle_max; ///< max angle limit of actuated surface in 0.01 degree units
+    AP_Int8                         _tilt_rc_in;
 
 private:
 
@@ -75,11 +78,8 @@ private:
 
     int8_t                          _mount_mode;
     // RC_Channel for providing direct angular input from pilot
-    AP_Int8                         _tilt_rc_in;
     float                           _tilt_angle; ///< radians
 
-    AP_Int16                        _tilt_angle_min; ///< min angle limit of actuated surface in 0.01 degree units
-    AP_Int16                        _tilt_angle_max; ///< max angle limit of actuated surface in 0.01 degree units
 };
 
 #endif // __AC_Gimbal_H__
