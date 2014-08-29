@@ -91,7 +91,11 @@ static void drift_run()
     attitude_control.set_throttle_out(get_throttle_assist(vel.z, pilot_throttle_scaled), true);
 }
 
+<<<<<<< HEAD
 
+=======
+// get_throttle_assist - return throttle output (range 0 ~ 1000) based on pilot input and z-axis velocity
+>>>>>>> Copter: move drift thr assist to separate function
 int16_t get_throttle_assist(float velz, int16_t pilot_throttle_scaled)
 {
     // throttle assist - adjusts throttle to slow the vehicle's vertical velocity
@@ -113,6 +117,9 @@ int16_t get_throttle_assist(float velz, int16_t pilot_throttle_scaled)
     
     return pilot_throttle_scaled + thr_assist;
 }
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> Copter: move drift thr assist to separate function
