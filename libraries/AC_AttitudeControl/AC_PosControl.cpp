@@ -843,11 +843,18 @@ void AC_PosControl::accel_to_lean_angles()
     float accel_right, accel_forward;
     float lean_angle_max = _attitude_control.lean_angle_max();
 
-    // To-Do: add 1hz filter to accel_lat, accel_lon
+    // 3Hz lowpass filter on accel target
+    float freq_cut = 3.0f;
+    float alpha = constrain_float(_dt_xy/(_dt_xy + 1.0f/(2.0f*(float)M_PI*freq_cut)),0.0f,1.0f);
+    static float accel_target_x_filtered = 0.0f;
+    static float accel_target_y_filtered = 0.0f;
+
+    accel_target_x_filtered += alpha * (_accel_target.x - accel_target_x_filtered);
+    accel_target_y_filtered += alpha * (_accel_target.y - accel_target_y_filtered);
 
     // rotate accelerations into body forward-right frame
-    accel_forward = _accel_target.x*_ahrs.cos_yaw() + _accel_target.y*_ahrs.sin_yaw();
-    accel_right = -_accel_target.x*_ahrs.sin_yaw() + _accel_target.y*_ahrs.cos_yaw();
+    accel_forward = accel_target_x_filtered*_ahrs.cos_yaw() + accel_target_y_filtered*_ahrs.sin_yaw();
+    accel_right = -accel_target_x_filtered*_ahrs.sin_yaw() + accel_target_y_filtered*_ahrs.cos_yaw();
 
     // update angle targets that will be passed to stabilize controller
     _roll_target = constrain_float(fast_atan(accel_right*_ahrs.cos_pitch()/(GRAVITY_MSS * 100))*(18000/M_PI), -lean_angle_max, lean_angle_max);
