@@ -351,6 +351,8 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
 {
     float z_accel_meas;         // actual acceleration
     int32_t p,i,d;              // used to capture pid values for logging
+    float current_rate;         // this iteration's rate
+    float output_scaled;         // this iteration's rate
 
     // Calculate Earth Frame Z acceleration
     z_accel_meas = -(_ahrs.get_accel_ef().z + GRAVITY_MSS) * 100.0f;
@@ -380,9 +382,24 @@ void AC_PosControl::accel_to_throttle(float accel_target_z)
 
     // get d term
     d = _pid_alt_accel.get_d(_accel_error.z, _dt);
+    
+    // sum control output
+    output_scaled = p+i+d;
+
+    // limit accel.z if we are rotating quickly
+    current_rate = fabs(_ahrs.get_gyro().x) + fabs(_ahrs.get_gyro().y);
+
+    if (current_rate < .5){
+        // do nothing
+    }else if (current_rate < 3.0){
+        // scale down
+        output_scaled *= 1.0 - ((current_rate - 0.5) / 2.5);
+    }else{
+        output_scaled = 0;
+    }
 
     // send throttle to attitude controller with angle boost
-    _attitude_control.set_throttle_out((int16_t)p+i+d+_throttle_hover, true);
+    _attitude_control.set_throttle_out((int16_t)output_scaled + _throttle_hover, true);
 }
 
 ///
