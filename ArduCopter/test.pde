@@ -15,6 +15,7 @@ static int8_t   test_optflow(uint8_t argc,              const Menu::arg *argv);
 static int8_t   test_relay(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_input(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor(uint8_t argc,                const Menu::arg *argv);
+static int8_t   test_motor2(uint8_t argc,                const Menu::arg *argv);
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
 #endif
@@ -38,6 +39,7 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"relay",               test_relay},
     {"input",               test_input},
     {"motor",               test_motor},
+    {"motor2",              test_motor2},
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     {"shell", 				test_shell},
 #endif
@@ -121,21 +123,52 @@ test_radio(uint8_t argc, const Menu::arg *argv)
 {
     print_hit_enter();
     delay(1000);
-
+    int16_t throttle_limited = 0;
+    
     while(1) {
         delay(20);
         read_radio();
+        int16_t pilot_throttle_scaled = get_pilot_desired_throttle(g.rc_3.control_in);
+        motors.set_throttle(pilot_throttle_scaled);
+        
+        //
+        
+        /*
+        motors.output_armed();
+        _rc_roll.servo_out = out_best_thr_pwm;
+        _rc_pitch.servo_out = _min_throttle;
+        _rc_throttle.servo_out = thr_adj_min;
+        _rc_yaw.servo_out = out_min_pwm;
+        
+        IN  0  1028  127   0  1140  1013
+        IN 18  1030  127  18  1140  1030
 
-
-        cliSerial->printf_P(PSTR("IN  1: %d\t2: %d\t3: %d\t4: %d\t5: %d\t6: %d\t7: %d\n"),
+        */
+        
+        /*
+        cliSerial->printf_P(PSTR("IN %d  %d  %d  %d  %d  %d\n"),
+                        g.rc_3.control_in,
+                        
+                        g.rc_1.servo_out, // out_best_thr_pwm
+                        g.rc_2.servo_out, // _min_throttle
+                        g.rc_4.servo_out, // out_min_pwm
+                        g.rc_3.servo_out, // output!!
+                        g.rc_3.radio_out);
+        */
+        ///*
+        g.rc_3.servo_out = pilot_throttle_scaled;
+        g.rc_3.calc_pwm();
+        cliSerial->printf_P(PSTR("IN  1: %d\t2: %d\t3: %d (%d)\t4: %d\t5: %d\t6: %d\t7: %d\n"),
                         g.rc_1.control_in,
                         g.rc_2.control_in,
                         g.rc_3.control_in,
+                        pilot_throttle_scaled,
                         g.rc_4.control_in,
                         g.rc_5.control_in,
                         g.rc_6.control_in,
                         g.rc_7.control_in);
 
+        //*/
         //cliSerial->printf_P(PSTR("OUT 1: %d\t2: %d\t3: %d\t4: %d\n"), (g.rc_1.servo_out / 100), (g.rc_2.servo_out / 100), g.rc_3.servo_out, (g.rc_4.servo_out / 100));
 
         /*cliSerial->printf_P(PSTR(	"min: %d"
@@ -330,23 +363,32 @@ static int8_t test_input(uint8_t argc, const Menu::arg *argv)
 
 static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
 {
-	if (argc < 2) {
-		cliSerial->printf_P(PSTR("Usage: throttle 0-1000, time in milliseconds, repeat\n"));
+	if (argc < 3) {
+		cliSerial->printf_P(PSTR("Usage: throttle 0-1000, time in milliseconds, smoothing [0,10-1000]\n"));
         return(0);
 	}
+    int16_t elapsed         = 0;
 	
-    int16_t motor_output = argv[1].i;
-    int16_t duration    = argv[2].i;
+    int16_t motor_output    = argv[1].i;
+    int16_t duration        = argv[2].i;
+    int16_t smoothing       = argv[3].i;
+
+    if(smoothing < 10)
+        smoothing = 1000;
     
-    g.rc_3.servo_out = constrain_int16(motor_output, 0, 1000);
-    duration        = constrain_int16(duration, 100, 5000);
+    g.rc_3.servo_out    = constrain_int16(motor_output, 0, 1000);
+    duration            = constrain_int16(duration, 100, 5000);
     g.rc_3.calc_pwm();
+	int16_t output = g.rc_3.radio_out;
+	int16_t limited = 100;
 
     // arm and enable motors
     motors.armed(true);
     motors.enable();
+    
     // reduce throttle to minimum
     motors.throttle_pass_through(g.rc_3.radio_min);
+	cliSerial->printf_P(PSTR("smooth %d "), smoothing);
 
 	cliSerial->printf_P(PSTR("\n\nHold on to your F'in hats... in 5 .. "));
 	delay(1000);
@@ -357,18 +399,126 @@ static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
 	cliSerial->printf_P(PSTR("2 .. "));
 	delay(1000);
 	cliSerial->printf_P(PSTR("1\n"));
-    motors.throttle_pass_through(g.rc_3.radio_min+100);
-	delay(2000);
 	
-
-    // raise throttle
-	cliSerial->printf_P(PSTR("\n%d\n"), g.rc_3.radio_out);
+    g.rc_3.servo_out = limited;
+    g.rc_3.calc_pwm();
     motors.throttle_pass_through(g.rc_3.radio_out);
-    delay(duration);
+	delay(2000);
+
+    while(elapsed < duration) {
+        elapsed += 10;
+        delay(10);
+        
+        if(limited < (motor_output/2)){
+            limited += smoothing;
+        }
+        
+        limited = constrain_int16(limited, 0, (motor_output/2));
+        g.rc_3.servo_out = limited;
+        g.rc_3.calc_pwm();
+
+        // raise throttle
+        motors.throttle_pass_through(g.rc_3.radio_out);
+    }
+    
+    elapsed = 0;
+    
+    while(elapsed < duration) {
+        elapsed += 10;
+        delay(10);
+        
+        if(limited < motor_output){
+            limited += smoothing;
+        }
+        
+        limited = constrain_int16(limited, 0, motor_output);
+        g.rc_3.servo_out = limited;
+        g.rc_3.calc_pwm();
+
+        // raise throttle
+        motors.throttle_pass_through(g.rc_3.radio_out);
+    }
+
+	cliSerial->printf_P(PSTR("%d\n"), limited);
 
     motors.throttle_pass_through(g.rc_3.radio_min);
 
     cliSerial->printf_P(PSTR("\n\nComplete\n"));
+    return (0);
+}
+
+AverageFilterInt16_Size8 motorFilter;
+
+static int8_t test_motor2(uint8_t argc, const Menu::arg *argv)
+{
+	if (argc < 2) {
+		cliSerial->printf_P(PSTR("Usage: throttle 0-1000, time in milliseconds\n"));
+        return(0);
+	}
+    uint32_t elapsed;
+    uint32_t duration       = (uint32_t)argv[2].i * 1000;
+	duration                = min(duration, 3000000);
+	
+    int16_t motor_output    = argv[1].i;
+
+    g.rc_3.servo_out        = constrain_int16(motor_output, 0, 1000);
+    g.rc_3.calc_pwm();
+    
+    // arm and enable motors
+    motors.armed(true);
+    motors.enable();
+    
+    // reduce throttle to minimum
+    motors.throttle_pass_through(g.rc_3.radio_min);
+
+    // init the filter
+    //for (int8_t i = 0; i++; i < 8){
+      //  motorFilter.apply(g.rc_3.radio_min);
+    //}
+
+
+	cliSerial->printf_P(PSTR("\nduration %ld "), duration);
+
+	cliSerial->printf_P(PSTR("\n\nHold on to your F'in hats... in 5 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("4 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("3 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("2 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("1\n"));
+
+	// reset the time;
+	elapsed = 0;
+
+	// raise throttle to throttle_min
+    while(elapsed < 2000000) {
+        elapsed += 2500;
+        hal.scheduler->delay_microseconds(2500);
+
+        // raise throttle
+        motors.throttle_pass_through(motorFilter.apply(g.rc_3.radio_min+100));
+    }
+    cliSerial->printf_P(PSTR("warmed up\n"));
+
+	// reset the time;
+	elapsed = 0;
+	
+    while(elapsed < duration) {
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+        elapsed += 2500;
+        hal.scheduler->delay_microseconds(2500);
+
+        // raise throttle
+        motors.throttle_pass_through(motorFilter.apply(g.rc_3.radio_out));
+    }
+
+    motors.throttle_pass_through(g.rc_3.radio_min);
+
+    cliSerial->printf_P(PSTR("\nComplete  %d,  %d !\n"), g.rc_3.radio_out, motorFilter.apply(g.rc_3.radio_out));
     return (0);
 }
 
