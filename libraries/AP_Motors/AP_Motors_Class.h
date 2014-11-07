@@ -152,12 +152,12 @@ public:
 
     // var_info for holding Parameter information
     static const struct AP_Param::GroupInfo        var_info[];
-
-protected:
-
     // output functions that should be overloaded by child classes
     virtual void        output_armed() {};
     virtual void        output_disarmed() {};
+
+protected:
+
 
     // update_max_throttle - updates the limits on _max_throttle if necessary taking into account slow_start_throttle flag
     void                update_max_throttle();

@@ -35,6 +35,8 @@ void AP_MotorsMatrix::Init()
 
     // enable fast channels or instant pwm
     set_update_rate(_speed_hz);
+
+    throttle_limited = 0;
 }
 
 // set update rate to motors - a value in hertz
@@ -97,6 +99,11 @@ void AP_MotorsMatrix::output_min()
     limit.throttle_lower = true;
     limit.throttle_upper = false;
 
+    _motor_1_filter.apply(_rc_throttle.radio_min);
+    _motor_2_filter.apply(_rc_throttle.radio_min);
+    _motor_3_filter.apply(_rc_throttle.radio_min);
+    _motor_4_filter.apply(_rc_throttle.radio_min);
+
     // fill the motor_out[] array for HIL use and send minimum value to each motor
     for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
         if( motor_enabled[i] ) {
@@ -123,14 +130,14 @@ uint16_t AP_MotorsMatrix::get_motor_mask()
 void AP_MotorsMatrix::output_armed()
 {
     int8_t i;
-    int16_t out_min_pwm = _rc_throttle.radio_min + _min_throttle;      // minimum pwm value we can send to the motors
-    int16_t out_max_pwm = _rc_throttle.radio_max;                      // maximum pwm value we can send to the motors
-    int16_t out_mid_pwm = (out_min_pwm+out_max_pwm)/2;                  // mid pwm value we can send to the motors
-    int16_t out_best_thr_pwm;  // the is the best throttle we can come up which provides good control without climbing
-    float rpy_scale = 1.0; // this is used to scale the roll, pitch and yaw to fit within the motor limits
+    int16_t out_min_pwm = _rc_throttle.radio_min + _min_throttle;   // minimum pwm value we can send to the motors
+    int16_t out_max_pwm = _rc_throttle.radio_max;                   // maximum pwm value we can send to the motors
+    int16_t out_mid_pwm = (out_min_pwm+out_max_pwm)/2;              // mid pwm value we can send to the motors
+    int16_t out_best_thr_pwm;                                       // the is the best throttle we can come up which provides good control without climbing
+    float rpy_scale = 1.0;                                          // this is used to scale the roll, pitch and yaw to fit within the motor limits
 
-    int16_t rpy_out[AP_MOTORS_MAX_NUM_MOTORS]; // buffer so we don't have to multiply coefficients multiple times.
-    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];    // final outputs sent to the motors
+    int16_t rpy_out[AP_MOTORS_MAX_NUM_MOTORS];                      // buffer so we don't have to multiply coefficients multiple times.
+    int16_t motor_out[AP_MOTORS_MAX_NUM_MOTORS];                    // final outputs sent to the motors
 
     int16_t rpy_low = 0;    // lowest motor value
     int16_t rpy_high = 0;   // highest motor value
@@ -159,6 +166,15 @@ void AP_MotorsMatrix::output_armed()
     _rc_pitch.calc_pwm();
     _rc_throttle.calc_pwm();
     _rc_yaw.calc_pwm();
+    
+    if(_rc_throttle.radio_out > throttle_limited){
+        // limit the increase in throttle
+        throttle_limited += THROTTLE_SLEW;
+        throttle_limited = min(throttle_limited, _rc_throttle.radio_out);
+    }else{
+        // dropping
+        throttle_limited = _rc_throttle.radio_out;
+    }
 
     // if we are not sending a throttle output, we cut the motors
     if (_rc_throttle.servo_out == 0) {
@@ -179,7 +195,9 @@ void AP_MotorsMatrix::output_armed()
         // Every thing is limited
         limit.roll_pitch = true;
         limit.yaw = true;
-
+        
+        throttle_limited = _rc_throttle.radio_min + _spin_when_armed_ramped;
+        
     } else {
 
         // check if throttle is below limit
@@ -215,7 +233,7 @@ void AP_MotorsMatrix::output_armed()
         //      We will choose #1 (the best throttle for yaw control) if that means reducing throttle to the motors (i.e. we favour reducing throttle *because* it provides better yaw control)
         //      We will choose #2 (a mix of pilot and hover throttle) only when the throttle is quite low.  We favour reducing throttle instead of better yaw control because the pilot has commanded it
         int16_t motor_mid = (rpy_low+rpy_high)/2;
-        out_best_thr_pwm = min(out_mid_pwm - motor_mid, max(_rc_throttle.radio_out, (_rc_throttle.radio_out+_hover_out)/2));
+        out_best_thr_pwm = min(out_mid_pwm - motor_mid, max(throttle_limited, (throttle_limited + _hover_out)/2));
 
         // calculate amount of yaw we can fit into the throttle range
         // this is always equal to or less than the requested yaw from the pilot or rate controller
@@ -259,7 +277,7 @@ void AP_MotorsMatrix::output_armed()
         }
 
         // check everything fits
-        thr_adj = _rc_throttle.radio_out - out_best_thr_pwm;
+        thr_adj = throttle_limited - out_best_thr_pwm;
 
         // calc upper and lower limits of thr_adj
         int16_t thr_adj_max = max(out_max_pwm-(out_best_thr_pwm+rpy_high),0);
@@ -311,6 +329,7 @@ void AP_MotorsMatrix::output_armed()
         }
 
         // adjust for throttle curve
+        /*
         if (_throttle_curve_enabled) {
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
@@ -318,6 +337,8 @@ void AP_MotorsMatrix::output_armed()
                 }
             }
         }
+        */
+        
         // clip motor output if required (shouldn't be)
         for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
             if (motor_enabled[i]) {
@@ -329,7 +350,17 @@ void AP_MotorsMatrix::output_armed()
     // send output to each motor
     for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
         if( motor_enabled[i] ) {
-            hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), motor_out[i]);
+            if(i == 0){
+                hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), _motor_1_filter.apply(motor_out[i]));
+            }else if(i == 1){
+                hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), _motor_2_filter.apply(motor_out[i]));
+            }else if(i == 2){
+                hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), _motor_3_filter.apply(motor_out[i]));
+            }else if(i == 3){
+                hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), _motor_4_filter.apply(motor_out[i]));
+            }else{
+                hal.rcout->write(pgm_read_byte(&_motor_to_channel_map[i]), motor_out[i]);
+            }
         }
     }
 }
