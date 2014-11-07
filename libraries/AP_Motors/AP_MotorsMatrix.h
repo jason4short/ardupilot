@@ -10,11 +10,14 @@
 #include <AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <RC_Channel.h>     // RC Channel Library
 #include "AP_Motors_Class.h"
+#include <AverageFilter.h>
 
 #define AP_MOTORS_MATRIX_YAW_FACTOR_CW   -1
 #define AP_MOTORS_MATRIX_YAW_FACTOR_CCW   1
 
 #define AP_MOTORS_MATRIX_YAW_LOWER_LIMIT_PWM    200
+
+#define THROTTLE_SLEW 20
 
 /// @class      AP_MotorsMatrix
 class AP_MotorsMatrix : public AP_Motors {
@@ -66,11 +69,17 @@ public:
     // get_motor_mask - returns a bitmask of which outputs are being used for motors (1 means being used)
     //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
     virtual uint16_t    get_motor_mask();
+    virtual void        output_armed();
+    virtual void        output_disarmed();
 
 protected:
     // output - sends commands to the motors
-    virtual void        output_armed();
-    virtual void        output_disarmed();
+    int16_t             throttle_limited;
+
+    AverageFilterInt16_Size4 _motor_1_filter;
+    AverageFilterInt16_Size4 _motor_2_filter;
+    AverageFilterInt16_Size4 _motor_3_filter;
+    AverageFilterInt16_Size4 _motor_4_filter;
 
     // add_motor using raw roll, pitch, throttle and yaw factors
     void                add_motor_raw(int8_t motor_num, float roll_fac, float pitch_fac, float yaw_fac, uint8_t testing_order);
