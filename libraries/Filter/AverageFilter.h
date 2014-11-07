@@ -59,6 +59,8 @@ typedef AverageFilter<int16_t,int32_t,2> AverageFilterInt16_Size2;
 typedef AverageFilter<int16_t,int32_t,3> AverageFilterInt16_Size3;
 typedef AverageFilter<int16_t,int32_t,4> AverageFilterInt16_Size4;
 typedef AverageFilter<int16_t,int32_t,5> AverageFilterInt16_Size5;
+typedef AverageFilter<int16_t,int32_t,8> AverageFilterInt16_Size8;
+
 typedef AverageFilter<uint16_t,uint32_t,2> AverageFilterUInt16_Size2;
 typedef AverageFilter<uint16_t,uint32_t,3> AverageFilterUInt16_Size3;
 typedef AverageFilter<uint16_t,uint32_t,4> AverageFilterUInt16_Size4;
