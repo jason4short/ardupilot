@@ -404,24 +404,6 @@ static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
     g.rc_3.calc_pwm();
     motors.throttle_pass_through(g.rc_3.radio_out);
 	delay(2000);
-
-    while(elapsed < duration) {
-        elapsed += 10;
-        delay(10);
-        
-        if(limited < (motor_output/2)){
-            limited += smoothing;
-        }
-        
-        limited = constrain_int16(limited, 0, (motor_output/2));
-        g.rc_3.servo_out = limited;
-        g.rc_3.calc_pwm();
-
-        // raise throttle
-        motors.throttle_pass_through(g.rc_3.radio_out);
-    }
-    
-    elapsed = 0;
     
     while(elapsed < duration) {
         elapsed += 10;
