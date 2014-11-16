@@ -204,7 +204,7 @@ static void update_land_detector()
 {
     // detect whether we have landed by watching for low climb rate, motors hitting their lower limit, overall low throttle and low rotation rate
     if ((abs(climb_rate) < LAND_DETECTOR_CLIMBRATE_MAX) &&
-        (abs(baro_climbrate) < LAND_DETECTOR_BARO_CLIMBRATE_MAX) &&
+        /*(abs(baro_climbrate) < LAND_DETECTOR_BARO_CLIMBRATE_MAX) &&*/
         motors.limit.throttle_lower &&
 #if FRAME_CONFIG != HELI_FRAME
         (motors.get_throttle_out() < get_non_takeoff_throttle()) &&
@@ -221,7 +221,11 @@ static void update_land_detector()
         }
     } else {
         // we've sensed movement up or down so reset land_detector
-        land_detector = 0;
+        if(land_detector >= 10)
+            land_detector -= 10;
+        else
+            land_detector = 0;
+        
         // if throttle output is high then clear landing flag
         if (motors.get_throttle_out() > get_non_takeoff_throttle()) {
             set_land_complete(false);
