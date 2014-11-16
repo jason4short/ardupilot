@@ -491,7 +491,7 @@
  # define LAND_START_ALT 1000         // altitude in cm where land controller switches to slow rate of descent
 #endif
 #ifndef LAND_DETECTOR_TRIGGER
- # define LAND_DETECTOR_TRIGGER 50    // number of 50hz iterations with near zero climb rate and low throttle that triggers landing complete.
+ # define LAND_DETECTOR_TRIGGER 150    // number of 50hz iterations with near zero climb rate and low throttle that triggers landing complete.
 #endif
 #ifndef LAND_DETECTOR_MAYBE_TRIGGER
  # define LAND_DETECTOR_MAYBE_TRIGGER   10  // number of 50hz iterations with near zero climb rate and low throttle that means we might be landed (used to reset horizontal position targets to prevent tipping over)
