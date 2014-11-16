@@ -63,13 +63,19 @@ static void drift_run()
     float roll_vel =  vel.y * ahrs.cos_yaw() - vel.x * ahrs.sin_yaw(); // body roll vel
     float pitch_vel = vel.y * ahrs.sin_yaw() + vel.x * ahrs.cos_yaw(); // body pitch vel
 
-    float pitch_vel2 = min(fabs(pitch_vel), 800);
+    //float pitch_vel2 = min(fabs(pitch_vel), 800);
+    //target_yaw_rate = (float)(target_roll/2.0f) * (1.0f - (pitch_vel2 / 2400.0f)) * g.acro_yaw_p;
+    
+    // medium
+    //float pitch_vel2 = min(fabs(pitch_vel), 2000);
+    //target_yaw_rate = (float)(target_roll/1.8f) * (1.0f - (pitch_vel2 / 5000.0f)) * g.acro_yaw_p;
 
-    // simple gain scheduling for yaw input
-    target_yaw_rate = (float)(target_roll/2.0f) * (1.0f - (pitch_vel2 / 2400.0f)) * g.acro_yaw_p;
+    // aggressive
+    float pitch_vel2 = min(fabs(pitch_vel), 2000);
+    target_yaw_rate = (float)(target_roll/1.5f) * (1.0f - (pitch_vel2 / 4000.0f)) * g.acro_yaw_p;
 
-    roll_vel = constrain_float(roll_vel, -322, 322);
-    pitch_vel = constrain_float(pitch_vel, -322, 322);
+    roll_vel    = constrain_float(roll_vel, -322, 322);
+    pitch_vel   = constrain_float(pitch_vel, -322, 322);
 
     // always limit roll
     target_roll = roll_vel * -DRIFT_SPEEDGAIN;
