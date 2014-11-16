@@ -8,7 +8,8 @@ static void read_control_switch()
 
     // calculate position of flight mode switch
     int8_t switch_position;
-    if      (g.rc_5.radio_in < 1231) switch_position = 0;
+    if      (g.rc_5.radio_in < 1000) switch_position = -1;
+    else if (g.rc_5.radio_in < 1231) switch_position = 0;
     else if (g.rc_5.radio_in < 1361) switch_position = 1;
     else if (g.rc_5.radio_in < 1491) switch_position = 2;
     else if (g.rc_5.radio_in < 1621) switch_position = 3;
@@ -30,9 +31,12 @@ static void read_control_switch()
         control_switch_state.debounced_switch_position = switch_position;
 
         // set flight mode and simple mode setting
-        if (set_mode(flight_modes[switch_position])) {
+        if (switch_position != -1 && set_mode(flight_modes[switch_position])) {
 
-            if(g.ch7_option != AUX_SWITCH_SIMPLE_MODE && g.ch8_option != AUX_SWITCH_SIMPLE_MODE && g.ch7_option != AUX_SWITCH_SUPERSIMPLE_MODE && g.ch8_option != AUX_SWITCH_SUPERSIMPLE_MODE) {
+            if(g.ch7_option != AUX_SWITCH_SIMPLE_MODE &&
+               g.ch8_option != AUX_SWITCH_SIMPLE_MODE && 
+               g.ch7_option != AUX_SWITCH_SUPERSIMPLE_MODE && 
+               g.ch8_option != AUX_SWITCH_SUPERSIMPLE_MODE) {
                 // set Simple mode using stored paramters from Mission planner
                 // rather than by the control switch
                 if (BIT_IS_SET(g.super_simple, switch_position)) {
