@@ -352,9 +352,13 @@ static int8_t test_input(uint8_t argc, const Menu::arg *argv)
     
     // make sure throttle is 1000-2000
     for (i = 1000; i <= 2000; i++){
+        delay(10);
         g.rc_3.set_pwm(i);
         scaled = get_pilot_desired_throttle(g.rc_3.control_in);
-        cliSerial->printf_P(PSTR("pwm in:%d, control_in %d, scaled: %d\n"), i, g.rc_3.control_in, scaled);
+        motors.set_throttle(scaled);
+        motors.output_armed();
+        
+        cliSerial->printf_P(PSTR("pwm in:%d, control_in %d, scaled: %d, b4: %d, after: %d\n"), i, g.rc_3.control_in, scaled, g.rc_1.servo_out, g.rc_2.servo_out );
     }    
     cliSerial->printf_P(PSTR("\n\nComplete\n"));
     return (0);
