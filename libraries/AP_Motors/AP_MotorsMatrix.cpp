@@ -327,9 +327,10 @@ void AP_MotorsMatrix::output_armed()
                                rpy_scale*rpy_out[i];
             }
         }
+        //_rc_roll.servo_out = motor_out[0];
 
         // adjust for throttle curve
-        /*
+        ///*
         if (_throttle_curve_enabled) {
             for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
                 if (motor_enabled[i]) {
@@ -337,7 +338,8 @@ void AP_MotorsMatrix::output_armed()
                 }
             }
         }
-        */
+        //*/
+        //_rc_pitch.servo_out = motor_out[0];
         
         // clip motor output if required (shouldn't be)
         for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
