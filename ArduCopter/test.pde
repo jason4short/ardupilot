@@ -16,6 +16,7 @@ static int8_t   test_relay(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_input(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor2(uint8_t argc,                const Menu::arg *argv);
+static int8_t   test_motor3(uint8_t argc,                const Menu::arg *argv);
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
 #endif
@@ -40,6 +41,7 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"input",               test_input},
     {"motor",               test_motor},
     {"motor2",              test_motor2},
+    {"motor3",              test_motor3},
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     {"shell", 				test_shell},
 #endif
@@ -405,6 +407,7 @@ static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
     motors.throttle_pass_through(g.rc_3.radio_out);
 	delay(2000);
 
+    /*
     while(elapsed < duration) {
         elapsed += 10;
         delay(10);
@@ -422,6 +425,7 @@ static int8_t test_motor(uint8_t argc, const Menu::arg *argv)
     }
     
     elapsed = 0;
+    */
     
     while(elapsed < duration) {
         elapsed += 10;
@@ -457,7 +461,7 @@ static int8_t test_motor2(uint8_t argc, const Menu::arg *argv)
 	}
     uint32_t elapsed;
     uint32_t duration       = (uint32_t)argv[2].i * 1000;
-	duration                = min(duration, 3000000);
+	duration                = min(duration, 30000000);
 	
     int16_t motor_output    = argv[1].i;
 
@@ -493,7 +497,7 @@ static int8_t test_motor2(uint8_t argc, const Menu::arg *argv)
 	elapsed = 0;
 
 	// raise throttle to throttle_min
-    while(elapsed < 2000000) {
+    while(elapsed < (2 * 1000000)) {
         elapsed += 2500;
         hal.scheduler->delay_microseconds(2500);
 
@@ -519,6 +523,85 @@ static int8_t test_motor2(uint8_t argc, const Menu::arg *argv)
     motors.throttle_pass_through(g.rc_3.radio_min);
 
     cliSerial->printf_P(PSTR("\nComplete  %d,  %d !\n"), g.rc_3.radio_out, motorFilter.apply(g.rc_3.radio_out));
+    return (0);
+}
+
+static int8_t test_motor3(uint8_t argc, const Menu::arg *argv)
+{
+    uint32_t elapsed;
+	    
+    // arm and enable motors
+    motors.armed(true);
+    motors.enable();
+    
+    // reduce throttle to minimum
+    motors.throttle_pass_through(g.rc_3.radio_min);
+
+
+	cliSerial->printf_P(PSTR("\n\nHold on to your F'in hats... in 5 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("4 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("3 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("2 .. "));
+	delay(1000);
+	cliSerial->printf_P(PSTR("1\n"));
+
+	// reset the time;
+	elapsed = 0;
+
+	// raise throttle to throttle_min
+    while(elapsed < (2 * 1000000)) {
+        elapsed += 2500;
+        hal.scheduler->delay_microseconds(2500);
+
+        // raise throttle
+        motors.throttle_pass_through(motorFilter.apply(g.rc_3.radio_min+100));
+    }
+    cliSerial->printf_P(PSTR("warmed up\n"));
+
+	// reset the time;
+	elapsed = 0;
+	
+
+	// raise throttle to throttle_min
+    while(elapsed < (1 * 1000000)) {
+        elapsed += 2500;
+        hal.scheduler->delay_microseconds(2500);
+
+        // raise throttle
+        hal.rcout->write(0, 1725); // front right
+        hal.rcout->write(1, 1725); // back left
+        hal.rcout->write(2, 1600); // front left
+        hal.rcout->write(3, 1100); // back right
+        
+    }
+    //cliSerial->printf_P(PSTR("yaw up\n"));
+
+	// reset the time;
+	elapsed = 0;
+	
+	// raise throttle to throttle_min
+    while(elapsed < (1 * 1000000)) {
+        elapsed += 2500;
+        hal.scheduler->delay_microseconds(2500);
+
+        // raise throttle
+        hal.rcout->write(0, 1100); // front right
+        hal.rcout->write(1, 1100); // back left
+        hal.rcout->write(2, 1100); // front left
+        hal.rcout->write(3, 1600); // back right   
+    }
+    //cliSerial->printf_P(PSTR("warmed up\n"));
+
+	// reset the time;
+	elapsed = 0;
+	
+	
+    motors.throttle_pass_through(g.rc_3.radio_min);
+
+    cliSerial->printf_P(PSTR("\nComplete\n"));
     return (0);
 }
 
