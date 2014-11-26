@@ -75,7 +75,11 @@ static void drift_run()
     roll_vel = constrain_float(roll_vel, -DRIFT_SPEEDLIMIT, DRIFT_SPEEDLIMIT);
     pitch_vel = constrain_float(pitch_vel, -DRIFT_SPEEDLIMIT, DRIFT_SPEEDLIMIT);
     
-    roll_input = roll_input * .96 + (float)g.rc_4.control_in * .04;
+    if(g.rc_3.control_in > 0){
+        roll_input = roll_input * .96 + (float)g.rc_4.control_in * .04;
+    }else {
+        roll_input = 0;
+    }
 
     //convert user input into desired roll velocity
     float roll_vel_error = roll_vel - (roll_input / DRIFT_SPEEDGAIN);
@@ -87,8 +91,9 @@ static void drift_run()
     // If we let go of sticks, bring us to a stop
     if(target_pitch == 0){
         // .14/ (.03 * 100) = 4.6 seconds till full breaking
-        breaker += .03;
-        breaker = min(breaker, DRIFT_SPEEDGAIN);
+        // .14/ (.02 * 100) = 4.6 seconds till full breaking
+        breaker += .018;
+        breaker = min(breaker, DRIFT_SPEEDGAIN);  // 8
         target_pitch = pitch_vel * breaker;
     }else{
         breaker = 0.0;
