@@ -51,3 +51,5 @@ Make.dep
 *.tlog
 
 .DS_Store
+
+/ArduCopter/px4io-v1.bin
