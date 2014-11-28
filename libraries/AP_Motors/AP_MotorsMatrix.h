@@ -17,7 +17,7 @@
 
 #define AP_MOTORS_MATRIX_YAW_LOWER_LIMIT_PWM    200
 
-#define THROTTLE_SLEW 20
+#define THROTTLE_SLEW 15
 
 /// @class      AP_MotorsMatrix
 class AP_MotorsMatrix : public AP_Motors {
@@ -76,10 +76,10 @@ protected:
     // output - sends commands to the motors
     int16_t             throttle_limited;
 
-    AverageFilterInt16_Size4 _motor_1_filter;
-    AverageFilterInt16_Size4 _motor_2_filter;
-    AverageFilterInt16_Size4 _motor_3_filter;
-    AverageFilterInt16_Size4 _motor_4_filter;
+    AverageFilterInt16_Size8 _motor_1_filter;
+    AverageFilterInt16_Size8 _motor_2_filter;
+    AverageFilterInt16_Size8 _motor_3_filter;
+    AverageFilterInt16_Size8 _motor_4_filter;
 
     // add_motor using raw roll, pitch, throttle and yaw factors
     void                add_motor_raw(int8_t motor_num, float roll_fac, float pitch_fac, float yaw_fac, uint8_t testing_order);
