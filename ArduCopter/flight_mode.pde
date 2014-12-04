@@ -75,6 +75,10 @@ static bool set_mode(uint8_t mode)
             success = drift_init(ignore_checks);
             break;
 
+        case GAMER:
+            success = gamer_init(ignore_checks);
+            break;
+
         case SPORT:
             success = sport_init(ignore_checks);
             break;
@@ -181,6 +185,10 @@ static void update_flight_mode()
             drift_run();
             break;
 
+        case GAMER:
+            gamer_run();
+            break;
+
         case SPORT:
             sport_run();
             break;
@@ -245,6 +253,7 @@ static bool mode_requires_GPS(uint8_t mode) {
         case RTL:
         case CIRCLE:
         case DRIFT:
+        case GAMER:
         case POSHOLD:
             return true;
         default:
@@ -315,6 +324,9 @@ print_flight_mode(AP_HAL::BetterStream *port, uint8_t mode)
         break;
     case DRIFT:
         port->print_P(PSTR("DRIFT"));
+        break;
+    case GAMER:
+        port->print_P(PSTR("GAMER"));
         break;
     case SPORT:
         port->print_P(PSTR("SPORT"));

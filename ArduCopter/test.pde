@@ -17,6 +17,9 @@ static int8_t   test_input(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor2(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor3(uint8_t argc,                const Menu::arg *argv);
+static int8_t   test_gimbal(uint8_t argc,                const Menu::arg *argv);
+static int8_t   test_gimbal2(uint8_t argc,                const Menu::arg *argv);
+
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
 #endif
@@ -42,6 +45,8 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"motor",               test_motor},
     {"motor2",              test_motor2},
     {"motor3",              test_motor3},
+    {"gimbal",              test_gimbal},
+    {"gimbal2",              test_gimbal2},
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     {"shell", 				test_shell},
 #endif
@@ -604,6 +609,53 @@ static int8_t test_motor3(uint8_t argc, const Menu::arg *argv)
     cliSerial->printf_P(PSTR("\nComplete\n"));
     return (0);
 }
+
+
+static int8_t test_gimbal(uint8_t argc, const Menu::arg *argv)
+{
+ 
+    int16_t ch_out = argv[1].i;
+    float angle_out = argv[2].f;
+       
+    //RC_Channel_aux::move_servo(RC_Channel_aux::k_gimbal_tilt, angle_out, 0, 9000);
+    //RC_Channel_aux::set_servo_out(RC_Channel_aux::k_gimbal_tilt, angle_out);
+    
+    // val 13 = Aux 6
+    // val 12 = Aux 5
+    // val 11 = Aux 4
+    // val 10 = Aux 3
+    // val 9 = Aux 2
+    // val 8 = Aux 1
+    
+    angle_out = constrain_float(angle_out, 0, 9000);
+    angle_out = 1520 - (angle_out * 520)/9000;
+
+    hal.rcout->enable_ch(ch_out);
+    hal.rcout->write(ch_out, (int16_t)angle_out); //
+ 
+    cliSerial->printf_P(PSTR("\nGimbal!, %d\n"), angle_out);
+    return (0);
+}
+
+static int8_t test_gimbal2(uint8_t argc, const Menu::arg *argv)
+{
+
+    print_hit_enter();
+    hal.rcout->enable_ch(8);
+
+    delay(1000);
+
+    while(1) {
+        delay(20);
+        read_radio();
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+        gimbal_run(g.rc_2.control_in);
+
+    }
+}
+
 
 
 static int8_t test_relay(uint8_t argc, const Menu::arg *argv)
