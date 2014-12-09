@@ -166,6 +166,24 @@ void AP_MotorsMatrix::output_armed()
     _rc_pitch.calc_pwm();
     _rc_throttle.calc_pwm();
     _rc_yaw.calc_pwm();
+
+    
+    ///*
+    // basic yaw slew filter!
+    if(_rc_yaw.pwm_out > yaw_limited){
+        // limit the increase in yaw
+        yaw_limited += YAW_SLEW;
+        yaw_limited = min(yaw_limited, _rc_yaw.pwm_out);
+
+    }else if(_rc_yaw.pwm_out < yaw_limited){
+        yaw_limited -= YAW_SLEW;
+        yaw_limited = max(yaw_limited, _rc_yaw.pwm_out);
+
+    }
+    _rc_yaw.pwm_out = yaw_limited;
+    //*/
+    
+    //_rc_yaw.pwm_out = 0;
     
     if(_rc_throttle.radio_out > throttle_limited){
         // limit the increase in throttle
