@@ -19,6 +19,7 @@ static int8_t   test_motor2(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_motor3(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_gimbal(uint8_t argc,                const Menu::arg *argv);
 static int8_t   test_gimbal2(uint8_t argc,                const Menu::arg *argv);
+static int8_t   test_gimbal3(uint8_t argc,                const Menu::arg *argv);
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
 static int8_t   test_shell(uint8_t argc,                const Menu::arg *argv);
@@ -47,6 +48,7 @@ const struct Menu::command test_menu_commands[] PROGMEM = {
     {"motor3",              test_motor3},
     {"gimbal",              test_gimbal},
     {"gimbal2",              test_gimbal2},
+    {"gimbal3",              test_gimbal3},
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4 || CONFIG_HAL_BOARD == HAL_BOARD_VRBRAIN
     {"shell", 				test_shell},
 #endif
@@ -651,9 +653,30 @@ static int8_t test_gimbal2(uint8_t argc, const Menu::arg *argv)
         if(cliSerial->available() > 0) {
             return (0);
         }
-        gimbal_run(g.rc_2.control_in);
+        gimbal_run_manual(g.rc_2.control_in);
 
     }
+}
+
+static int8_t test_gimbal3(uint8_t argc, const Menu::arg *argv)
+{
+
+    print_hit_enter();
+    hal.rcout->enable_ch(8);
+
+    delay(1000);
+    //gimbal_run_manual(g.rc_2.control_in);
+    
+    calc_roi_from_gimbal();
+    while(1) {
+        delay(20);
+        read_radio();
+        if(cliSerial->available() > 0) {
+            return (0);
+        }
+        gimbal_run_roi();
+    }
+    
 }
 
 
