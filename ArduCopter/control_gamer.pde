@@ -4,9 +4,13 @@
  * control_drift.pde - init and run calls for drift flight mode
  */
 
+static bool gamer_roi;
+
 // drift_init - initialise drift controller
 static bool gamer_init(bool ignore_checks)
 {
+    gamer_roi = false;
+    
     if (GPS_ok() || ignore_checks) {
         hal.rcout->enable_ch(8);
        return true;
@@ -19,27 +23,53 @@ static bool gamer_init(bool ignore_checks)
 // should be called at 100hz or more
 static void gamer_run()
 {
-    float target_yaw_rate;
+    float target_yaw_rate = 0;
     float target_climb_rate = 0;
-    static int16_t yaw_in;
-
-
+    static int16_t yaw_in = 0;
+    
     if (ap.new_radio_frame) {
-        
-        // gimbal control:
-        gimbal_run(g.rc_2.control_in);
+
+        // remapping
+        g.rc_1.control_in = g.rc_2.control_in;
+        // clear pitch input to make the rails simulation work
         g.rc_2.control_in = 0;
 
         // yaw control
-        yaw_in  = g.rc_1.control_in / 2;
+        yaw_in  = g.rc_4.control_in / 2;
 
         // switch roll and yaw input
-        g.rc_1.control_in = g.rc_4.control_in;        
+        //g.rc_1.control_in = g.rc_4.control_in;        
         
-
-
         // apply SIMPLE mode transform to pilot inputs
         update_simple_mode();
+
+        float tilt_input = (float)(g.rc_3.radio_in - g.rc_3.radio_trim) / 500.0;
+
+        // look for CH7 to go high to enter ROI lock mode
+        //if(g.rc_7.radio_in > 1500){
+        if((g.rc_4.control_in == 0) && (fabs(tilt_input) < .022)){
+            if(!gamer_roi){
+                gamer_roi = true;
+                calc_roi_from_gimbal();
+            }
+        }else{
+            gamer_roi = false;
+        }
+        
+                
+
+
+        // this is a big Maybe!
+        // we may want to try a version where we let the user
+        // maintain manual gimbal control, but Yaw is given to ROI controller.
+        if(gamer_roi){
+        //if(fabs(tilt_input) < .02){
+            // tilt is run by the gimbal
+            gimbal_run_roi();
+        }else{
+            // gimbal control:
+            gimbal_run_manual(tilt_input * -4500.0);
+        }
     }
     
     
@@ -62,7 +92,8 @@ static void gamer_run()
         target_yaw_rate = get_pilot_desired_yaw_rate(yaw_in);
 
         // get pilot desired climb rate
-        target_climb_rate = get_pilot_desired_climb_rate(g.rc_3.control_in);
+        //target_climb_rate = get_pilot_desired_climb_rate(g.rc_3.control_in);
+        target_climb_rate = 0;
 
         // check for pilot requested take-off
         if (ap.land_complete && target_climb_rate > 0) {
@@ -95,12 +126,19 @@ static void gamer_run()
         wp_nav.update_loiter();
 
         // call attitude controller
-        attitude_control.angle_ef_roll_pitch_rate_ef_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
+        if (gamer_roi) {
+            // roll, pitch from waypoint controller, yaw heading from auto_heading()
+            attitude_control.angle_ef_roll_pitch_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), get_roi_yaw(), true);
+        }else{
+            // roll & pitch from waypoint controller, yaw rate from pilot
+            attitude_control.angle_ef_roll_pitch_rate_ef_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);
+        }
 
 
         // update altitude target and call position controller
-        pos_control.set_alt_target_from_climb_rate(target_climb_rate, G_Dt);
+        pos_control.set_alt_target_from_climb_rate(0, G_Dt);
         pos_control.update_z_controller();
     }
 }
+
 
