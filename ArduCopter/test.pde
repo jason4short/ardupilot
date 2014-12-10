@@ -667,7 +667,7 @@ static int8_t test_gimbal3(uint8_t argc, const Menu::arg *argv)
     delay(1000);
     //gimbal_run_manual(g.rc_2.control_in);
     
-    calc_roi_from_gimbal();
+    calc_roi_from_angle(45);
     while(1) {
         delay(20);
         read_radio();
