@@ -44,7 +44,7 @@ gimbal_run_roi()
     //_position.z     = 1000; // XXX
     deltaX          = _position.x - roi_WP.x;
     deltaY          = _position.y - roi_WP.y;
-    
+
 	// Calc distance to ROI
 	wp_distance     = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
 
@@ -115,10 +115,10 @@ get_camera_angle ()
 
 
 static void
-calc_roi_from_gimbal()
+calc_roi_from_angle(float _camera_angle)
 {
     Vector3f _position;
-    float _camera_angle, distance;
+    float _distance;
     
 	// grab the relative location of the vehicle
 	_position = inertial_nav.get_position();
@@ -129,22 +129,22 @@ calc_roi_from_gimbal()
 	//camera_angle = 63.4349488; // XXX
 	
 	// limit the range of the camera angle so we don't gimbal lock or look too far out.
-	_camera_angle = constrain_float(camera_angle, 1, 80);
+	_camera_angle = constrain_float(_camera_angle, 1, 80);
 
-    // calc distance
-    distance = (1/tan(_camera_angle * .0174533f)) * _position.z;
+    // calc _distance
+    _distance = (1/tan(_camera_angle * .0174533f)) * _position.z;
     
-    // rotate distance to world frame
+    // rotate _distance to world frame
     //Lat N/S:
-    roi_WP.x = _position.x + (ahrs.cos_yaw() * distance);
+    roi_WP.x = _position.x + (ahrs.cos_yaw() * _distance);
 
     //lon E/W
-    roi_WP.y = _position.y + (ahrs.sin_yaw() * distance);
+    roi_WP.y = _position.y + (ahrs.sin_yaw() * _distance);
     
     // defaulting to 2m heigh (a person's face)
-    roi_WP.z = 0;
+    //roi_WP.z = 0;
     
-    //cliSerial->printf_P(PSTR("ROI: an:%1.3f, yaw:%1.2f, sin:%1.3f, cos:%1.3f, dis:%1.3f, x:%1.3f, y:%1.3f\n"), _camera_angle, (float)ahrs.yaw_sensor, ahrs.sin_yaw(), ahrs.cos_yaw(), distance, roi_WP.x, roi_WP.y);
+    //cliSerial->printf_P(PSTR("ROI: an:%1.3f, yaw:%1.2f, sin:%1.3f, cos:%1.3f, dis:%1.3f, x:%1.3f, y:%1.3f\n"), _camera_angle, (float)ahrs.yaw_sensor, ahrs.sin_yaw(), ahrs.cos_yaw(), _distance, roi_WP.x, roi_WP.y);
 }
 //ROI: an:9000.000, yaw:35932.00, sin:-0.011, cos:0.999, dis:-1.281, x:0.015, y:-1.281
 
