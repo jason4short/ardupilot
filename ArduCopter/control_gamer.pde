@@ -130,7 +130,7 @@ static void gamer_run()
         pos_control.set_alt_target_to_current_alt();
     }else{
         // run loiter controller
-        wp_nav.update_loiter();
+        wp_nav.update_loiter(ekfGndSpdLimit, ekfNavVelGainScaler);
 
         // call attitude controller
         if (gamer_roi) {
