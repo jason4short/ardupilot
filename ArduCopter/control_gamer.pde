@@ -5,9 +5,7 @@
  */
 
 static bool gamer_roi;
-static bool yaw_override;
-
-static float initial_camera_angle;
+static float yaw_override;
 
 // drift_init - initialise drift controller
 static bool gamer_init(bool ignore_checks)
@@ -34,58 +32,51 @@ static void gamer_run()
 
         // remapping
         g.rc_1.control_in = g.rc_2.control_in;
+
         // clear pitch input to make the rails simulation work
         g.rc_2.control_in = 0;
-
-        // yaw control
-        //yaw_in  = g.rc_4.control_in / 2;
-
-        // switch roll and yaw input
-        //g.rc_1.control_in = g.rc_4.control_in;        
         
         // apply SIMPLE mode transform to pilot inputs
         update_simple_mode();
 
         float tilt_input = (float)(g.rc_3.radio_in - g.rc_3.radio_trim) / 500.0;
         yaw_in = (float)(g.rc_4.radio_in - g.rc_4.radio_trim) / 500.0;
-        yaw_in *= 2000;
-
-        //if((g.rc_4.control_in == 0) && (fabs(tilt_input) < .022)){
-        yaw_override = false;
 
         // look for CH7 to go high to enter ROI lock mode
         if(g.rc_7.radio_in > 1500){
             if(!gamer_roi){
                 //store initial angle
-                initial_camera_angle = get_camera_angle();
                 gamer_roi = true;
-                calc_roi_from_angle(initial_camera_angle);
+                calc_roi_from_angle(get_camera_angle());
                 // init Z
                 roi_WP.z = 0;
-            }else{
-                if(g.rc_4.control_in != 0){
-                    yaw_override = true;
-                    // reposition ROI
-                    calc_roi_from_angle(initial_camera_angle);
-                }
             }
         }else{
             gamer_roi = false;
         }
         
 
-        if(gamer_roi && fabs(tilt_input) > .06){
-            // move the Z of the ROI        
-            roi_WP.z += tilt_input * 8;
+        if(gamer_roi){
+            // adjust the Z height of the ROI
+            if (fabs(tilt_input) > .06){
+                // move the Z of the ROI
+                roi_WP.z += tilt_input * (get_roi_distance()/100.0);
+                // limit ROI to a sensible range
+                roi_WP.z = constrain_float(roi_WP.z, -2000, inertial_nav.get_altitude());
+            }
             gimbal_run_roi();
-            
-        }else if(gamer_roi){
-            gimbal_run_roi();
+            // simple low pass for jumpy yaw control
+            yaw_override = (yaw_override * .90) + (yaw_in * 6000.0 * .10);
             
         }else{
             // manual gimbal control:
             gimbal_run_manual(tilt_input * -4500.0);
+        
+            // store Yaw input to rotate copter in manual mode
+            yaw_in *= 2000;
         }
+        
+
     }
     
     
@@ -142,9 +133,9 @@ static void gamer_run()
         wp_nav.update_loiter();
 
         // call attitude controller
-        if (gamer_roi && !yaw_override) {
+        if (gamer_roi) {
             // roll, pitch from waypoint controller, yaw heading from auto_heading()
-            attitude_control.angle_ef_roll_pitch_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), get_roi_yaw(), true);
+            attitude_control.angle_ef_roll_pitch_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), get_roi_yaw() + yaw_override, true);
         }else{
             // roll & pitch from waypoint controller, yaw rate from pilot
             attitude_control.angle_ef_roll_pitch_rate_ef_yaw(wp_nav.get_roll(), wp_nav.get_pitch(), target_yaw_rate);

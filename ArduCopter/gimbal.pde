@@ -8,6 +8,7 @@ static float camera_input_rate; // -1 tp 1
 
 static float max_camera_angle = 90;
 static float min_camera_angle;
+static float roi_distance;
 
 
 static void 
@@ -34,7 +35,7 @@ gimbal_run_manual(int16_t stick_input)
 static void 
 gimbal_run_roi()
 {
-    float deltaX, deltaY, wp_distance;
+    float deltaX, deltaY;
     Vector3f _position;
 	
 	// grab the relative location of the vehicle
@@ -45,11 +46,12 @@ gimbal_run_roi()
     deltaX          = _position.x - roi_WP.x;
     deltaY          = _position.y - roi_WP.y;
 
+
 	// Calc distance to ROI
-	wp_distance     = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
+	roi_distance     = safe_sqrt(deltaX * deltaX + deltaY * deltaY);
 
 	// Calc Angle of camera (0 = level, 90 = straight down)
-	camera_angle    = degrees(fast_atan2((_position.z - roi_WP.z), wp_distance)) ;
+	camera_angle    = degrees(fast_atan2((_position.z - roi_WP.z), roi_distance)) ;
 	camera_angle    = constrain_float(camera_angle, 0, 90); // 0 to 90
 
     output_gimbal_pwm();
@@ -113,6 +115,12 @@ get_camera_angle ()
     return camera_angle;
 }
 
+static float 
+get_roi_distance()
+{
+    return roi_distance;
+}
+
 
 static void
 calc_roi_from_angle(float _camera_angle)
@@ -133,6 +141,9 @@ calc_roi_from_angle(float _camera_angle)
 
     // calc _distance
     _distance = (1/tan(_camera_angle * .0174533f)) * _position.z;
+    
+    // limit distance to 3x the altitude (18°)
+    _distance = min(_distance, (_position.z * 3.0));
     
     // rotate _distance to world frame
     //Lat N/S:
