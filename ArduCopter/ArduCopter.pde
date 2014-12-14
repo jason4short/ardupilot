@@ -1038,18 +1038,20 @@ static void throttle_loop()
 // should be run at 50hz
 static void update_mount()
 {
+gimbal_update();
+
 #if MOUNT == ENABLED
     // update camera mount's position
-    camera_mount.update_mount_position();
+    //camera_mount.update_mount_position();
 #endif
 
 #if MOUNT2 == ENABLED
     // update camera mount's position
-    camera_mount2.update_mount_position();
+    //camera_mount2.update_mount_position();
 #endif
 
 #if CAMERA == ENABLED
-    camera.trigger_pic_cleanup();
+    //camera.trigger_pic_cleanup();
 #endif
 }
 

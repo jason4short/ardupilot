@@ -29,7 +29,7 @@ gimbal_run_manual(int16_t stick_input)
         camera_rate = 0;
         camera_angle = max_camera_angle;
     }
-    output_gimbal_pwm();
+    //gimbal_update();
 }
 
 static void 
@@ -54,16 +54,32 @@ gimbal_run_roi()
 	camera_angle    = degrees(fast_atan2((_position.z - roi_WP.z), roi_distance)) ;
 	camera_angle    = constrain_float(camera_angle, 0, 90); // 0 to 90
 
-    output_gimbal_pwm();
+    //gimbal_update();
 }
 
 static void
-output_gimbal_pwm()
+gimbal_update()
 {
-    // 0 = level
-    // 90 = straight down
-    //cliSerial->printf_P(PSTR("%1.2f\n"), camera_angle);
-    hal.rcout->write(8, (int16_t)(1000 + (1 - (camera_angle / 90.0)) * 520));
+    if(control_mode == GAMER){
+        // Super hack
+        g.rc_9.function = 0;
+        
+        // 0 = level
+        // 90 = straight down
+        //cliSerial->printf_P(PSTR("%1.2f\n"), camera_angle);
+        hal.rcout->write(8, (int16_t)(1000 + (1 - (camera_angle / 90.0)) * 520));
+
+    }else{
+
+        g.rc_9.function = 7;
+        
+        // pass through CH6 to Gimbal
+        //hal.rcout->write(8, g.rc_6.radio_in);
+        
+        // update camera mount's position
+        camera_mount.update_mount_position();
+    }
+
 }
 
 
