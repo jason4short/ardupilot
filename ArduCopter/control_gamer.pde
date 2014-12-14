@@ -35,6 +35,8 @@ static void gamer_run()
 
         // clear pitch input to make the rails simulation work
         g.rc_2.control_in = 0;
+
+        set_simple_mode(1);
         
         // apply SIMPLE mode transform to pilot inputs
         update_simple_mode();
